@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.3.20"
+    application
 }
 
 group = "Web-App-Ressourcix"
@@ -19,4 +20,18 @@ kotlin {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "MainKt"
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
+application {
+    mainClass.set("MainKt")
 }
