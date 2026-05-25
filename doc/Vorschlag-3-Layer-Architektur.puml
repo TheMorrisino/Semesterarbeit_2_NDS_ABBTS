@@ -1,0 +1,96 @@
+@startuml Ressourcix_3_Layerschicht
+
+
+
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam component {
+  BackgroundColor #D6E4F0
+  BorderColor #2E75B6
+  FontColor #1F3864
+
+}
+
+skinparam package {
+  BackgroundColor #EBF3FB
+  BorderColor #5B9BD5
+  FontColor #1F3864
+  FontStyle bold
+}
+
+skinparam interface {
+  BackgroundColor #FFFFFF
+  BorderColor #2E75B6
+}
+
+skinparam arrow {
+  Color #2E75B6
+}
+
+title Ressourcix – Komponentendiagramm
+
+
+component "View Layer (Applikation)" {
+    [Web-App]
+
+
+}
+
+component "Logik Layer (DMZ Server)" {
+    [Api-Gateway]
+    [Backend]
+    [Autenifizierung]
+    [Logging & Monitoring]
+
+}
+
+component "Data Layer (Datenbank)" {
+    [Datenbank]
+
+}
+
+
+
+interface interface_VL
+interface interface_LD
+
+
+[Web-App] --> interface_VL
+interface_VL --> [Api-Gateway]
+[Backend] --> interface_LD
+interface_LD --> [Datenbank]
+[Api-Gateway] --> [Autenifizierung]
+[Autenifizierung] --> [Backend]
+[Backend] --> [Logging & Monitoring]
+
+
+note right of "View Layer (Applikation)"
+ - Das GUI für die Nutzer (Fronted)
+ - User Cases sind hier drin$
+end note
+
+note right of "Logik Layer (DMZ Server)"
+[Api-Gateway]
+  - Blockiert übermässige Anfragen
+  - Kein direkter DB-Zugriff möglich
+
+[Autenifizierung]
+  - Nur berechtige Nutzer werden zugelassen.
+
+[Backend]
+  - Die Logik ist hier drin verankert.
+  - User Cases sind hier drin
+
+[Logging & Monitoring]
+ - Hier wird der Logger betrieben.
+ - Status abfragen mit der DB.
+end note
+
+
+note right of "Data Layer (Datenbank)"
+ - PostgreSQL ist eine grosse Datenbank die weit verbreitet ist.
+end note
+
+
+@enduml

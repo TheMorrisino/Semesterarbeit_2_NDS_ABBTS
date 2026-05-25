@@ -14,5 +14,5 @@ Dieses Projekt soll mit Gradle in der IDE IntelliJ verwaltet und bearbeitet werd
 
 1. Repository klonen:
    ```bash
-   git clone https://github.com/benutzer/projektname.git
+   git clone https://github.com/TheMorrisino/Semesterarbeit_2_NDS_ABBTS.git
 
