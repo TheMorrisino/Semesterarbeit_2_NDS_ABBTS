@@ -3,10 +3,30 @@
 Kurze Beschreibung, was das Projekt macht und wofür es gedacht ist.
 
 ## Voraussetzungen
+- **Gradle**: Version gradle-9.2.1
+- **IDE**: IntelliJ IDEA 
+- **JDK** AZULU 21.0.10
 
-- **Java**: Version XX (z.B. 17 oder 21)
-- **Gradle**: Version X.X
-- **IDE**: IntelliJ IDEA (empfohlen)
+**Java-version**
+- openjdk version "21.0.10" 2026-01-20
+- OpenJDK Runtime Environment (build 21.0.10+7)
+- OpenJDK 64-Bit Server VM (build 21.0.10+7, mixed mode, sharing)
+
+**IDE Version**
+- IntelliJ IDEA 2026.1.1
+- Build #IU-261.23567.138
+
+**Abfragen**
+- IDE Version
+```
+idea --version
+```
+
+- Java-Version
+```
+java --version
+```
+
 
 ## Einrichtung
 
