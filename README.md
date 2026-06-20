@@ -36,3 +36,11 @@ Dieses Projekt soll mit Gradle in der IDE IntelliJ verwaltet und bearbeitet werd
    ```bash
    git clone https://github.com/TheMorrisino/Semesterarbeit_2_NDS_ABBTS.git
 
+How to name your supporting branch prefixes?
+Storys branches? [S-01/]
+   - Bsp [S-01/1-Status Farblich anzeigen]
+   - 
+Release branches? [release/]
+Hotfix branches? [hotfix/]
+Support branches? [support/]
+Version tag prefix? []
