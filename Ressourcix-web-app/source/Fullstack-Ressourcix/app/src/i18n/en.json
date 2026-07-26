@@ -3,6 +3,8 @@
     "title": "Application",
     "name": "My Application",
     "subtitle": "Vuetify",
+    "subtitle2":"Verwatlung",
+    "subtitle3":"Konto",
     "nav": {
       "home": "Home",
       "gallery": "Gallery",

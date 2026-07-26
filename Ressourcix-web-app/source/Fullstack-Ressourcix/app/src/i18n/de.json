@@ -1,12 +1,14 @@
 {
   "app": {
-    "title": "Anwendung",
-    "name": "Meine Anwendung",
-    "subtitle": "Vuetify",
+    "title": "Ressourcix",
+    "name": "Konto",
+    "subtitle": "Übersicht",
+    "subtitle2":"Verwaltung",
     "nav": {
       "home": "Startseite",
       "gallery": "Galerie",
-      "about": "Ueber"
+      "about": "Über",
+      "employees" : "Mitarbeiter"
     }
   },
   "user": {
@@ -21,5 +23,18 @@
     "emptyTitle": "Noch keine Bilder vorhanden",
     "emptyText": "Lade Bilder hoch, um deine Galerie zu fuellen.",
     "uploadDisabledHint": "Bitte waehle zuerst mindestens ein Bild aus."
-  }
+  },
+  "mitarbeitende": {
+  "titel": "Mitarbeitende",
+  "verwalten": "Mitarbeitende verwalten",
+  "neuErfassen": "Neu erfassen",
+  "rolle": "Rolle",
+  "pensum": "Pensum",
+  "ferienwochen": "Ferienwochen",
+  "konto": "Konto"
+},
+"common": {
+  "name": "Name", "aktion": "Aktion", "suchen": "Suchen...",
+  "aktiv": "Aktiv", "deaktiviert": "Deaktiviert"
+}
 }

@@ -7,6 +7,8 @@ var appSettings = builder.Configuration.Get<AppSettings>();
 
 ArgumentNullException.ThrowIfNull(appSettings);
 
+builder.Services.AddSingleton<MitarbeitendeStore>();   // ← NEU: hier einfügen
+
 builder.SetupSpaMiddleware(appSettings);
 
 var app = builder.Build();
@@ -29,6 +31,8 @@ var contentTypesByExtension = new Dictionary<string, string>(StringComparer.Ordi
   [".jpeg"] = "image/jpeg",
   [".png"] = "image/png",
 };
+
+
 
 app.UseStaticFiles();
 
@@ -134,6 +138,21 @@ app.MapDelete(
     }
   }
 );
+
+app.MapGet("/api/mitarbeitende", (MitarbeitendeStore store) =>
+    Results.Ok(store.Alle()));
+
+app.MapPost("/api/mitarbeitende", (Mitarbeitender neu, MitarbeitendeStore store) =>
+{
+    var erstellt = store.Erstelle(neu);
+    return Results.Created($"/api/mitarbeitende/{erstellt.Id}", erstellt);
+});
+
+app.MapPut("/api/mitarbeitende/{id}/toggle-aktiv", (Guid id, MitarbeitendeStore store) =>
+    store.ToggleAktiv(id) ? Results.Ok() : Results.NotFound());
+
+app.MapPut("/api/mitarbeitende/{id}", (Guid id, Mitarbeitender aktualisiert, MitarbeitendeStore store) =>
+    store.Aktualisiere(id, aktualisiert) ? Results.Ok() : Results.NotFound());
 
 app.MapSinglePageApps(appSettings);
 

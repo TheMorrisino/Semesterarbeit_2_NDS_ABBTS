@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     lines="two"
-    prepend-avatar="https://randomuser.me/api/portraits/lego/1.jpg"
+    prepend-avatar="https://randomuser.me/api/portraits/lego/2.jpg"
     :subtitle="t('user.guestMode')"
     :title="t('user.notLoggedIn')"
   />

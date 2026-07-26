@@ -3,6 +3,7 @@
     "title": "Application",
     "name": "Mon application",
     "subtitle": "Vuetify",
+    "subtitle2":"---",
     "nav": {
       "home": "Accueil",
       "gallery": "Galerie",
