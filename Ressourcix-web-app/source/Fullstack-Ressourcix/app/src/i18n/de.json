@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "Anwendung",
+    "name": "Meine Anwendung",
+    "subtitle": "Vuetify",
+    "nav": {
+      "home": "Startseite",
+      "gallery": "Galerie",
+      "about": "Ueber"
+    }
+  },
+  "user": {
+    "guestMode": "Gastmodus",
+    "notLoggedIn": "Nicht angemeldet"
+  },
+  "gallery": {
+    "upload": "Hochladen",
+    "reload": "Nachladen",
+    "delete": "Loeschen",
+    "emptyHeadline": "Keine Bilder",
+    "emptyTitle": "Noch keine Bilder vorhanden",
+    "emptyText": "Lade Bilder hoch, um deine Galerie zu fuellen.",
+    "uploadDisabledHint": "Bitte waehle zuerst mindestens ein Bild aus."
+  }
+}

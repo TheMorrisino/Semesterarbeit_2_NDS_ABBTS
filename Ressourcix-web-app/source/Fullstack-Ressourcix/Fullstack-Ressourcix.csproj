@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <SpaRoot Include="app\">
+      <InstallCommand>npm install</InstallCommand>
+      <BuildCommand>npm run build</BuildCommand>
+      <BuildOutputPath>app\dist\**</BuildOutputPath>
+    </SpaRoot>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Mumrich.SpaDevMiddleware" Version="1.7.0" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "antfu.unocss",
+    "csharpier.csharpier-vscode",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "josefpihrt-vscode.roslynator",
+    "lokalise.i18n-ally",
+    "mhutchie.git-graph",
+    "ms-dotnettools.csdevkit",
+    "pflannery.vscode-versionlens",
+    "redhat.vscode-xml",
+    "redhat.vscode-yaml",
+    "vue.volar",
+    "vuetifyjs.vuetify-vscode"
+  ]
+}

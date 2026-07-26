@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "Application",
+    "name": "Mon application",
+    "subtitle": "Vuetify",
+    "nav": {
+      "home": "Accueil",
+      "gallery": "Galerie",
+      "about": "A propos"
+    }
+  },
+  "user": {
+    "guestMode": "Mode invite",
+    "notLoggedIn": "Non connecte"
+  },
+  "gallery": {
+    "upload": "Televerser",
+    "reload": "Recharger",
+    "delete": "Supprimer",
+    "emptyHeadline": "Aucune image",
+    "emptyTitle": "Aucune image pour le moment",
+    "emptyText": "Televersez des images pour remplir votre galerie.",
+    "uploadDisabledHint": "Veuillez d'abord selectionner au moins une image."
+  }
+}

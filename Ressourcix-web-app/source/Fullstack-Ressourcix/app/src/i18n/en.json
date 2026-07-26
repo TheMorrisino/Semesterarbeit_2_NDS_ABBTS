@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "Application",
+    "name": "My Application",
+    "subtitle": "Vuetify",
+    "nav": {
+      "home": "Home",
+      "gallery": "Gallery",
+      "about": "About"
+    }
+  },
+  "user": {
+    "guestMode": "Guest Mode",
+    "notLoggedIn": "Not logged in"
+  },
+  "gallery": {
+    "upload": "Upload",
+    "reload": "Reload",
+    "delete": "Delete",
+    "emptyHeadline": "No Images",
+    "emptyTitle": "No images yet",
+    "emptyText": "Upload images to fill your gallery.",
+    "uploadDisabledHint": "Please select at least one image first."
+  }
+}
