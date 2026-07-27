@@ -8,12 +8,16 @@
   <v-list-subheader class="pl-4">{{ t('app.subtitle') }}</v-list-subheader>
   <v-list-item link :title="t('app.nav.home')" to="/" class="pl-4"></v-list-item>
   <v-list-item link :title="t('app.nav.gallery')" to="/gallery" class="pl-4"></v-list-item>
-  <v-list-item link :title="t('app.nav.about')" to="/about" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.abwesenheiten')" to="/abwesenheiten" class="pl-4"></v-list-item>
   <v-list-item link :title="t('app.nav.Kalender')" to="/kalender" class="pl-4"></v-list-item>
+
+  
   <v-divider />
   <v-list-subheader class="pl-4">{{ t('app.subtitle2') }}</v-list-subheader>
 
   <v-list-item link :title="t('app.nav.employees')" to="/mitarbeitende" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.teamübersicht')" to="/teamübersicht" class="pl-4"></v-list-item>
+    <v-list-item link :title="t('app.nav.auditlog')" to="/auditlog" class="pl-4"></v-list-item>
 
   <v-divider />
 </v-navigation-drawer>

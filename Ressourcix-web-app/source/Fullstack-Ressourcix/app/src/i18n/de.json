@@ -7,9 +7,11 @@
     "nav": {
       "home": "Startseite",
       "gallery": "Galerie",
-      "about": "Über",
+      "abwesenheiten": "Abwesenheiten",
       "employees" : "Mitarbeiter",
       "Kalender" : "Kalender"
+      "teamübersicht": "Teamübersicht",
+      "auditlog":"Audit-Log"
     }
   },
   "user": {
