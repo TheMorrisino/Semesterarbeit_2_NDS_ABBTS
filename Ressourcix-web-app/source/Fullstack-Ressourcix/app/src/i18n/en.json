@@ -9,7 +9,10 @@
       "home": "Home",
       "gallery": "Gallery",
       "abwesenheiten": "Abwesenheiten",
-      "employees" : "Mitarbeiter"
+      "employees" : "Mitarbeiter",
+      "Kalender" : "Calendar"
+      "teamübersicht": "Teamübersicht",
+      "auditlog":"Audit-Log"
     }
   },
   "user": {
