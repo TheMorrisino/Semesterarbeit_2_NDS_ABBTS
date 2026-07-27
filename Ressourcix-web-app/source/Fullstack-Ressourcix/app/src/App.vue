@@ -9,6 +9,7 @@
   <v-list-item link :title="t('app.nav.home')" to="/" class="pl-4"></v-list-item>
   <v-list-item link :title="t('app.nav.gallery')" to="/gallery" class="pl-4"></v-list-item>
   <v-list-item link :title="t('app.nav.about')" to="/about" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.Kalender')" to="/kalender" class="pl-4"></v-list-item>
   <v-divider />
   <v-list-subheader class="pl-4">{{ t('app.subtitle2') }}</v-list-subheader>
 
@@ -21,7 +22,7 @@
       <v-app-bar-title>{{ t("app.title") }}</v-app-bar-title>
       <AppThemeSwitch    />
       <v-img :src="ressourcixLogo" max-width="32" max-height="32" class="mr-2" />
-      
+
     </v-app-bar>
     <v-main>
       <v-container>
