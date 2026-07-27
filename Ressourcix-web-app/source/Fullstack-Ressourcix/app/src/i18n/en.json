@@ -8,7 +8,8 @@
     "nav": {
       "home": "Home",
       "gallery": "Gallery",
-      "about": "About"
+      "abwesenheiten": "Abwesenheiten",
+      "employees" : "Mitarbeiter"
     }
   },
   "user": {
