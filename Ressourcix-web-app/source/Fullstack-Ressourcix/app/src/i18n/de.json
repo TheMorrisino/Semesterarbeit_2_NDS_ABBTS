@@ -7,8 +7,10 @@
     "nav": {
       "home": "Startseite",
       "gallery": "Galerie",
-      "about": "Über",
-      "employees" : "Mitarbeiter"
+      "abwesenheiten": "Abwesenheiten",
+      "employees" : "Mitarbeiter",
+      "teamübersicht": "Teamübersicht",
+      "auditlog":"Audit-Log"
     }
   },
   "user": {
