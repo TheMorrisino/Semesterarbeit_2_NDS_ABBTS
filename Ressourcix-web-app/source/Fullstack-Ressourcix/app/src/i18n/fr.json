@@ -7,8 +7,7 @@
     "nav": {
       "home": "Accueil",
       "gallery": "Galerie",
-      "abwesenheiten": "Abwesenheiten",
-      "employees" : "Mitarbeiter"
+      "about": "A propos"
     }
   },
   "user": {

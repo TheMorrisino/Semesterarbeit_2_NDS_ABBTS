@@ -8,11 +8,8 @@
     "nav": {
       "home": "Home",
       "gallery": "Gallery",
-      "abwesenheiten": "Abwesenheiten",
-      "employees" : "Mitarbeiter",
+      "about": "About",
       "Kalender" : "Calendar"
-      "teamübersicht": "Teamübersicht",
-      "auditlog":"Audit-Log"
     }
   },
   "user": {
