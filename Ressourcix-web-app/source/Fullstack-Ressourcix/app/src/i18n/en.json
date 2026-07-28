@@ -1,15 +1,20 @@
 {
   "app": {
-    "title": "Application",
-    "name": "My Application",
-    "subtitle": "Vuetify",
-    "subtitle2":"Verwatlung",
-    "subtitle3":"Konto",
+    "title": "Ressourcix",
+    "name": "Account",
+    "subtitle": "Overview",
+    "subtitle2": "Management",
+    "subtitle3": "Account",
     "nav": {
-      "home": "Home",
-      "gallery": "Gallery",
-      "about": "About",
-      "Kalender" : "Calendar"
+      "dashboard": "Dashboard",
+      "calender": "Calendar",
+      "absences": "Absences",
+      "employees": "Employees",
+      "approval": "Approvals",
+      "teamview": "Team Overview",
+      "auditlog": "Audit Log",
+      "messages": "Messages",
+      "logout": "Logout"
     }
   },
   "user": {

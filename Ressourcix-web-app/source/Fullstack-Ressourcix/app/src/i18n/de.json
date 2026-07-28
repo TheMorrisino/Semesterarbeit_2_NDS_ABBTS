@@ -4,12 +4,17 @@
     "name": "Konto",
     "subtitle": "Übersicht",
     "subtitle2":"Verwaltung",
+    "subtitle3":"Konto",
     "nav": {
-      "home": "Startseite",
-      "gallery": "Galerie",
-      "about": "Über",
-      "employees" : "Mitarbeiter",
-      "Kalender" : "Kalender"
+      "dashboard": "Dashboard",
+      "calender": "Kalender",
+      "absences": "Abwesenheiten",
+      "employees" : "Absenzen",
+      "approval" : "Genehmigungen",
+      "teamview": "Teamübersicht",
+      "auditlog":"Audit-Log",
+      "messages":"Nachrichten",
+      "logout":"Abmelden"
     }
   },
   "user": {

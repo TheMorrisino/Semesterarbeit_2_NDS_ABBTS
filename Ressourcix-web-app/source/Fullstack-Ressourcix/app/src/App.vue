@@ -6,14 +6,19 @@
   <v-divider />
 
   <v-list-subheader class="pl-4">{{ t('app.subtitle') }}</v-list-subheader>
-  <v-list-item link :title="t('app.nav.home')" to="/" class="pl-4"></v-list-item>
-  <v-list-item link :title="t('app.nav.gallery')" to="/gallery" class="pl-4"></v-list-item>
-  <v-list-item link :title="t('app.nav.about')" to="/about" class="pl-4"></v-list-item>
-  <v-list-item link :title="t('app.nav.Kalender')" to="/kalender" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.dashboard')" to="/" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.calender')" to="/calender" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.absences')" to="/absences" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.approval')" to="/approval" class="pl-4"></v-list-item>
   <v-divider />
   <v-list-subheader class="pl-4">{{ t('app.subtitle2') }}</v-list-subheader>
-
-  <v-list-item link :title="t('app.nav.employees')" to="/mitarbeitende" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.teamview')" to="/teamview" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.employees')" to="/employees" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.auditlog')" to="/auditlog" class="pl-4"></v-list-item>
+  <v-divider />
+  <v-list-subheader class="pl-4">{{ t('app.subtitle3') }}</v-list-subheader>
+  <v-list-item link :title="t('app.nav.messages')" to="/messages" class="pl-4"></v-list-item>
+  <v-list-item link :title="t('app.nav.logout')" to="/logout" class="pl-4"></v-list-item>
 
   <v-divider />
 </v-navigation-drawer>
