@@ -1,4 +1,3 @@
-<!-- views/MitarbeitendeView.vue -->
 <template>
   <div>
     <div class="d-flex justify-space-between align-center mb-4">

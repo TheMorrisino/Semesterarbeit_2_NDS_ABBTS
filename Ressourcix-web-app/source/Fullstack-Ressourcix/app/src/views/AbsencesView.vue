@@ -1,171 +1,100 @@
 <template>
-  <div class="d-flex flex-column ga-4">
-    <v-card variant="tonal" class="pa-4">
-      <div class="d-flex flex-column ga-3 flex-sm-row align-sm-center">
-        <FileInput
-          v-model="uploadFiles"
-          :accept="['image/png', 'image/jpeg']"
-          multiple
-        />
+  <div>
+    <div class="d-flex justify-space-between align-center mb-4">
+      <h1>{{ t('absences.titel') }}</h1>
+    </div>
 
-        <div class="d-flex ga-2 flex-wrap">
-          <v-tooltip
-            :disabled="!isUploadDisabled"
-            location="top"
-            :text="t('gallery.uploadDisabledHint')"
-          >
-            <template #activator="{ props }">
-              <span
-                v-bind="props"
-                class="button-hover-target"
-                :class="{ 'button-hover-target--disabled': isUploadDisabled }"
-              >
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  :disabled="isUploadDisabled"
-                  @click="uploadImagesAsync"
-                >
-                  {{ t("gallery.upload") }}
-                </v-btn>
-              </span>
-            </template>
-          </v-tooltip>
-          <v-btn
-            color="secondary"
-            variant="outlined"
-            @click="loadImageGalleryAsync"
-          >
-            {{ t("gallery.reload") }}
-          </v-btn>
-        </div>
-      </div>
-    </v-card>
+    <v-card>
+<!--       <v-card-title class="d-flex align-center">
+        <v-icon icon="mdiAccountCheck" class="mr-2" />
+        {{ t('absences.titel') }}
+      </v-card-title> -->
 
-    <v-row v-if="imageGallery.images.length > 0" dense>
-      <v-col
-        v-for="(image, index) in imageGallery.images"
-        :key="`${image.url}-${index}`"
-        cols="12"
-        sm="6"
-        md="4"
-        lg="3"
+      <v-data-table
+        :headers="headers"
+        :items="absences"
+        item-value="id"
       >
-        <ImageGalleryItem
-          :image="image"
-          :index="index"
-          @delete="deleteImageAsync"
-        />
-      </v-col>
-    </v-row>
+        <template #item.status="{ item }">
+          <v-chip :color="statusColor(item.status)" size="small" variant="tonal">
+            {{ item.status }}
+          </v-chip>
+        </template>
 
-    <v-empty-state
-      v-else
-      :headline="t('gallery.emptyHeadline')"
-      :title="t('gallery.emptyTitle')"
-      :text="t('gallery.emptyText')"
-    />
+        <template #item.aktion="{ item }">
+          <v-btn
+            size="small"
+            variant="outlined"
+            :disabled="item.status === 'Bezogen'"
+            @click="onAction(item)"
+          >
+            {{ actionLabel(item.status) }}
+          </v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
   </div>
 </template>
 
-<script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import FileInput from "@/components/FileInput.vue";
-import ImageGalleryItem from "@/components/ImageGalleryItem.vue";
 
-interface Image {
-  url: string;
-  name: string;
+
+
+type Status = 'Ausstehend' | 'Genehmigt' | 'Bezogen' | 'Abgelehnt';
+
+interface Absence {
+  id: number;
+  typ: string;
+  by: string;
+  to: string;
+  day: number;
+  status: Status;
 }
 
-interface ImageGalleryResult {
-  images: Image[];
-}
-
-const uploadFiles = ref<File[]>([]);
-const isUploadDisabled = computed(() => uploadFiles.value.length === 0);
 const { t } = useI18n();
 
-const imageGallery = ref<ImageGalleryResult>({
-  images: [],
-});
+const headers = [
+  { title: t('absences.typ'), key: 'typ' },
+  { title: t('absences.by'), key: 'by' },
+  { title: t('absences.to'), key: 'to' },
+  { title: t('absences.day'), key: 'day' },
+  { title: t('absences.status'), key: 'status' },
+  { title: t('absences.aktion'), key: 'aktion', sortable: false },
+];
 
-async function uploadImagesAsync() {
-  if (uploadFiles.value.length > 0) {
-    try {
-      const formData = new FormData();
 
-      uploadFiles.value.forEach((file) => {
-        formData.append(`file[${file.name}]`, file);
-      });
 
-      const response = await fetch("image/upload", {
-        method: "POST",
-        body: formData,
-      });
+const absences = ref<Absence[]>([
+  { id: 1, typ: 'Ferien', by: '13.07.2026', to: '24.07.2026', day: 10, status: 'Ausstehend' },
+  { id: 2, typ: 'Ferien', by: '22.12.2026', to: '31.12.2026', day: 6,  status: 'Genehmigt' },
+  { id: 3, typ: 'Ferien', by: '06.04.2026', to: '09.04.2026', day: 4,  status: 'Bezogen' },
+  { id: 4, typ: 'Ferien', by: '02.02.2026', to: '03.02.2026', day: 2,  status: 'Abgelehnt' },
+]);
 
-      if (!response.ok) {
-        alert(response.statusText);
-      }
-    } catch (error) {
-      alert(error);
-    }
-  }
-
-  uploadFiles.value = [];
-  await loadImageGalleryAsync();
+function statusColor(status: Status) {
+  const map: Record<Status, string> = {
+    Ausstehend: 'orange',
+    Genehmigt: 'green',
+    Bezogen: 'blue',
+    Abgelehnt: 'red',
+  };
+  return map[status] ?? 'grey';
 }
 
-async function getImageGalleryAsync() {
-  try {
-    const response = await fetch("/image-gallery");
-
-    if (response.ok) {
-      return (await response.json()) as ImageGalleryResult;
-    }
-
-    throw new Error(response.statusText);
-  } catch (error) {
-    alert(error);
-
-    return {
-      images: [],
-    };
-  }
+function actionLabel(status: Status) {
+  const map: Record<Status, string> = {
+    Ausstehend: 'Details',
+    Genehmigt: 'Stornieren',
+    Bezogen: '—',
+    Abgelehnt: 'Grund',
+  };
+  return map[status] ?? '';
 }
 
-async function deleteImageAsync(index: number) {
-  try {
-    const image = imageGallery.value.images[index];
-    const imageFullName = image.url.split("/").pop();
-    const response = await fetch(`/image/delete/${imageFullName}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-  } catch (error) {
-    alert(error);
-  } finally {
-    await loadImageGalleryAsync();
-  }
+function onAction(item: Absence) {
+  // TODO: je nach status Details-Dialog öffnen, stornieren, Grund anzeigen etc.
+  console.log('Aktion für', item);
 }
-
-async function loadImageGalleryAsync() {
-  imageGallery.value = await getImageGalleryAsync();
-}
-
-onMounted(loadImageGalleryAsync);
 </script>
-
-<style scoped>
-.button-hover-target {
-  display: inline-flex;
-}
-
-.button-hover-target--disabled {
-  cursor: not-allowed;
-}
-</style>
