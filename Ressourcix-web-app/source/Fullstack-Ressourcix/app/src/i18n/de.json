@@ -13,7 +13,7 @@
       "approval" : "Genehmigungen",
       "teamview": "Teamübersicht",
       "auditlog":"Audit-Log",
-      "messages":"Nachrichten",
+      "messages":"Benachrichtigungen",
       "logout":"Abmelden"
     }
   },
@@ -21,6 +21,7 @@
     "guestMode": "Gastmodus",
     "notLoggedIn": "Nicht angemeldet"
   },
+
   "gallery": {
     "upload": "Hochladen",
     "reload": "Nachladen",
@@ -30,6 +31,7 @@
     "emptyText": "Lade Bilder hoch, um deine Galerie zu fuellen.",
     "uploadDisabledHint": "Bitte waehle zuerst mindestens ein Bild aus."
   },
+
   "mitarbeitende": {
   "titel": "Mitarbeitende",
   "verwalten": "Mitarbeitende verwalten",
@@ -39,6 +41,19 @@
   "ferienwochen": "Ferienwochen",
   "konto": "Konto"
 },
+
+"absences":{
+  "titel": "Meine Abwesenheiten",
+  "typ": "Typ",
+  "by": "VON",
+  "to": "BIS",
+  "day": "Tage",
+  "status": "Status",
+  "aktion": "Aktion"
+
+
+},
+
 "common": {
   "name": "Name", "aktion": "Aktion", "suchen": "Suchen...",
   "aktiv": "Aktiv", "deaktiviert": "Deaktiviert"

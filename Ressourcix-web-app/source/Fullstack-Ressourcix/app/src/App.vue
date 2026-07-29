@@ -1,8 +1,12 @@
 <template>
   <v-app id="inspire">
 <v-navigation-drawer v-model="drawer">
-  <v-list-item :title="t('app.name')" class="pl-4"></v-list-item>
-  <AppUserInfo />
+<div class="d-flex align-center ga-5 px-4 py-3">
+  <div style="width: 30px; height: 30px; overflow: hidden;">
+    <v-img :src="ressourcixLogo" width="30"height="30" style="object-fit: contain; object-position: left center;"/>
+  </div>
+  <span class="text-h5 font-weight-bold">Ressourcix</span>
+</div>
   <v-divider />
 
   <v-list-subheader class="pl-4">{{ t('app.subtitle') }}</v-list-subheader>
@@ -21,13 +25,19 @@
   <v-list-item link :title="t('app.nav.logout')" to="/logout" class="pl-4"></v-list-item>
 
   <v-divider />
+  <!-- <v-list-item :title="t('app.name')" class="pl-4"></v-list-item> -->
+   <!-- mit Append wird das Konto immer im unteren Bereich angezeigt -->
+  <template #append>
+    <v-divider />
+    <AppUserInfo />
+  </template>
 </v-navigation-drawer>
+
     <v-app-bar :elevation="2">
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-app-bar-title>{{ t("app.title") }}</v-app-bar-title>
-      <AppThemeSwitch    />
-      <v-img :src="ressourcixLogo" max-width="32" max-height="32" class="mr-2" />
 
+  <v-spacer />
+  <AppThemeSwitch class="mr-3" />
     </v-app-bar>
     <v-main>
       <v-container>
