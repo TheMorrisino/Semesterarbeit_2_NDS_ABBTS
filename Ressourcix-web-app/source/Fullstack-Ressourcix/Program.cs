@@ -7,7 +7,9 @@ var appSettings = builder.Configuration.Get<AppSettings>();
 
 ArgumentNullException.ThrowIfNull(appSettings);
 
-builder.Services.AddSingleton<MitarbeitendeStore>();   // ← NEU: hier einfügen
+builder.Services.AddSingleton<MitarbeitendeStore>();   
+
+builder.Services.AddSingleton<AntraegeStore>();
 
 builder.SetupSpaMiddleware(appSettings);
 
@@ -153,6 +155,26 @@ app.MapPut("/api/mitarbeitende/{id}/toggle-aktiv", (Guid id, MitarbeitendeStore 
 
 app.MapPut("/api/mitarbeitende/{id}", (Guid id, Mitarbeitender aktualisiert, MitarbeitendeStore store) =>
     store.Aktualisiere(id, aktualisiert) ? Results.Ok() : Results.NotFound());
+
+app.MapGet("/api/antraege", (string? status, AntraegeStore store) =>
+{
+    var antraege = status == "offen" ? store.Offene() : store.Alle();
+    return Results.Ok(antraege);
+});
+
+app.MapPost("/api/antraege", (Antrag neu, AntraegeStore store) =>
+{
+    var erstellt = store.Erstelle(neu);
+    return Results.Created($"/api/antraege/{erstellt.Id}", erstellt);
+});
+
+app.MapPut("/api/antraege/{id}/genehmigen", (Guid id, AntraegeStore store) =>
+    store.SetzeStatus(id, AntragStatus.Genehmigt) ? Results.Ok() : Results.NotFound());
+
+app.MapPut("/api/antraege/{id}/ablehnen", (Guid id, AntraegeStore store) =>
+    store.SetzeStatus(id, AntragStatus.Abgelehnt) ? Results.Ok() : Results.NotFound());
+
+
 
 app.MapSinglePageApps(appSettings);
 

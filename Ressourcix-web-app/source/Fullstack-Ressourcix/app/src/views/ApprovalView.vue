@@ -27,7 +27,7 @@
         </template>
 
         <template #item.zeitraum="{ item }">
-          {{ item.von }} – {{ item.bis }}
+          {{ formatDatum(item.von) }} – {{ formatDatum(item.bis) }}
         </template>
 
         <template #item.hinweis="{ item }">
@@ -35,6 +35,10 @@
             <v-icon start icon="mdi-circle" size="8" />
             {{ item.ueberschneidung ? t('approval.ueberschneidung') : t('approval.keine') }}
           </v-chip>
+        </template>
+
+        <template #item.eingereichtAm="{ item }">
+          {{ vorTagen(item.eingereichtAm) }}
         </template>
 
         <template #item.entscheidung="{ item }">
@@ -47,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -62,13 +66,14 @@ interface Mitarbeitender {
 }
 
 interface Antrag {
-  id: number;
+  id: string;
   mitarbeiterId: string;
   von: string;
   bis: string;
   tage: number;
   ueberschneidung: boolean;
-  eingereichtVor: string;
+  status: 'Offen' | 'Genehmigt' | 'Abgelehnt';
+  eingereichtAm: string;
 }
 
 const headers = [
@@ -76,29 +81,25 @@ const headers = [
   { title: t('approval.zeitraum'), key: 'zeitraum', sortable: false },
   { title: t('approval.tage'), key: 'tage' },
   { title: t('approval.hinweis'), key: 'hinweis' },
-  { title: t('approval.eingereicht'), key: 'eingereichtVor' },
+  { title: t('approval.eingereicht'), key: 'eingereichtAm' },
   { title: t('approval.entscheidung'), key: 'entscheidung', sortable: false },
 ];
 
 const mitarbeitende = ref<Mitarbeitender[]>([]);
 const offeneAntraege = ref<Antrag[]>([]);
 
-// --- Mitarbeiter aus dem Backend-Store laden ---
 async function ladeMitarbeitende() {
   const res = await fetch('/api/mitarbeitende');
   mitarbeitende.value = await res.json();
 }
 
-// --- Offene Anträge laden (Endpoint musst du ggf. noch im Backend ergänzen) ---
 async function ladeOffeneAntraege() {
   const res = await fetch('/api/antraege?status=offen');
   offeneAntraege.value = await res.json();
 }
 
-// --- Auflösung: mitarbeiterId -> Name ---
 function mitarbeiterName(id: string): string {
-  const m = mitarbeitende.value.find((m) => m.id === id);
-  return m?.name ?? t('approval.unbekannt');
+  return mitarbeitende.value.find((m) => m.id === id)?.name ?? t('approval.unbekannt');
 }
 
 function initialen(name: string) {
@@ -108,6 +109,16 @@ function initialen(name: string) {
 function avatarColor(name: string) {
   const farben = ['purple', 'red', 'blue', 'teal', 'indigo'];
   return farben[name.length % farben.length];
+}
+
+function formatDatum(iso: string) {
+  return new Date(iso).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' });
+}
+
+function vorTagen(iso: string) {
+  const tage = Math.round((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (tage <= 0) return t('approval.heute');
+  return tage === 1 ? t('approval.vor1Tag') : t('approval.vorNTagen', { n: tage });
 }
 
 async function genehmigen(item: Antrag) {
