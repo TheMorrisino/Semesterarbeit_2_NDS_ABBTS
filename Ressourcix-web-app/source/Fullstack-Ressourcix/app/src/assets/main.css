@@ -1,0 +1,8 @@
+:root {
+  --teal-700: #0F6E56; --teal-500: #1D9E75; --teal-50: #E1F5EE;
+  --ink: #14201d; --ink-2: #46554f; --line: #e4e9e6; --bg: #f4f7f5;
+  --amber: #EF9F27; --green: #639922; --red: #E24B4A; --blue: #378ADD;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); }
