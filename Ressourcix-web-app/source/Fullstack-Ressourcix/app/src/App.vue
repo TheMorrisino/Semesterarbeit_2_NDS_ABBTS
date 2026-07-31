@@ -26,11 +26,13 @@
 
   <v-divider />
   <!-- <v-list-item :title="t('app.name')" class="pl-4"></v-list-item> -->
-   <!-- mit Append wird das Konto immer im unteren Bereich angezeigt -->
+   
+  <!-- mit Append wird das Konto immer im unteren Bereich angezeigt -->
   <template #append>
     <v-divider />
     <AppUserInfo />
   </template>
+
 </v-navigation-drawer>
 
     <v-app-bar :elevation="2">
