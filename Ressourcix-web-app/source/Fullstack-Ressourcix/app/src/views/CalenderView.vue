@@ -20,6 +20,16 @@
         <v-spacer />
 
         <v-select
+          v-model="requestOptions"
+          :items="requestOptionsEnum"
+          label="Anträge"
+          clearable
+          density="compact"
+          hide-details
+        />
+        <v-spacer />
+
+        <v-select
           v-model="departmentFilter"
           :items="departmentOptions"
           label="Abteilung"
@@ -74,12 +84,13 @@
                 </span>
               </td>
               <td
-                v-for="cell in row.cells"
-                :key="cell.iso"
-                :style="{ backgroundColor: cell.color }"
-                :class="{ clickable: cell.entry }"
-                @click="cell.entry && openDetail(row.employee, cell.entry)"
-              >{{ cell.icon }}</td>
+              v-for="cell in row.cells"
+              :key="cell.iso"
+              :style="{ backgroundColor: cell.color }"
+              class="clickable"
+              @click="cell.entry ? openDetail(row.employee, cell.entry) : openCreate(row.employee, cell.iso)"
+              >{{ cell.icon }}
+            </td>
             </tr>
           </tbody>
         </table>
@@ -104,6 +115,17 @@
           <v-btn variant="text" @click="detailDialogOpen = false">Schliessen</v-btn>
         </v-card-actions>
       </v-card>
+      <v-card v-else-if="selectedIso">
+        <v-card-title>{{ selectedIso.employee.firstName }} {{ selectedIso.employee.lastName }}</v-card-title>
+        <v-card-text>
+          <div>Zeitraum: {{ formatDate(selectedIso.startDate) }} – {{ formatDate(selectedIso.endDate) }}</div>
+          <!-- kein status, da noch kein Eintrag existiert -->
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="detailDialogOpen = false">Schliessen</v-btn>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
   </div>
 </template>
@@ -112,7 +134,7 @@
 import { ref, computed, onMounted, nextTick } from "vue";
 
 // ===== Domain-Typen =====
-
+type Request = "Beantragen" | "Löschen" | "Bearbeiten";
 type Department = "Aussendienst" | "Admin" | "Planung";
 type Education = "Lehrling" | "EFZ" | "Dipl. Pflegefachfrau HF";
 type VacationStatus = "Ausstehend" | "Genehmigt" | "Abgelehnt" | "Bezogen";
@@ -150,6 +172,7 @@ interface EmployeeRow {
 
 // ===== Hardcodierte Mock-Daten =====
 
+const requestOptionsEnum: Request[] = ["Beantragen", "Löschen", "Bearbeiten"];
 const departmentOptions: Department[] = ["Aussendienst", "Admin", "Planung"];
 const educationOptions: Education[] = ["Lehrling", "EFZ", "Dipl. Pflegefachfrau HF"];
 
@@ -325,10 +348,11 @@ const visibleDays = ref<Date[]>(
     addDays(centerDate.value, INITIAL_WINDOW_RADIUS_DAYS),
   ),
 );
-
+const requestOptions = ref<Request | null>(null);
 const departmentFilter = ref<Department | null>(null);
 const educationFilter = ref<Education | null>(null);
 const selectedDetail = ref<{ employee: Employee; entry: VacationEntry } | null>(null);
+const selectedIso = ref<{ employee: Employee; startDate: string; endDate: string } | null>(null)
 
 let isLoadingMoreDays = false;
 
@@ -489,12 +513,19 @@ function openDetail(employee: Employee, entry: VacationEntry) {
   selectedDetail.value = { employee, entry };
 }
 
+function openCreate(employee: Employee, iso: string) {
+  selectedIso.value = { employee, startDate: iso, endDate: iso }
+}
+
 const detailDialogOpen = computed({
-  get: () => selectedDetail.value !== null,
-  set: (open: boolean) => {
-    if (!open) selectedDetail.value = null;
-  },
-});
+  get: () => selectedDetail.value !== null || selectedIso.value !== null,
+  set: (open) => {
+    if (!open) {
+      selectedDetail.value = null
+      selectedIso.value = null
+    }
+  }
+})
 
 onMounted(() => {
   nextTick(() => centerScroll());
