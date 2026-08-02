@@ -37,7 +37,7 @@
 
     <v-app-bar :elevation="2">
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-      <span class="text-h6 font-weight-medium">{{ pageTitle }}</span>
+      <v-app-bar-title class="font-weight-medium">{{ pageTitle }} </v-app-bar-title>
 
   <v-spacer />
   <AppThemeSwitch class="mr-3" />
