@@ -20,16 +20,6 @@
         <v-spacer />
 
         <v-select
-          v-model="requestOptions"
-          :items="requestOptionsEnum"
-          label="Anträge"
-          clearable
-          density="compact"
-          hide-details
-        />
-        <v-spacer />
-
-        <v-select
           v-model="departmentFilter"
           :items="departmentOptions"
           label="Abteilung"
@@ -60,7 +50,7 @@
       </div>
 
       <!-- Tagesraster: Mitarbeiter als Zeilen, Kalendertage als scrollbare Spalten -->
-      <div ref="scrollHost" class="calendar-scroll" @scroll="onScroll">
+      <div ref="scrollHost" class="calendar-scroll">
         <table class="calendar-table">
           <thead>
             <tr>
@@ -84,46 +74,77 @@
                 </span>
               </td>
               <td
-              v-for="cell in row.cells"
-              :key="cell.iso"
-              :style="{ backgroundColor: cell.color }"
-              class="clickable"
-              @click="cell.entry ? openDetail(row.employee, cell.entry) : openCreate(row.employee, cell.iso)"
-              >{{ cell.icon }}
-            </td>
+                v-for="cell in row.cells"
+                :key="cell.iso"
+                :style="{ backgroundColor: cell.color }"
+                class="clickable"
+                @click="handleCellClick(row.employee, cell)"
+              >{{ cell.icon }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </v-card>
 
-    <!-- Detail-Popup für einen einzelnen Ferieneintrag -->
-    <v-dialog v-model="detailDialogOpen" max-width="420">
-      <v-card v-if="selectedDetail">
-        <v-card-title>{{ selectedDetail.employee.firstName }} {{ selectedDetail.employee.lastName }}</v-card-title>
+    <!-- Antrag stellen / bearbeiten: Startdatum ist immer der angeklickte Tag und fix -->
+    <v-dialog v-model="entryDialogOpen" max-width="460">
+      <v-card v-if="entryDialog">
+        <v-card-title>
+          {{ entryDialog.mode === "create" ? "Antrag stellen" : "Antrag bearbeiten" }}
+          – {{ entryDialog.employee.firstName }} {{ entryDialog.employee.lastName }}
+        </v-card-title>
         <v-card-text>
-          <v-chip :color="STATUS_COLOR[selectedDetail.entry.status]" size="small" variant="tonal" class="mb-3">
-            {{ selectedDetail.entry.status }}
-          </v-chip>
-          <div>Abteilung: {{ selectedDetail.employee.department }}</div>
-          <div>Ausbildung: {{ selectedDetail.employee.education }}</div>
-          <div>Zeitraum: {{ formatDate(selectedDetail.entry.startDate) }} – {{ formatDate(selectedDetail.entry.endDate) }}</div>
-          <div>Tage: {{ daysBetweenInclusive(selectedDetail.entry.startDate, selectedDetail.entry.endDate) }}</div>
+          <div class="mb-3 text-body-2">
+            Start: <strong>{{ formatDate(entryDialog.startDate) }}</strong> (angeklickter Tag, nicht änderbar)
+          </div>
+
+          <v-text-field
+            v-model="entryDialog.endDate"
+            type="date"
+            label="Ende"
+            :min="entryDialog.startDate"
+            density="compact"
+          />
+
+          <v-select
+            v-if="entryDialog.mode === 'create'"
+            v-model="entryDialog.type"
+            :items="absenceTypeOptions"
+            item-title="title"
+            item-value="value"
+            label="Typ"
+            density="compact"
+          />
+
+          <v-text-field
+            v-if="entryDialog.mode === 'create'"
+            v-model="entryDialog.remark"
+            label="Bemerkung (optional)"
+            density="compact"
+          />
+
+          <v-select
+            v-if="entryDialog.mode === 'edit'"
+            v-model="entryDialog.status"
+            :items="statusOptions"
+            label="Status"
+            density="compact"
+          />
+
+          <div v-if="dialogEndDateError" class="text-error text-body-2 mt-1">{{ dialogEndDateError }}</div>
+
+          <!-- informativer Hinweis, Überschneidungen mit Kollegen blockieren das Speichern nicht (BR-01.04) -->
+          <div v-if="overlappingColleagues.length" class="overlap-warning mt-3">
+            <strong>Überschneidung erkannt:</strong>
+            {{ overlappingColleagues.join(", ") }}
+            {{ overlappingColleagues.length === 1 ? "ist" : "sind" }} im gewählten Zeitraum ebenfalls abwesend.
+          </div>
         </v-card-text>
         <v-card-actions>
+          <v-btn v-if="entryDialog.mode === 'edit'" variant="text" color="error" @click="deleteEntry">Löschen</v-btn>
           <v-spacer />
-          <v-btn variant="text" @click="detailDialogOpen = false">Schliessen</v-btn>
-        </v-card-actions>
-      </v-card>
-      <v-card v-else-if="selectedIso">
-        <v-card-title>{{ selectedIso.employee.firstName }} {{ selectedIso.employee.lastName }}</v-card-title>
-        <v-card-text>
-          <div>Zeitraum: {{ formatDate(selectedIso.startDate) }} – {{ formatDate(selectedIso.endDate) }}</div>
-          <!-- kein status, da noch kein Eintrag existiert -->
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="detailDialogOpen = false">Schliessen</v-btn>
+          <v-btn variant="text" @click="entryDialogOpen = false">Abbrechen</v-btn>
+          <v-btn variant="tonal" color="primary" :disabled="!!dialogEndDateError" @click="saveEntry">Speichern</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -134,10 +155,11 @@
 import { ref, computed, onMounted, nextTick } from "vue";
 
 // ===== Domain-Typen =====
-type Request = "Beantragen" | "Löschen" | "Bearbeiten";
 type Department = "Aussendienst" | "Admin" | "Planung";
 type Education = "Lehrling" | "EFZ" | "Dipl. Pflegefachfrau HF";
 type VacationStatus = "Ausstehend" | "Genehmigt" | "Abgelehnt" | "Bezogen";
+type AbsenceType = "Ferien" | "Kompensation" | "UnbezahlterUrlaub";
+type EntryDialogMode = "create" | "edit";
 
 interface Employee {
   id: number;
@@ -153,6 +175,19 @@ interface VacationEntry {
   employeeId: number;
   startDate: string; // ISO-Format yyyy-mm-dd
   endDate: string;
+  type: AbsenceType;
+  remark?: string;
+  status: VacationStatus;
+}
+
+interface EntryDialogState {
+  mode: EntryDialogMode;
+  employee: Employee;
+  entryId: number | null; // null, solange der Antrag noch nicht gespeichert wurde
+  startDate: string;
+  endDate: string;
+  type: AbsenceType;
+  remark: string;
   status: VacationStatus;
 }
 
@@ -172,9 +207,15 @@ interface EmployeeRow {
 
 // ===== Hardcodierte Mock-Daten =====
 
-const requestOptionsEnum: Request[] = ["Beantragen", "Löschen", "Bearbeiten"];
 const departmentOptions: Department[] = ["Aussendienst", "Admin", "Planung"];
 const educationOptions: Education[] = ["Lehrling", "EFZ", "Dipl. Pflegefachfrau HF"];
+
+const absenceTypeOptions: { title: string; value: AbsenceType }[] = [
+  { title: "Ferien", value: "Ferien" },
+  { title: "Kompensation", value: "Kompensation" },
+  { title: "Unbezahlter Urlaub", value: "UnbezahlterUrlaub" },
+];
+const statusOptions: VacationStatus[] = ["Ausstehend", "Genehmigt", "Abgelehnt", "Bezogen"];
 
 const STATUS_ICON: Record<VacationStatus, string> = {
   Ausstehend: "🕒",
@@ -216,34 +257,32 @@ const employees: Employee[] = [
   { id: 23, firstName: "Saycxra", lastName: "Frei", department: "Planung", education: "Dipl. Pflegefachfrau HF", vacationDaysEntitled: 25 },
 ];
 
-const vacationEntries: VacationEntry[] = [
-  { id: 1, employeeId: 1, startDate: "2026-07-13", endDate: "2026-07-17", status: "Genehmigt" },
-  { id: 2, employeeId: 2, startDate: "2026-07-13", endDate: "2026-07-24", status: "Genehmigt" },
-  { id: 3, employeeId: 3, startDate: "2026-07-13", endDate: "2026-07-24", status: "Ausstehend" },
-  { id: 4, employeeId: 4, startDate: "2026-08-03", endDate: "2026-08-14", status: "Bezogen" },
-  { id: 5, employeeId: 5, startDate: "2026-07-27", endDate: "2026-07-31", status: "Genehmigt" },
-  { id: 6, employeeId: 6, startDate: "2026-07-20", endDate: "2026-07-24", status: "Genehmigt" },
-  { id: 7, employeeId: 7, startDate: "2026-12-21", endDate: "2026-12-31", status: "Ausstehend" },
-  { id: 8, employeeId: 8, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 9, employeeId: 9, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 10, employeeId: 10, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 11, employeeId: 11, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 12, employeeId: 12, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 13, employeeId: 13, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 14, employeeId: 14, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 15, employeeId: 15, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 16, employeeId: 16, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-  { id: 17, employeeId: 17, startDate: "2026-02-02", endDate: "2026-02-03", status: "Abgelehnt" },
-];
+// ref statt const, da Speichern/Löschen im Antrags-Dialog diese Liste live verändert
+const vacationEntries = ref<VacationEntry[]>([
+  { id: 1, employeeId: 1, startDate: "2026-07-13", endDate: "2026-07-17", type: "Ferien", status: "Genehmigt" },
+  { id: 2, employeeId: 2, startDate: "2026-07-13", endDate: "2026-07-24", type: "Ferien", status: "Genehmigt" },
+  { id: 3, employeeId: 3, startDate: "2026-07-13", endDate: "2026-07-24", type: "Ferien", status: "Ausstehend" },
+  { id: 4, employeeId: 4, startDate: "2026-08-03", endDate: "2026-08-14", type: "Ferien", status: "Bezogen" },
+  { id: 5, employeeId: 5, startDate: "2026-07-27", endDate: "2026-07-31", type: "Ferien", status: "Genehmigt" },
+  { id: 6, employeeId: 6, startDate: "2026-07-20", endDate: "2026-07-24", type: "Ferien", status: "Genehmigt" },
+  { id: 7, employeeId: 7, startDate: "2026-12-21", endDate: "2026-12-31", type: "Ferien", status: "Ausstehend" },
+  { id: 8, employeeId: 8, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 9, employeeId: 9, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 10, employeeId: 10, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 11, employeeId: 11, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 12, employeeId: 12, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 13, employeeId: 13, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 14, employeeId: 14, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 15, employeeId: 15, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 16, employeeId: 16, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+  { id: 17, employeeId: 17, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
+]);
 
 // ===== Konstanten für das Tagesraster =====
 
 const DAY_COLUMN_WIDTH_PX = 40;
 const NAME_COLUMN_WIDTH_PX = 260;
 const INITIAL_WINDOW_RADIUS_DAYS = 45; // ca. 1.5 Monate in jede Richtung -> ca. 3 Monate sichtbar
-const LOAD_CHUNK_DAYS = 30; // wie viele Tage beim Nachladen am Rand ergänzt werden
-const MAX_VISIBLE_DAYS = 180; // Obergrenze, damit die Tabelle nicht unbegrenzt wächst
-const SCROLL_EDGE_THRESHOLD_PX = 200;
 
 // Schwellwerte für die Überschneidungs-Heatmap – später über eine Einstellungs-UI konfigurierbar
 const OVERLAP_FREE_THRESHOLD = 1;
@@ -348,13 +387,9 @@ const visibleDays = ref<Date[]>(
     addDays(centerDate.value, INITIAL_WINDOW_RADIUS_DAYS),
   ),
 );
-const requestOptions = ref<Request | null>(null);
 const departmentFilter = ref<Department | null>(null);
 const educationFilter = ref<Education | null>(null);
-const selectedDetail = ref<{ employee: Employee; entry: VacationEntry } | null>(null);
-const selectedIso = ref<{ employee: Employee; startDate: string; endDate: string } | null>(null)
-
-let isLoadingMoreDays = false;
+const entryDialog = ref<EntryDialogState | null>(null);
 
 // ===== Abgeleitete Daten =====
 
@@ -371,7 +406,11 @@ const filteredEmployees = computed(() =>
 );
 
 function entriesForEmployee(employeeId: number): VacationEntry[] {
-  return vacationEntries.filter((entry) => entry.employeeId === employeeId);
+  return vacationEntries.value.filter((entry) => entry.employeeId === employeeId);
+}
+
+function nextEntryId(): number {
+  return Math.max(0, ...vacationEntries.value.map((entry) => entry.id)) + 1;
 }
 
 function entryOnDay(employeeId: number, day: Date): VacationEntry | undefined {
@@ -460,72 +499,114 @@ function centerScroll() {
   el.scrollLeft = Math.max(0, INITIAL_WINDOW_RADIUS_DAYS * DAY_COLUMN_WIDTH_PX - el.clientWidth / 2);
 }
 
-// ===== Nachladen beim Scrollen an den Rand =====
-// Beim Einfügen am linken Rand muss scrollLeft um die eingefügte Breite verschoben werden,
-// sonst "springt" die Ansicht sichtbar, weil sich die Spalten davor verschieben.
+// ===== Antrag stellen / bearbeiten =====
 
-function onScroll() {
-  const el = scrollHost.value;
-  if (!el || isLoadingMoreDays) return;
-
-  if (el.scrollLeft < SCROLL_EDGE_THRESHOLD_PX) {
-    loadEarlierDays();
-  } else if (el.scrollWidth - el.scrollLeft - el.clientWidth < SCROLL_EDGE_THRESHOLD_PX) {
-    loadLaterDays();
+function handleCellClick(employee: Employee, cell: DayCell) {
+  if (cell.entry) {
+    openEditDialog(employee, cell.entry);
+  } else {
+    openCreateDialog(employee, cell.iso);
   }
 }
 
-function loadEarlierDays() {
-  const el = scrollHost.value;
-  if (!el) return;
-  isLoadingMoreDays = true;
-
-  const firstDay = visibleDays.value[0];
-  const newDays = buildDayRange(addDays(firstDay, -LOAD_CHUNK_DAYS), addDays(firstDay, -1));
-  visibleDays.value = [...newDays, ...visibleDays.value].slice(0, MAX_VISIBLE_DAYS);
-
-  nextTick(() => {
-    el.scrollLeft += newDays.length * DAY_COLUMN_WIDTH_PX;
-    isLoadingMoreDays = false;
-  });
+function openCreateDialog(employee: Employee, startIso: string) {
+  entryDialog.value = {
+    mode: "create",
+    employee,
+    entryId: null,
+    startDate: startIso,
+    endDate: startIso,
+    type: "Ferien",
+    remark: "",
+    status: "Ausstehend",
+  };
 }
 
-function loadLaterDays() {
-  const el = scrollHost.value;
-  if (!el) return;
-  isLoadingMoreDays = true;
-
-  const lastDay = visibleDays.value[visibleDays.value.length - 1];
-  const newDays = buildDayRange(addDays(lastDay, 1), addDays(lastDay, LOAD_CHUNK_DAYS));
-  const combined = [...visibleDays.value, ...newDays];
-  const overflow = Math.max(0, combined.length - MAX_VISIBLE_DAYS);
-  visibleDays.value = combined.slice(overflow);
-
-  nextTick(() => {
-    if (overflow > 0) el.scrollLeft -= overflow * DAY_COLUMN_WIDTH_PX;
-    isLoadingMoreDays = false;
-  });
+function openEditDialog(employee: Employee, entry: VacationEntry) {
+  entryDialog.value = {
+    mode: "edit",
+    employee,
+    entryId: entry.id,
+    startDate: entry.startDate,
+    endDate: entry.endDate,
+    type: entry.type,
+    remark: entry.remark ?? "",
+    status: entry.status,
+  };
 }
 
-// ===== Detail-Popup =====
+const entryDialogOpen = computed({
+  get: () => entryDialog.value !== null,
+  set: (open: boolean) => {
+    if (!open) entryDialog.value = null;
+  },
+});
 
-function openDetail(employee: Employee, entry: VacationEntry) {
-  selectedDetail.value = { employee, entry };
+// Ein Mitarbeiter darf sich nicht selbst überschneiden -> blockiert das Speichern
+function hasSelfOverlap(state: EntryDialogState): boolean {
+  return vacationEntries.value.some(
+    (entry) =>
+      entry.employeeId === state.employee.id &&
+      entry.id !== state.entryId &&
+      state.startDate <= entry.endDate &&
+      state.endDate >= entry.startDate,
+  );
 }
 
-function openCreate(employee: Employee, iso: string) {
-  selectedIso.value = { employee, startDate: iso, endDate: iso }
-}
+const dialogEndDateError = computed<string | null>(() => {
+  const state = entryDialog.value;
+  if (!state) return null;
+  if (state.endDate < state.startDate) return "Enddatum darf nicht vor dem Startdatum liegen";
+  if (hasSelfOverlap(state)) return "Überschneidet sich mit einem bestehenden eigenen Antrag";
+  return null;
+});
 
-const detailDialogOpen = computed({
-  get: () => selectedDetail.value !== null || selectedIso.value !== null,
-  set: (open) => {
-    if (!open) {
-      selectedDetail.value = null
-      selectedIso.value = null
+// Überschneidung mit Kollegen ist nur ein Hinweis und blockiert das Speichern nicht (BR-01.04)
+const overlappingColleagues = computed<string[]>(() => {
+  const state = entryDialog.value;
+  if (!state) return [];
+  const names = new Set<string>();
+  for (const entry of vacationEntries.value) {
+    if (entry.employeeId === state.employee.id) continue;
+    if (entry.id === state.entryId) continue;
+    if (state.startDate <= entry.endDate && state.endDate >= entry.startDate) {
+      const colleague = employees.find((employee) => employee.id === entry.employeeId);
+      if (colleague) names.add(`${colleague.firstName} ${colleague.lastName}`);
     }
   }
-})
+  return Array.from(names);
+});
+
+function saveEntry() {
+  const state = entryDialog.value;
+  if (!state || dialogEndDateError.value) return;
+
+  if (state.mode === "create") {
+    vacationEntries.value.push({
+      id: nextEntryId(),
+      employeeId: state.employee.id,
+      startDate: state.startDate,
+      endDate: state.endDate,
+      type: state.type,
+      remark: state.remark.trim() || undefined,
+      status: "Ausstehend",
+    });
+  } else {
+    const entry = vacationEntries.value.find((e) => e.id === state.entryId);
+    if (entry) {
+      entry.endDate = state.endDate;
+      entry.status = state.status;
+    }
+  }
+  entryDialog.value = null;
+}
+
+function deleteEntry() {
+  const state = entryDialog.value;
+  if (!state || state.mode !== "edit") return;
+  vacationEntries.value = vacationEntries.value.filter((entry) => entry.id !== state.entryId);
+  entryDialog.value = null;
+}
 
 onMounted(() => {
   nextTick(() => centerScroll());
@@ -543,7 +624,9 @@ onMounted(() => {
 }
 
 .calendar-scroll {
-  overflow-x: auto;
+  /* hidden statt auto: Navigation läuft ausschliesslich über die Pfeile in der Toolbar (jumpYears/jumpMonths/jumpWeeks),
+     nicht über Scrollbar/Mausrad/Trackpad. Die Pfeile setzen scrollLeft weiterhin per Code (siehe centerScroll). */
+  overflow-x: hidden;
   max-width: 100%;
 }
 
@@ -616,5 +699,13 @@ td.clickable {
 
 .legend-swatch--overlap {
   background: linear-gradient(90deg, rgb(210, 245, 210), rgb(255, 250, 200), rgb(255, 200, 200));
+}
+
+.overlap-warning {
+  background: rgba(239, 159, 39, 0.15);
+  color: rgb(133, 79, 11);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
 }
 </style>
