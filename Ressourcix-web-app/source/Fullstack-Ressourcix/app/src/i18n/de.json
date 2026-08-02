@@ -54,6 +54,35 @@
 
 },
 
+"approval":{
+  "titel": "Genehmigungen",
+  "offeneAntraege": "Offene Anträge",
+  "ausstehend": "Ausstehend",
+  "ueberschneidung":"Überschneidung",
+  "keine":"Keine",
+  "entscheidung":"Entscheidung",
+  "eingereicht":"Eingereicht",
+  "hinweis": "Hinweis",
+  "tage":"Tage",
+  "zeitraum":"Zeitraum",
+  "mitarbeiter":"Mitarbieter"
+},
+
+"teamview":{
+  "titel": "Teamübersicht",
+  "aktuellAbwesend":"Aktuell abwesend",
+  "ueberschneidungen":"Überschneidung",
+  "offen":"Offen",
+  "mitarbeitende":"Mitarbeiter",
+  "mitarbeiter": "Mitarbeiter",
+  "anspruch": "Anspruch",
+  "bezogen": "Bezogen",
+  "geplant": "Geplant",
+  "rest": "Rest",
+  "status": "Status",
+  "saldoStatus": "Team – Saldo & Status"
+  },
+
 "common": {
   "name": "Name", "aktion": "Aktion", "suchen": "Suchen...",
   "aktiv": "Aktiv", "deaktiviert": "Deaktiviert"
