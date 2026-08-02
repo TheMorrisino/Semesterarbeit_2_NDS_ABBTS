@@ -1,7 +1,6 @@
 <template>
   <div>
-    <div class="d-flex justify-space-between align-center mb-4">
-      <h1>{{ t('mitarbeitende.titel') }}</h1>
+    <div class="d-flex justify-end mb-4">
       <v-text-field
         v-model="suche"
         prepend-inner-icon="mdi-magnify"

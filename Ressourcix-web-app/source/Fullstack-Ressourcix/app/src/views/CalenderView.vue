@@ -1,9 +1,5 @@
 <template>
   <div>
-    <div class="d-flex justify-space-between align-center mb-4">
-      <h1>Abwesenheitskalender</h1>
-    </div>
-
     <v-card>
       <!-- Toolbar: Jahr-/Monat-/Wochen-Navigation und Filter nach Abteilung/Ausbildung -->
       <div class="d-flex flex-wrap align-center ga-2 pa-4">

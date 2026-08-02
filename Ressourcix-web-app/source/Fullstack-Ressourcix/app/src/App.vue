@@ -26,7 +26,7 @@
 
   <v-divider />
   <!-- <v-list-item :title="t('app.name')" class="pl-4"></v-list-item> -->
-   
+
   <!-- mit Append wird das Konto immer im unteren Bereich angezeigt -->
   <template #append>
     <v-divider />
@@ -37,6 +37,7 @@
 
     <v-app-bar :elevation="2">
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+      <span class="text-h6 font-weight-medium">{{ pageTitle }}</span>
 
   <v-spacer />
   <AppThemeSwitch class="mr-3" />
@@ -50,12 +51,17 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import AppThemeSwitch from "./components/AppThemeSwitch.vue";
 import AppUserInfo from "./components/AppUserInfo.vue";
 import ressourcixLogo from '@/assets/Ressourcix_Icon_OhneB2.png'
 
 const drawer = ref<boolean | null>(null);
 const { t } = useI18n();
+const route = useRoute();
+
+// aktualisiert sich automatisch bei jedem Routenwechsel, da route.meta reaktiv ist
+const pageTitle = computed(() => (route.meta.titleKey ? t(route.meta.titleKey) : ""));
 </script>

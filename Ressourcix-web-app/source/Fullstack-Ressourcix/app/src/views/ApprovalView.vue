@@ -1,9 +1,5 @@
 <template>
   <div>
-    <div class="d-flex justify-space-between align-center mb-4">
-      <h1>{{ t('approval.titel') }}</h1>
-    </div>
-
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <span><v-icon icon="mdi-clipboard-check" class="mr-2" />{{ t('approval.offeneAntraege') }}</span>

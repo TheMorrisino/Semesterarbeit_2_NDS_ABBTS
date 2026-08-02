@@ -1,9 +1,5 @@
 <template>
   <div>
-    <div class="d-flex justify-space-between align-center mb-4">
-      <h1>{{ t('absences.titel') }}</h1>
-    </div>
-
     <v-card>
 <!--       <v-card-title class="d-flex align-center">
         <v-icon icon="mdiAccountCheck" class="mr-2" />
