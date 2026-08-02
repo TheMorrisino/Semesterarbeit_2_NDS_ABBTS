@@ -54,7 +54,7 @@
         <table class="calendar-table">
           <thead>
             <tr>
-              <th class="name-col">Mitarbeiter</th>
+              <th class="name-col">Mitarbeiter [Ist/Soll]</th>
               <th
                 v-for="day in visibleDays"
                 :key="toISODate(day)"
@@ -95,7 +95,7 @@
         </v-card-title>
         <v-card-text>
           <div class="mb-3 text-body-2">
-            Start: <strong>{{ formatDate(entryDialog.startDate) }}</strong> (angeklickter Tag, nicht änderbar)
+            Start: <strong>{{ formatDate(entryDialog.startDate) }}</strong>
           </div>
 
           <v-text-field
