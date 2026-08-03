@@ -83,6 +83,12 @@
   "saldoStatus": "Team – Saldo & Status"
   },
 
+"auditlog": {
+  "untertitel": "Audit-Log – revisionssichere Protokollierung",
+  "exportCsv": "Export CSV",
+  "leer": "Noch keine Einträge vorhanden."
+},
+
 "common": {
   "name": "Name", "aktion": "Aktion", "suchen": "Suchen...",
   "aktiv": "Aktiv", "deaktiviert": "Deaktiviert"

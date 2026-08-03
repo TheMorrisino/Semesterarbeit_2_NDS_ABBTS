@@ -98,8 +98,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAuditLogStore } from '@/stores/auditLog'
 
 interface Mitarbeitender {
   id: string
@@ -111,8 +112,21 @@ interface Mitarbeitender {
 }
 
 const { t } = useI18n()
+const auditLog = useAuditLogStore()
 const suche = ref('')
-const mitarbeitende = ref<Mitarbeitender[]>([])
+
+// Hardcodierte Mock-Daten, kein Backend vorhanden
+const mitarbeitende = ref<Mitarbeitender[]>([
+  { id: '1', name: 'Morris Meier', rolle: 'Mitarbeitende', pensumProzent: 100, ferienwochen: 5, istAktiv: true },
+  { id: '2', name: 'Pedro Santos', rolle: 'Planner/Leitung', pensumProzent: 100, ferienwochen: 5, istAktiv: true },
+  { id: '3', name: 'Lena Brunner', rolle: 'Mitarbeitende', pensumProzent: 80, ferienwochen: 4.4, istAktiv: true },
+  { id: '4', name: 'Rafael Koch', rolle: 'Mitarbeitende', pensumProzent: 60, ferienwochen: 3.3, istAktiv: false },
+])
+
+function naechsteId(): string {
+  const maxId = Math.max(0, ...mitarbeitende.value.map((m) => Number(m.id)))
+  return String(maxId + 1)
+}
 
 const headers = [
   { title: t('common.name'), key: 'name' },
@@ -131,14 +145,9 @@ function avatarColor(name: string) {
   return farben[name.length % farben.length]
 }
 
-async function ladeMitarbeitendeAsync() {
-  const res = await fetch('/api/mitarbeitende')
-  mitarbeitende.value = await res.json()
-}
-
-async function toggleAktiv(item: Mitarbeitender) {
-  await fetch(`/api/mitarbeitende/${item.id}/toggle-aktiv`, { method: 'PUT' })
-  await ladeMitarbeitendeAsync()
+function toggleAktiv(item: Mitarbeitender) {
+  item.istAktiv = !item.istAktiv
+  auditLog.log('mitarbeiterStatusGeaendert', 'Mitarbeiter Status geändert', `${item.name}: ${item.istAktiv ? 'Aktiviert' : 'Deaktiviert'}`)
 }
 
 // --- Dialog-Logik (ein Dialog für Erfassen + Bearbeiten) ---
@@ -179,25 +188,21 @@ function dialogSchliessen() {
   formRef.value?.reset()
 }
 
-async function speichern() {
+function speichern() {
   const istBearbeitung = bearbeitetesId.value !== null
-  const url = istBearbeitung
-    ? `/api/mitarbeitende/${bearbeitetesId.value}`
-    : '/api/mitarbeitende'
 
-  const res = await fetch(url, {
-    method: istBearbeitung ? 'PUT' : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...neuerEintrag.value, istAktiv: true }),
-  })
-
-  if (res.ok) {
-    dialogSchliessen()
-    await ladeMitarbeitendeAsync()
+  if (istBearbeitung) {
+    const item = mitarbeitende.value.find((m) => m.id === bearbeitetesId.value)
+    if (item) {
+      Object.assign(item, neuerEintrag.value)
+      auditLog.log('mitarbeiterGeaendert', 'Mitarbeiter bearbeitet', item.name)
+    }
   } else {
-    alert('Fehler beim Speichern')
+    const neu: Mitarbeitender = { id: naechsteId(), ...neuerEintrag.value, istAktiv: true }
+    mitarbeitende.value.push(neu)
+    auditLog.log('mitarbeiterErfasst', 'Mitarbeiter erfasst', neu.name)
   }
-}
 
-onMounted(ladeMitarbeitendeAsync)
+  dialogSchliessen()
+}
 </script>

@@ -2,39 +2,39 @@ namespace FullstackRessourcix;
 
 public class MitarbeitendeStore
 {
-    private readonly List<Mitarbeitender> _daten = new()
+    private readonly List<Employee> _daten = new()
     {
-        new() { Name = "Morris Meier", Rolle = "Mitarbeitende", PensumProzent = 100, Ferienwochen = 5 },
-        new() { Name = "Pedro Santos", Rolle = "Planner/Leitung", PensumProzent = 100, Ferienwochen = 5 },
-        new() { Name = "Lena Brunner", Rolle = "Mitarbeitende", PensumProzent = 80, Ferienwochen = 4.4 },
-        new() { Name = "Rafael Koch", Rolle = "Mitarbeitende", PensumProzent = 60, Ferienwochen = 3.3, IstAktiv = false },
+        new() { name = "Morris Meier", role = "Mitarbeitende", workload = 100, vacationWeeks = 5 },
+        new() { name = "Pedro Santos", role = "Planner/Leitung", workload = 100, vacationWeeks = 5 },
+        new() { name = "Lena Brunner", role = "Mitarbeitende", workload = 80, vacationWeeks = 4.4 },
+        new() { name = "Rafael Koch", role = "Mitarbeitende", workload = 60, vacationWeeks = 3.3, isActive = false },
     };
 
-    public IReadOnlyList<Mitarbeitender> Alle() => _daten;
+    public IReadOnlyList<Employee> Alle() => _daten;
 
-    public Mitarbeitender Erstelle(Mitarbeitender neu)
+    public Employee Erstelle(Employee neu)
     {
-        neu.Id = Guid.NewGuid();
+        neu.id = Guid.NewGuid();
         _daten.Add(neu);
         return neu;
     }
 
     public bool ToggleAktiv(Guid id)
     {
-        var m = _daten.FirstOrDefault(x => x.Id == id);
+        var m = _daten.FirstOrDefault(x => x.id == id);
         if (m is null) return false;
-        m.IstAktiv = !m.IstAktiv;
+        m.isActive = !m.isActive;
         return true;
     }
 
-    public bool Aktualisiere(Guid id, Mitarbeitender neu)
+    public bool Aktualisiere(Guid id, Employee neu)
     {
-        var m = _daten.FirstOrDefault(x => x.Id == id);
+        var m = _daten.FirstOrDefault(x => x.id == id);
         if (m is null) return false;
-        m.Name = neu.Name;
-        m.Rolle = neu.Rolle;
-        m.PensumProzent = neu.PensumProzent;
-        m.Ferienwochen = neu.Ferienwochen;
+        m.name = neu.name;
+        m.role = neu.role;
+        m.workload = neu.workload;
+        m.vacationWeeks = neu.vacationWeeks;
         return true;
     }
 }

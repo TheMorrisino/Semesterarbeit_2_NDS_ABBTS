@@ -149,6 +149,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from "vue";
+import { useAuditLogStore } from "@/stores/auditLog";
 
 // ===== Domain-Typen =====
 type Department = "Aussendienst" | "Admin" | "Planung";
@@ -386,6 +387,7 @@ const visibleDays = ref<Date[]>(
 const departmentFilter = ref<Department | null>(null);
 const educationFilter = ref<Education | null>(null);
 const entryDialog = ref<EntryDialogState | null>(null);
+const auditLog = useAuditLogStore();
 
 // ===== Abgeleitete Daten =====
 
@@ -577,6 +579,9 @@ function saveEntry() {
   const state = entryDialog.value;
   if (!state || dialogEndDateError.value) return;
 
+  const employeeName = `${state.employee.firstName} ${state.employee.lastName}`;
+  const zeitraum = `${formatDate(state.startDate)} – ${formatDate(state.endDate)}`;
+
   if (state.mode === "create") {
     vacationEntries.value.push({
       id: nextEntryId(),
@@ -587,11 +592,13 @@ function saveEntry() {
       remark: state.remark.trim() || undefined,
       status: "Ausstehend",
     });
+    auditLog.log("antragErfasst", "Ferienantrag erfasst", `${employeeName}, ${zeitraum}`);
   } else {
     const entry = vacationEntries.value.find((e) => e.id === state.entryId);
     if (entry) {
       entry.endDate = state.endDate;
       entry.status = state.status;
+      auditLog.log("antragGeaendert", "Ferienantrag geändert", `${employeeName}, ${zeitraum}, Status ${state.status}`);
     }
   }
   entryDialog.value = null;
@@ -600,7 +607,10 @@ function saveEntry() {
 function deleteEntry() {
   const state = entryDialog.value;
   if (!state || state.mode !== "edit") return;
+  const employeeName = `${state.employee.firstName} ${state.employee.lastName}`;
+  const zeitraum = `${formatDate(state.startDate)} – ${formatDate(state.endDate)}`;
   vacationEntries.value = vacationEntries.value.filter((entry) => entry.id !== state.entryId);
+  auditLog.log("antragGeloescht", "Ferienantrag gelöscht", `${employeeName}, ${zeitraum}`);
   entryDialog.value = null;
 }
 

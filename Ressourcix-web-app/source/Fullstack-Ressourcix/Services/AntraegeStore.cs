@@ -1,48 +1,55 @@
 namespace FullstackRessourcix;
 
-public class AntraegeStore
+public class RequestsStore
 {
-    private readonly List<Antrag> _antraege;
+    private readonly List<Request> _antraege;
 
-    public AntraegeStore(MitarbeitendeStore mitarbeitendeStore)
+    public RequestsStore(MitarbeitendeStore mitarbeitendeStore)
     {
         var ersterMitarbeiter = mitarbeitendeStore.Alle().FirstOrDefault();
-        var beispielId = ersterMitarbeiter?.Id ?? Guid.NewGuid();
+        var beispielId = ersterMitarbeiter?.id ?? Guid.NewGuid();
 
-        _antraege = new List<Antrag>
+        _antraege = new List<Request>
         {
-            new Antrag(
+            new Request(
                 Guid.NewGuid(),
-                MitarbeiterId: beispielId,
-                Von: new DateOnly(2026, 7, 13),
-                Bis: new DateOnly(2026, 7, 24),
-                Tage: 10,
-                Ueberschneidung: true,
-                Status: AntragStatus.Offen,
-                EingereichtAm: DateTime.UtcNow.AddDays(-2)
+                eployeeId: beispielId,
+                from: new DateOnly(2026, 7, 13),
+                until: new DateOnly(2026, 7, 24),
+                days: 10,
+                overlap: true,
+                status: RequestStatus.Open,
+                submittedOn: DateTime.UtcNow.AddDays(-2)
             ),
         };
     }
 
-    public IReadOnlyList<Antrag> Alle() => _antraege;
+    public IReadOnlyList<Request> Alle() => _antraege;
 
-    public IReadOnlyList<Antrag> Offene() =>
-        _antraege.Where(a => a.Status == AntragStatus.Offen).ToList();
+    public IReadOnlyList<Request> Offene() =>
+        _antraege.Where(a => a.status == RequestStatus.Open).ToList();
 
-    public Antrag Erstelle(Antrag neu)
+    public Request Erstelle(Request neu)
     {
-        var mitId = neu.MitarbeiterId == Guid.Empty ? Guid.NewGuid() : neu.MitarbeiterId;
-        var erstellt = neu with { Id = Guid.NewGuid(), MitarbeiterId = mitId, Status = AntragStatus.Offen };
+        var mitId = neu.eployeeId == Guid.Empty ? Guid.NewGuid() : neu.eployeeId;
+        var erstellt = neu with { id = Guid.NewGuid(), eployeeId = mitId, status = RequestStatus.Open };
+        _antraege.Add(erstellt);
+        return erstellt;
+    }
+        public Request Change(Request changed)
+    {
+        var mitId = neu.eployeeId == Guid.Empty ? Guid.NewGuid() : neu.eployeeId;
+        var erstellt = neu with { id = Guid.NewGuid(), eployeeId = mitId, status = RequestStatus.Open };
         _antraege.Add(erstellt);
         return erstellt;
     }
 
-    public bool SetzeStatus(Guid id, AntragStatus status)
+    public bool SetzeStatus(Guid id, RequestStatus status)
     {
-        var index = _antraege.FindIndex(a => a.Id == id);
+        var index = _antraege.FindIndex(a => a.id == id);
         if (index < 0) return false;
 
-        _antraege[index] = _antraege[index] with { Status = status };
+        _antraege[index] = _antraege[index] with { status = status };
         return true;
     }
 }

@@ -7,9 +7,9 @@ var appSettings = builder.Configuration.Get<AppSettings>();
 
 ArgumentNullException.ThrowIfNull(appSettings);
 
-builder.Services.AddSingleton<MitarbeitendeStore>();   
+builder.Services.AddSingleton<MitarbeitendeStore>();
 
-builder.Services.AddSingleton<AntraegeStore>();
+builder.Services.AddSingleton<RequestsStore>();
 
 builder.SetupSpaMiddleware(appSettings);
 
@@ -141,38 +141,38 @@ app.MapDelete(
   }
 );
 
-app.MapGet("/api/mitarbeitende", (MitarbeitendeStore store) =>
+app.MapGet("/api/employees", (MitarbeitendeStore store) =>
     Results.Ok(store.Alle()));
 
-app.MapPost("/api/mitarbeitende", (Mitarbeitender neu, MitarbeitendeStore store) =>
+app.MapPost("/api/employees", (Employee neu, MitarbeitendeStore store) =>
 {
     var erstellt = store.Erstelle(neu);
-    return Results.Created($"/api/mitarbeitende/{erstellt.Id}", erstellt);
+    return Results.Created($"/api/employees/{erstellt.id}", erstellt);
 });
 
-app.MapPut("/api/mitarbeitende/{id}/toggle-aktiv", (Guid id, MitarbeitendeStore store) =>
+app.MapPut("/api/employees/{id}/toggle-aktiv", (Guid id, MitarbeitendeStore store) =>
     store.ToggleAktiv(id) ? Results.Ok() : Results.NotFound());
 
-app.MapPut("/api/mitarbeitende/{id}", (Guid id, Mitarbeitender aktualisiert, MitarbeitendeStore store) =>
+app.MapPut("/api/employees/{id}", (Guid id, Employee aktualisiert, MitarbeitendeStore store) =>
     store.Aktualisiere(id, aktualisiert) ? Results.Ok() : Results.NotFound());
 
-app.MapGet("/api/antraege", (string? status, AntraegeStore store) =>
+app.MapGet("/api/antraege", (string? status, RequestsStore store) =>
 {
     var antraege = status == "offen" ? store.Offene() : store.Alle();
     return Results.Ok(antraege);
 });
 
-app.MapPost("/api/antraege", (Antrag neu, AntraegeStore store) =>
+app.MapPost("/api/antraege", (Request neu, RequestsStore store) =>
 {
     var erstellt = store.Erstelle(neu);
-    return Results.Created($"/api/antraege/{erstellt.Id}", erstellt);
+    return Results.Created($"/api/antraege/{erstellt.id}", erstellt);
 });
 
-app.MapPut("/api/antraege/{id}/genehmigen", (Guid id, AntraegeStore store) =>
-    store.SetzeStatus(id, AntragStatus.Genehmigt) ? Results.Ok() : Results.NotFound());
+app.MapPut("/api/antraege/{id}/genehmigen", (Guid id, RequestsStore store) =>
+    store.SetzeStatus(id, RequestStatus.Approved) ? Results.Ok() : Results.NotFound());
 
-app.MapPut("/api/antraege/{id}/ablehnen", (Guid id, AntraegeStore store) =>
-    store.SetzeStatus(id, AntragStatus.Abgelehnt) ? Results.Ok() : Results.NotFound());
+app.MapPut("/api/antraege/{id}/ablehnen", (Guid id, RequestsStore store) =>
+    store.SetzeStatus(id, RequestStatus.Rejected) ? Results.Ok() : Results.NotFound());
 
 
 

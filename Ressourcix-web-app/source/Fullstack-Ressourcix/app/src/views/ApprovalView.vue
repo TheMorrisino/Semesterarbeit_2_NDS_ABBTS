@@ -85,7 +85,7 @@ const mitarbeitende = ref<Mitarbeitender[]>([]);
 const offeneAntraege = ref<Antrag[]>([]);
 
 async function ladeMitarbeitende() {
-  const res = await fetch('/api/mitarbeitende');
+  const res = await fetch('/api/employees');
   mitarbeitende.value = await res.json();
 }
 
