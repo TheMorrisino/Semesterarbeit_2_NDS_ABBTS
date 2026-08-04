@@ -18,6 +18,8 @@
         <v-select
           v-model="departmentFilter"
           :items="departmentOptions"
+          item-title="title"
+          item-value="value"
           label="Abteilung"
           clearable
           density="compact"
@@ -27,6 +29,8 @@
         <v-select
           v-model="educationFilter"
           :items="educationOptions"
+          item-title="title"
+          item-value="value"
           label="Ausbildung"
           clearable
           density="compact"
@@ -41,6 +45,7 @@
         <span>✅ Genehmigt</span>
         <span>❌ Abgelehnt</span>
         <span>🏖 Bezogen</span>
+        <span>🚫 Storniert</span>
         <span class="d-flex align-center ga-1"><span class="legend-swatch legend-swatch--weekend" />Wochenende</span>
         <span class="d-flex align-center ga-1"><span class="legend-swatch legend-swatch--overlap" />Überschneidungen (grün → rot)</span>
       </div>
@@ -64,9 +69,9 @@
           <tbody>
             <tr v-for="row in rows" :key="row.employee.id">
               <td class="name-col">
-                {{ row.employee.firstName }} {{ row.employee.lastName }}
+                {{ row.employee.name }}
                 <span class="text-caption text-medium-emphasis">
-                  [{{ row.plannedDays }}/{{ row.employee.vacationDaysEntitled }}] {{ row.remainingSymbol }}
+                  [{{ row.plannedDays }}/{{ row.entitledDays }}] {{ row.remainingSymbol }}
                 </span>
               </td>
               <td
@@ -87,7 +92,7 @@
       <v-card v-if="entryDialog">
         <v-card-title>
           {{ entryDialog.mode === "create" ? "Antrag stellen" : "Antrag bearbeiten" }}
-          – {{ entryDialog.employee.firstName }} {{ entryDialog.employee.lastName }}
+          – {{ entryDialog.employee.name }}
         </v-card-title>
         <v-card-text>
           <div class="mb-3 text-body-2">
@@ -123,6 +128,8 @@
             v-if="entryDialog.mode === 'edit'"
             v-model="entryDialog.status"
             :items="statusOptions"
+            item-title="title"
+            item-value="value"
             label="Status"
             density="compact"
           />
@@ -149,131 +156,87 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from "vue";
+import { useEmployeeStore, Department, Qualification, type Employee } from "@/stores/employee";
+import { useRequestStore, RequestStatus, AbsenceType, type Request } from "@/stores/request";
 import { useAuditLogStore } from "@/stores/auditLog";
 
-// ===== Domain-Typen =====
-type Department = "Aussendienst" | "Admin" | "Planung";
-type Education = "Lehrling" | "EFZ" | "Dipl. Pflegefachfrau HF";
-type VacationStatus = "Ausstehend" | "Genehmigt" | "Abgelehnt" | "Bezogen";
-type AbsenceType = "Ferien" | "Kompensation" | "UnbezahlterUrlaub";
+// ===== Domain-Typen (Employee/Request kommen aus den Stores, hier nur UI-lokaler Zustand) =====
+
 type EntryDialogMode = "create" | "edit";
-
-interface Employee {
-  id: number;
-  firstName: string;
-  lastName: string;
-  department: Department;
-  education: Education;
-  vacationDaysEntitled: number;
-}
-
-interface VacationEntry {
-  id: number;
-  employeeId: number;
-  startDate: string; // ISO-Format yyyy-mm-dd
-  endDate: string;
-  type: AbsenceType;
-  remark?: string;
-  status: VacationStatus;
-}
 
 interface EntryDialogState {
   mode: EntryDialogMode;
   employee: Employee;
-  entryId: number | null; // null, solange der Antrag noch nicht gespeichert wurde
+  entryId: string | null; // null, solange der Antrag noch nicht gespeichert wurde
   startDate: string;
   endDate: string;
   type: AbsenceType;
   remark: string;
-  status: VacationStatus;
+  status: RequestStatus;
 }
 
 interface DayCell {
   iso: string;
   color: string;
   icon: string;
-  entry: VacationEntry | null;
+  entry: Request | null;
 }
 
 interface EmployeeRow {
   employee: Employee;
   plannedDays: number;
+  entitledDays: number;
   remainingSymbol: string;
   cells: DayCell[];
 }
 
-// ===== Hardcodierte Mock-Daten =====
+// ===== Anzeige-Labels für die Backend-Enums =====
 
-const departmentOptions: Department[] = ["Aussendienst", "Admin", "Planung"];
-const educationOptions: Education[] = ["Lehrling", "EFZ", "Dipl. Pflegefachfrau HF"];
+const DEPARTMENT_LABELS: Record<Department, string> = {
+  [Department.It]: "IT",
+  [Department.HumanResources]: "Human Resources",
+  [Department.Finance]: "Finance",
+};
+
+const QUALIFICATION_LABELS: Record<Qualification, string> = {
+  [Qualification.GeneralIt]: "Allgemein IT",
+  [Qualification.GeneralHr]: "Allgemein HR",
+  [Qualification.GeneralFinance]: "Allgemein Finance",
+  [Qualification.NursingFaGe]: "Fachfrau/Fachmann Gesundheit (FaGe)",
+  [Qualification.HousekeepingEfz]: "Hauswirtschaft EFZ",
+  [Qualification.SocialPedagogyHf]: "HF Sozialpädagogik",
+  [Qualification.NursingAssistanceSbbk]: "Pflegeassistenz SBBK",
+  [Qualification.Medicine]: "Arzt/Ärztin",
+  [Qualification.PhysiotherapyBsc]: "BSc Physiotherapie",
+  [Qualification.OccupationalTherapyBsc]: "BSc Ergotherapie",
+  [Qualification.SpitexBasicCourse]: "Spitex-Grundkurs",
+};
+
+const STATUS_LABELS: Record<RequestStatus, string> = {
+  [RequestStatus.Open]: "Ausstehend",
+  [RequestStatus.Approved]: "Genehmigt",
+  [RequestStatus.Rejected]: "Abgelehnt",
+  [RequestStatus.Taken]: "Bezogen",
+  [RequestStatus.Cancelled]: "Storniert",
+};
+
+const departmentOptions = Object.values(Department).map((value) => ({ title: DEPARTMENT_LABELS[value], value }));
+const educationOptions = Object.values(Qualification).map((value) => ({ title: QUALIFICATION_LABELS[value], value }));
+const statusOptions = Object.values(RequestStatus).map((value) => ({ title: STATUS_LABELS[value], value }));
 
 const absenceTypeOptions: { title: string; value: AbsenceType }[] = [
-  { title: "Ferien", value: "Ferien" },
-  { title: "Kompensation", value: "Kompensation" },
-  { title: "Unbezahlter Urlaub", value: "UnbezahlterUrlaub" },
-];
-const statusOptions: VacationStatus[] = ["Ausstehend", "Genehmigt", "Abgelehnt", "Bezogen"];
-
-const STATUS_ICON: Record<VacationStatus, string> = {
-  Ausstehend: "🕒",
-  Genehmigt: "✅",
-  Abgelehnt: "❌",
-  Bezogen: "🏖",
-};
-
-const STATUS_COLOR: Record<VacationStatus, string> = {
-  Ausstehend: "orange",
-  Genehmigt: "green",
-  Abgelehnt: "red",
-  Bezogen: "blue",
-};
-
-const employees: Employee[] = [
-  { id: 1, firstName: "Morris", lastName: "Meier", department: "Aussendienst", education: "EFZ", vacationDaysEntitled: 25 },
-  { id: 2, firstName: "Pedro", lastName: "Santos", department: "Planung", education: "EFZ", vacationDaysEntitled: 25 },
-  { id: 3, firstName: "Tiago", lastName: "de Sousa", department: "Admin", education: "Dipl. Pflegefachfrau HF", vacationDaysEntitled: 25 },
-  { id: 4, firstName: "Lena", lastName: "Brunner", department: "Aussendienst", education: "Lehrling", vacationDaysEntitled: 22 },
-  { id: 5, firstName: "Rafael", lastName: "Koch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 6, firstName: "Rafqweael", lastName: "Kofsch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 7, firstName: "Raqewfael", lastName: "Kosdfch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 8, firstName: "Raqewfael", lastName: "Kosafch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 9, firstName: "Rafdaael", lastName: "Koafsch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 10, firstName: "Raadsfael", lastName: "Kocafsh", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 11, firstName: "Radasfael", lastName: "Koafch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 12, firstName: "Radasfael", lastName: "Kfsoch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 13, firstName: "Racyxfael", lastName: "Koasfch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 14, firstName: "Racyxfael", lastName: "Kocfash", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 15, firstName: "Racxfael", lastName: "Kofsach", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 16, firstName: "Rafycxael", lastName: "Kofsach", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 17, firstName: "Racyxfael", lastName: "Kafsdoch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 18, firstName: "Racyxfael", lastName: "Koasfdch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 19, firstName: "Rayx fael", lastName: "Kofsach", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 20, firstName: "Ra fael", lastName: "Kafsoch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 21, firstName: "Raycxfael", lastName: "Kocfsadh", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 22, firstName: "Racyxfael", lastName: "Kofsadch", department: "Admin", education: "EFZ", vacationDaysEntitled: 20 },
-  { id: 23, firstName: "Saycxra", lastName: "Frei", department: "Planung", education: "Dipl. Pflegefachfrau HF", vacationDaysEntitled: 25 },
+  { title: "Ferien", value: AbsenceType.Vacation },
+  { title: "Kompensation", value: AbsenceType.Compensation },
+  { title: "Unbezahlter Urlaub", value: AbsenceType.UnpaidLeave },
 ];
 
-// ref statt const, da Speichern/Löschen im Antrags-Dialog diese Liste live verändert
-const vacationEntries = ref<VacationEntry[]>([
-  { id: 1, employeeId: 1, startDate: "2026-07-13", endDate: "2026-07-17", type: "Ferien", status: "Genehmigt" },
-  { id: 2, employeeId: 2, startDate: "2026-07-13", endDate: "2026-07-24", type: "Ferien", status: "Genehmigt" },
-  { id: 3, employeeId: 3, startDate: "2026-07-13", endDate: "2026-07-24", type: "Ferien", status: "Ausstehend" },
-  { id: 4, employeeId: 4, startDate: "2026-08-03", endDate: "2026-08-14", type: "Ferien", status: "Bezogen" },
-  { id: 5, employeeId: 5, startDate: "2026-07-27", endDate: "2026-07-31", type: "Ferien", status: "Genehmigt" },
-  { id: 6, employeeId: 6, startDate: "2026-07-20", endDate: "2026-07-24", type: "Ferien", status: "Genehmigt" },
-  { id: 7, employeeId: 7, startDate: "2026-12-21", endDate: "2026-12-31", type: "Ferien", status: "Ausstehend" },
-  { id: 8, employeeId: 8, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 9, employeeId: 9, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 10, employeeId: 10, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 11, employeeId: 11, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 12, employeeId: 12, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 13, employeeId: 13, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 14, employeeId: 14, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 15, employeeId: 15, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 16, employeeId: 16, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-  { id: 17, employeeId: 17, startDate: "2026-02-02", endDate: "2026-02-03", type: "Ferien", status: "Abgelehnt" },
-]);
+const STATUS_ICON: Record<RequestStatus, string> = {
+  [RequestStatus.Open]: "🕒",
+  [RequestStatus.Approved]: "✅",
+  [RequestStatus.Rejected]: "❌",
+  [RequestStatus.Taken]: "🏖",
+  [RequestStatus.Cancelled]: "🚫",
+};
 
 // ===== Konstanten für das Tagesraster =====
 
@@ -376,7 +339,11 @@ function overlapColor(count: number): string {
 
 // ===== Zustand =====
 
-const centerDate = ref(new Date(2026, 6, 15)); // Mitte Juli 2026, passend zu den Mock-Daten
+const employeeStore = useEmployeeStore();
+const requestStore = useRequestStore();
+const auditLog = useAuditLogStore();
+
+const centerDate = ref(new Date(2026, 6, 15)); // Mitte Juli 2026, passend zu den Seed-Daten des Backends
 const scrollHost = ref<HTMLDivElement | null>(null);
 const visibleDays = ref<Date[]>(
   buildDayRange(
@@ -385,9 +352,8 @@ const visibleDays = ref<Date[]>(
   ),
 );
 const departmentFilter = ref<Department | null>(null);
-const educationFilter = ref<Education | null>(null);
+const educationFilter = ref<Qualification | null>(null);
 const entryDialog = ref<EntryDialogState | null>(null);
-const auditLog = useAuditLogStore();
 
 // ===== Abgeleitete Daten =====
 
@@ -396,30 +362,26 @@ const toolbarLabel = computed(() =>
 );
 
 const filteredEmployees = computed(() =>
-  employees.filter(
+  employeeStore.employees.filter(
     (employee) =>
       (!departmentFilter.value || employee.department === departmentFilter.value) &&
       (!educationFilter.value || employee.education === educationFilter.value),
   ),
 );
 
-function entriesForEmployee(employeeId: number): VacationEntry[] {
-  return vacationEntries.value.filter((entry) => entry.employeeId === employeeId);
+function requestsForEmployee(employeeId: string): Request[] {
+  return requestStore.requests.filter((request) => request.employeeId === employeeId);
 }
 
-function nextEntryId(): number {
-  return Math.max(0, ...vacationEntries.value.map((entry) => entry.id)) + 1;
-}
-
-function entryOnDay(employeeId: number, day: Date): VacationEntry | undefined {
+function requestOnDay(employeeId: string, day: Date): Request | undefined {
   const iso = toISODate(day);
-  return entriesForEmployee(employeeId).find((entry) => iso >= entry.startDate && iso <= entry.endDate);
+  return requestsForEmployee(employeeId).find((request) => iso >= request.from && iso <= request.until);
 }
 
 function absentCountOnDay(day: Date): number {
   const iso = toISODate(day);
   return filteredEmployees.value.filter((employee) =>
-    entriesForEmployee(employee.id).some((entry) => iso >= entry.startDate && iso <= entry.endDate),
+    requestsForEmployee(employee.id).some((request) => iso >= request.from && iso <= request.until),
   ).length;
 }
 
@@ -433,14 +395,14 @@ const dayColorByDate = computed(() => {
 });
 
 function plannedDaysCount(employee: Employee): number {
-  return entriesForEmployee(employee.id).reduce(
-    (sum, entry) => sum + daysBetweenInclusive(entry.startDate, entry.endDate),
+  return requestsForEmployee(employee.id).reduce(
+    (sum, request) => sum + daysBetweenInclusive(request.from, request.until),
     0,
   );
 }
 
-function remainingSymbol(employee: Employee, planned: number): string {
-  const remaining = employee.vacationDaysEntitled - planned;
+function remainingSymbol(entitledDays: number, plannedDays: number): string {
+  const remaining = entitledDays - plannedDays;
   if (remaining > 0) return "⏳";
   if (remaining === 0) return "✔";
   return "✖";
@@ -449,20 +411,22 @@ function remainingSymbol(employee: Employee, planned: number): string {
 const rows = computed<EmployeeRow[]>(() =>
   filteredEmployees.value.map((employee) => {
     const planned = plannedDaysCount(employee);
+    const entitled = employee.vacationWeeks * 5;
     const cells: DayCell[] = visibleDays.value.map((day) => {
       const iso = toISODate(day);
-      const entry = entryOnDay(employee.id, day) ?? null;
+      const request = requestOnDay(employee.id, day) ?? null;
       return {
         iso,
         color: dayColorByDate.value.get(iso) ?? "",
-        icon: entry ? STATUS_ICON[entry.status] : "",
-        entry,
+        icon: request ? STATUS_ICON[request.status] : "",
+        entry: request,
       };
     });
     return {
       employee,
       plannedDays: planned,
-      remainingSymbol: remainingSymbol(employee, planned),
+      entitledDays: entitled,
+      remainingSymbol: remainingSymbol(entitled, planned),
       cells,
     };
   }),
@@ -514,22 +478,22 @@ function openCreateDialog(employee: Employee, startIso: string) {
     entryId: null,
     startDate: startIso,
     endDate: startIso,
-    type: "Ferien",
+    type: AbsenceType.Vacation,
     remark: "",
-    status: "Ausstehend",
+    status: RequestStatus.Open,
   };
 }
 
-function openEditDialog(employee: Employee, entry: VacationEntry) {
+function openEditDialog(employee: Employee, request: Request) {
   entryDialog.value = {
     mode: "edit",
     employee,
-    entryId: entry.id,
-    startDate: entry.startDate,
-    endDate: entry.endDate,
-    type: entry.type,
-    remark: entry.remark ?? "",
-    status: entry.status,
+    entryId: request.id,
+    startDate: request.from,
+    endDate: request.until,
+    type: request.type,
+    remark: request.remark ?? "",
+    status: request.status,
   };
 }
 
@@ -542,12 +506,12 @@ const entryDialogOpen = computed({
 
 // Ein Mitarbeiter darf sich nicht selbst überschneiden -> blockiert das Speichern
 function hasSelfOverlap(state: EntryDialogState): boolean {
-  return vacationEntries.value.some(
-    (entry) =>
-      entry.employeeId === state.employee.id &&
-      entry.id !== state.entryId &&
-      state.startDate <= entry.endDate &&
-      state.endDate >= entry.startDate,
+  return requestStore.requests.some(
+    (request) =>
+      request.employeeId === state.employee.id &&
+      request.id !== state.entryId &&
+      state.startDate <= request.until &&
+      state.endDate >= request.from,
   );
 }
 
@@ -564,58 +528,50 @@ const overlappingColleagues = computed<string[]>(() => {
   const state = entryDialog.value;
   if (!state) return [];
   const names = new Set<string>();
-  for (const entry of vacationEntries.value) {
-    if (entry.employeeId === state.employee.id) continue;
-    if (entry.id === state.entryId) continue;
-    if (state.startDate <= entry.endDate && state.endDate >= entry.startDate) {
-      const colleague = employees.find((employee) => employee.id === entry.employeeId);
-      if (colleague) names.add(`${colleague.firstName} ${colleague.lastName}`);
+  for (const request of requestStore.requests) {
+    if (request.employeeId === state.employee.id) continue;
+    if (request.id === state.entryId) continue;
+    if (state.startDate <= request.until && state.endDate >= request.from) {
+      const colleague = employeeStore.employees.find((employee) => employee.id === request.employeeId);
+      if (colleague) names.add(colleague.name);
     }
   }
   return Array.from(names);
 });
 
-function saveEntry() {
+async function saveEntry() {
   const state = entryDialog.value;
   if (!state || dialogEndDateError.value) return;
 
-  const employeeName = `${state.employee.firstName} ${state.employee.lastName}`;
-  const zeitraum = `${formatDate(state.startDate)} – ${formatDate(state.endDate)}`;
-
   if (state.mode === "create") {
-    vacationEntries.value.push({
-      id: nextEntryId(),
+    const created = await requestStore.create({
       employeeId: state.employee.id,
-      startDate: state.startDate,
-      endDate: state.endDate,
+      from: state.startDate,
+      until: state.endDate,
+      days: daysBetweenInclusive(state.startDate, state.endDate),
+      overlap: overlappingColleagues.value.length > 0,
       type: state.type,
-      remark: state.remark.trim() || undefined,
-      status: "Ausstehend",
+      remark: state.remark.trim() || null,
     });
-    auditLog.log("antragErfasst", "Ferienantrag erfasst", `${employeeName}, ${zeitraum}`);
-  } else {
-    const entry = vacationEntries.value.find((e) => e.id === state.entryId);
-    if (entry) {
-      entry.endDate = state.endDate;
-      entry.status = state.status;
-      auditLog.log("antragGeaendert", "Ferienantrag geändert", `${employeeName}, ${zeitraum}, Status ${state.status}`);
-    }
+    await auditLog.log("RequestCreated", "Ferienantrag erfasst", created.id);
+  } else if (state.entryId) {
+    await requestStore.update(state.entryId, state.endDate, state.status);
+    await auditLog.log("RequestUpdated", "Ferienantrag geändert", state.entryId);
   }
   entryDialog.value = null;
 }
 
-function deleteEntry() {
+async function deleteEntry() {
   const state = entryDialog.value;
-  if (!state || state.mode !== "edit") return;
-  const employeeName = `${state.employee.firstName} ${state.employee.lastName}`;
-  const zeitraum = `${formatDate(state.startDate)} – ${formatDate(state.endDate)}`;
-  vacationEntries.value = vacationEntries.value.filter((entry) => entry.id !== state.entryId);
-  auditLog.log("antragGeloescht", "Ferienantrag gelöscht", `${employeeName}, ${zeitraum}`);
+  if (!state || state.mode !== "edit" || !state.entryId) return;
+  await requestStore.remove(state.entryId);
+  await auditLog.log("RequestDeleted", "Ferienantrag gelöscht", state.entryId);
   entryDialog.value = null;
 }
 
-onMounted(() => {
+onMounted(async () => {
   nextTick(() => centerScroll());
+  await Promise.all([employeeStore.load(), requestStore.load()]);
 });
 </script>
 

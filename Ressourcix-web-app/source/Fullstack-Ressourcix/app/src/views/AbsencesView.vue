@@ -1,27 +1,27 @@
 <template>
   <div>
     <v-card>
-<!--       <v-card-title class="d-flex align-center">
-        <v-icon icon="mdiAccountCheck" class="mr-2" />
-        {{ t('absences.titel') }}
-      </v-card-title> -->
-
       <v-data-table
         :headers="headers"
-        :items="absences"
+        :items="requestStore.requests"
+        :loading="requestStore.loading || employeeStore.loading"
         item-value="id"
       >
+        <template #item.employee="{ item }">
+          {{ employeeName(item.employeeId) }}
+        </template>
+
         <template #item.status="{ item }">
           <v-chip :color="statusColor(item.status)" size="small" variant="tonal">
             {{ item.status }}
           </v-chip>
         </template>
 
-        <template #item.aktion="{ item }">
+        <template #item.action="{ item }">
           <v-btn
             size="small"
             variant="outlined"
-            :disabled="item.status === 'Bezogen'"
+            :disabled="item.status === RequestStatus.Taken"
             @click="onAction(item)"
           >
             {{ actionLabel(item.status) }}
@@ -33,64 +33,67 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-
-
-
-type Status = 'Ausstehend' | 'Genehmigt' | 'Bezogen' | 'Abgelehnt';
-
-interface Absence {
-  id: number;
-  typ: string;
-  by: string;
-  to: string;
-  day: number;
-  status: Status;
-}
+import { useEmployeeStore } from "@/stores/employee";
+import { useRequestStore, RequestStatus, type Request } from "@/stores/request";
+import { useAuditLogStore } from "@/stores/auditLog";
 
 const { t } = useI18n();
+const employeeStore = useEmployeeStore();
+const requestStore = useRequestStore();
+const auditLog = useAuditLogStore();
+
+// Es gibt noch kein Login -> es werden bewusst alle Anträge gezeigt, nicht nur "eigene".
+// Sobald ein echter Login existiert, kann hier nach dem eingeloggten Mitarbeitenden gefiltert werden.
 
 const headers = [
-  { title: t('absences.typ'), key: 'typ' },
-  { title: t('absences.by'), key: 'by' },
-  { title: t('absences.to'), key: 'to' },
-  { title: t('absences.day'), key: 'day' },
+  { title: t('common.name'), key: 'employee' },
+  { title: t('absences.typ'), key: 'type' },
+  { title: t('absences.by'), key: 'from' },
+  { title: t('absences.to'), key: 'until' },
+  { title: t('absences.day'), key: 'days' },
   { title: t('absences.status'), key: 'status' },
-  { title: t('absences.aktion'), key: 'aktion', sortable: false },
+  { title: t('absences.aktion'), key: 'action', sortable: false },
 ];
 
+function employeeName(employeeId: string): string {
+  return employeeStore.employees.find((e) => e.id === employeeId)?.name ?? t('approval.unbekannt');
+}
 
-
-const absences = ref<Absence[]>([
-  { id: 1, typ: 'Ferien', by: '13.07.2026', to: '24.07.2026', day: 10, status: 'Ausstehend' },
-  { id: 2, typ: 'Ferien', by: '22.12.2026', to: '31.12.2026', day: 6,  status: 'Genehmigt' },
-  { id: 3, typ: 'Ferien', by: '06.04.2026', to: '09.04.2026', day: 4,  status: 'Bezogen' },
-  { id: 4, typ: 'Ferien', by: '02.02.2026', to: '03.02.2026', day: 2,  status: 'Abgelehnt' },
-]);
-
-function statusColor(status: Status) {
-  const map: Record<Status, string> = {
-    Ausstehend: 'orange',
-    Genehmigt: 'green',
-    Bezogen: 'blue',
-    Abgelehnt: 'red',
+function statusColor(status: RequestStatus) {
+  const map: Record<RequestStatus, string> = {
+    [RequestStatus.Open]: 'orange',
+    [RequestStatus.Approved]: 'green',
+    [RequestStatus.Taken]: 'blue',
+    [RequestStatus.Rejected]: 'red',
+    [RequestStatus.Cancelled]: 'grey',
   };
   return map[status] ?? 'grey';
 }
 
-function actionLabel(status: Status) {
-  const map: Record<Status, string> = {
-    Ausstehend: 'Details',
-    Genehmigt: 'Stornieren',
-    Bezogen: '—',
-    Abgelehnt: 'Grund',
+function actionLabel(status: RequestStatus) {
+  const map: Record<RequestStatus, string> = {
+    [RequestStatus.Open]: 'Details',
+    [RequestStatus.Approved]: 'Stornieren',
+    [RequestStatus.Taken]: '—',
+    [RequestStatus.Rejected]: 'Grund',
+    [RequestStatus.Cancelled]: '—',
   };
   return map[status] ?? '';
 }
 
-function onAction(item: Absence) {
-  // TODO: je nach status Details-Dialog öffnen, stornieren, Grund anzeigen etc.
+async function onAction(item: Request) {
+  if (item.status === RequestStatus.Approved) {
+    await requestStore.update(item.id, item.until, RequestStatus.Cancelled);
+    await auditLog.log('RequestUpdated', 'Ferienantrag storniert', item.id);
+    return;
+  }
+  // Details-Dialog (Ausstehend) / Ablehnungsgrund (Abgelehnt) sind noch nicht umgesetzt.
   console.log('Aktion für', item);
 }
+
+onMounted(async () => {
+  await Promise.all([employeeStore.load(), requestStore.load()]);
+});
 </script>

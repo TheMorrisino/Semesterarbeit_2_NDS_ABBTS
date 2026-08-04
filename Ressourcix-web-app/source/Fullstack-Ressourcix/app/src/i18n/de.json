@@ -65,7 +65,11 @@
   "hinweis": "Hinweis",
   "tage":"Tage",
   "zeitraum":"Zeitraum",
-  "mitarbeiter":"Mitarbieter"
+  "mitarbeiter":"Mitarbeiter",
+  "unbekannt":"Unbekannt",
+  "heute":"Heute",
+  "vor1Tag":"vor 1 Tag",
+  "vorNTagen":"vor {n} Tagen"
 },
 
 "teamview":{

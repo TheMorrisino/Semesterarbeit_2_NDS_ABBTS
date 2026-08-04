@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import type { AntragStatus } from '@/types'
-defineProps<{ status: AntragStatus }>()
-const farbe: Record<AntragStatus, string> = {
-  Ausstehend: '#EF9F27', Genehmigt: '#639922', Abgelehnt: '#E24B4A',
-  Bezogen: '#378ADD', Storniert: '#888780'
+import { RequestStatus } from '@/stores/request'
+defineProps<{ status: RequestStatus }>()
+const color: Record<RequestStatus, string> = {
+  [RequestStatus.Open]: '#EF9F27',
+  [RequestStatus.Approved]: '#639922',
+  [RequestStatus.Rejected]: '#E24B4A',
+  [RequestStatus.Taken]: '#378ADD',
+  [RequestStatus.Cancelled]: '#888780',
 }
 </script>
 <template>
-  <span class="badge" :style="{ color: farbe[status] }">{{ status }}</span>
+  <span class="badge" :style="{ color: color[status] }">{{ status }}</span>
 </template>
 <style scoped>
 .badge { font-size: 12px; font-weight: 600; }

@@ -1,20 +1,22 @@
 import { defineStore } from "pinia";
+import { auditLogApi } from "@/api/auditLog";
 
 // Welche Aktionen den Nutzer interessieren (BR-01.07 "Nachvollziehbarkeit von Mutationen") -
 // bewusst kein technisches/Debug-Logging, nur fachliche Mutationen an Ferienanträgen und Mitarbeitenden.
+// Namen entsprechen 1:1 dem AuditLogAction-Enum im Backend.
 export type AuditLogAction =
-  | "antragErfasst"
-  | "antragGeaendert"
-  | "antragGeloescht"
-  | "mitarbeiterErfasst"
-  | "mitarbeiterGeaendert"
-  | "mitarbeiterStatusGeaendert";
+  | "RequestCreated"
+  | "RequestUpdated"
+  | "RequestDeleted"
+  | "EmployeeCreated"
+  | "EmployeeUpdated"
+  | "EmployeeStatusChanged";
 
 export interface AuditLogEntry {
-  id: number;
+  id: string;
   action: AuditLogAction;
   summary: string;
-  reference: string;
+  reference: string; // Guid des betroffenen Requests/Employees
   actor: string;
   timestamp: string; // ISO
 }
@@ -25,18 +27,23 @@ const CURRENT_USER = "Tiago de Sousa";
 export const useAuditLogStore = defineStore("auditLog", {
   state: () => ({
     entries: [] as AuditLogEntry[],
-    nextId: 1,
+    loading: false,
   }),
   actions: {
-    log(action: AuditLogAction, summary: string, reference: string) {
-      this.entries.unshift({
-        id: this.nextId++,
-        action,
-        summary,
-        reference,
-        actor: CURRENT_USER,
-        timestamp: new Date().toISOString(),
-      });
+    async load() {
+      this.loading = true;
+      try {
+        const entries = await auditLogApi.list();
+        this.entries = [...entries].sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        );
+      } finally {
+        this.loading = false;
+      }
+    },
+    async log(action: AuditLogAction, summary: string, reference: string) {
+      const entry = await auditLogApi.create({ action, summary, reference, actor: CURRENT_USER });
+      this.entries.unshift(entry);
     },
   },
 });

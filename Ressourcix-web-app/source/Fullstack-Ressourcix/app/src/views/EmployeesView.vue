@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex justify-end mb-4">
       <v-text-field
-        v-model="suche"
+        v-model="search"
         prepend-inner-icon="mdi-magnify"
         :placeholder="t('common.suchen')"
         density="compact"
@@ -14,72 +14,73 @@
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <span><v-icon icon="mdi-badge-account" class="mr-2" />{{ t('mitarbeitende.verwalten') }}</span>
-        <v-btn color="primary" @click="neuErfassen">{{ t('mitarbeitende.neuErfassen') }}</v-btn>
+        <v-btn color="primary" @click="openCreateDialog">{{ t('mitarbeitende.neuErfassen') }}</v-btn>
       </v-card-title>
 
       <v-data-table
         :headers="headers"
-        :items="mitarbeitende"
-        :search="suche"
+        :items="employeeStore.employees"
+        :search="search"
+        :loading="employeeStore.loading"
         item-value="id"
       >
         <template #item.name="{ item }">
           <div class="d-flex align-center ga-2">
             <v-avatar size="32" :color="avatarColor(item.name)">
-              <span class="text-caption">{{ initialen(item.name) }}</span>
+              <span class="text-caption">{{ initials(item.name) }}</span>
             </v-avatar>
             {{ item.name }}
           </div>
         </template>
 
-        <template #item.pensumProzent="{ item }">{{ item.pensumProzent }}%</template>
+        <template #item.workload="{ item }">{{ item.workload }}%</template>
 
-        <template #item.istAktiv="{ item }">
-          <v-chip :color="item.istAktiv ? 'success' : 'default'" size="small" variant="tonal">
+        <template #item.isActive="{ item }">
+          <v-chip :color="item.isActive ? 'success' : 'default'" size="small" variant="tonal">
             <v-icon start icon="mdi-circle" size="8" />
-            {{ item.istAktiv ? t('common.aktiv') : t('common.deaktiviert') }}
+            {{ item.isActive ? t('common.aktiv') : t('common.deaktiviert') }}
           </v-chip>
         </template>
 
-        <template #item.aktion="{ item }">
-          <v-btn icon="mdi-pencil" size="small" variant="text" @click="bearbeiten(item)" />
+        <template #item.action="{ item }">
+          <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEditDialog(item)" />
           <v-btn
-            :icon="item.istAktiv ? 'mdi-pause' : 'mdi-play'"
+            :icon="item.isActive ? 'mdi-pause' : 'mdi-play'"
             size="small" variant="text"
-            @click="toggleAktiv(item)"
+            @click="toggleActive(item)"
           />
         </template>
       </v-data-table>
     </v-card>
 
     <!-- EIN Dialog für "Erfassen" UND "Bearbeiten" -->
-    <v-dialog v-model="dialogOffen" max-width="480">
+    <v-dialog v-model="dialogOpen" max-width="480">
       <v-card>
         <v-card-title>
-          {{ bearbeitetesId ? 'Mitarbeitende bearbeiten' : 'Mitarbeitende erfassen' }}
+          {{ editingId ? 'Mitarbeitende bearbeiten' : 'Mitarbeitende erfassen' }}
         </v-card-title>
 
         <v-card-text>
-          <v-form ref="formRef" v-model="formGueltig">
+          <v-form ref="formRef" v-model="formValid">
             <v-text-field
-              v-model="neuerEintrag.name"
+              v-model="newEntry.name"
               label="Name"
               :rules="[(v) => !!v || 'Name ist erforderlich']"
             />
             <v-select
-              v-model="neuerEintrag.rolle"
+              v-model="newEntry.role"
               label="Rolle"
               :items="['Mitarbeitende', 'Planner/Leitung', 'IT/Wartung']"
               :rules="[(v) => !!v || 'Rolle ist erforderlich']"
             />
             <v-text-field
-              v-model.number="neuerEintrag.pensumProzent"
+              v-model.number="newEntry.workload"
               label="Pensum (%)"
               type="number"
               :rules="[(v) => (v > 0 && v <= 100) || 'Zwischen 1 und 100']"
             />
             <v-text-field
-              v-model.number="neuerEintrag.ferienwochen"
+              v-model.number="newEntry.vacationWeeks"
               label="Ferienwochen"
               type="number"
               step="0.1"
@@ -89,8 +90,8 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="dialogSchliessen">Abbrechen</v-btn>
-          <v-btn color="primary" :disabled="!formGueltig" @click="speichern">Speichern</v-btn>
+          <v-btn variant="text" @click="closeDialog">Abbrechen</v-btn>
+          <v-btn color="primary" :disabled="!formValid" @click="save">Speichern</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -98,111 +99,98 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useEmployeeStore, Department, Qualification, type Employee } from '@/stores/employee'
 import { useAuditLogStore } from '@/stores/auditLog'
 
-interface Mitarbeitender {
-  id: string
-  name: string
-  rolle: string
-  pensumProzent: number
-  ferienwochen: number
-  istAktiv: boolean
-}
-
 const { t } = useI18n()
+const employeeStore = useEmployeeStore()
 const auditLog = useAuditLogStore()
-const suche = ref('')
-
-// Hardcodierte Mock-Daten, kein Backend vorhanden
-const mitarbeitende = ref<Mitarbeitender[]>([
-  { id: '1', name: 'Morris Meier', rolle: 'Mitarbeitende', pensumProzent: 100, ferienwochen: 5, istAktiv: true },
-  { id: '2', name: 'Pedro Santos', rolle: 'Planner/Leitung', pensumProzent: 100, ferienwochen: 5, istAktiv: true },
-  { id: '3', name: 'Lena Brunner', rolle: 'Mitarbeitende', pensumProzent: 80, ferienwochen: 4.4, istAktiv: true },
-  { id: '4', name: 'Rafael Koch', rolle: 'Mitarbeitende', pensumProzent: 60, ferienwochen: 3.3, istAktiv: false },
-])
-
-function naechsteId(): string {
-  const maxId = Math.max(0, ...mitarbeitende.value.map((m) => Number(m.id)))
-  return String(maxId + 1)
-}
+const search = ref('')
 
 const headers = [
   { title: t('common.name'), key: 'name' },
-  { title: t('mitarbeitende.rolle'), key: 'rolle' },
-  { title: t('mitarbeitende.pensum'), key: 'pensumProzent' },
-  { title: t('mitarbeitende.ferienwochen'), key: 'ferienwochen' },
-  { title: t('mitarbeitende.konto'), key: 'istAktiv' },
-  { title: t('common.aktion'), key: 'aktion', sortable: false },
+  { title: t('mitarbeitende.rolle'), key: 'role' },
+  { title: t('mitarbeitende.pensum'), key: 'workload' },
+  { title: t('mitarbeitende.ferienwochen'), key: 'vacationWeeks' },
+  { title: t('mitarbeitende.konto'), key: 'isActive' },
+  { title: t('common.aktion'), key: 'action', sortable: false },
 ]
 
-function initialen(name: string) {
+function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase()
 }
 function avatarColor(name: string) {
-  const farben = ['purple', 'red', 'blue', 'grey']
-  return farben[name.length % farben.length]
+  const colors = ['purple', 'red', 'blue', 'grey']
+  return colors[name.length % colors.length]
 }
 
-function toggleAktiv(item: Mitarbeitender) {
-  item.istAktiv = !item.istAktiv
-  auditLog.log('mitarbeiterStatusGeaendert', 'Mitarbeiter Status geändert', `${item.name}: ${item.istAktiv ? 'Aktiviert' : 'Deaktiviert'}`)
+async function toggleActive(item: Employee) {
+  await employeeStore.toggleActive(item.id)
+  auditLog.log('EmployeeStatusChanged', 'Mitarbeiter Status geändert', item.id)
 }
 
 // --- Dialog-Logik (ein Dialog für Erfassen + Bearbeiten) ---
-const dialogOffen = ref(false)
-const formGueltig = ref(false)
+const dialogOpen = ref(false)
+const formValid = ref(false)
 const formRef = ref()
-const bearbeitetesId = ref<string | null>(null)
+const editingId = ref<string | null>(null)
 
-const leererEintrag = () => ({
+const emptyEntry = () => ({
   name: '',
-  rolle: '',
-  pensumProzent: 100,
-  ferienwochen: 5,
+  role: '',
+  workload: 100,
+  vacationWeeks: 5,
 })
-const neuerEintrag = ref(leererEintrag())
+const newEntry = ref(emptyEntry())
 
-function neuErfassen() {
-  bearbeitetesId.value = null
-  neuerEintrag.value = leererEintrag()
-  dialogOffen.value = true
+function openCreateDialog() {
+  editingId.value = null
+  newEntry.value = emptyEntry()
+  dialogOpen.value = true
 }
 
-function bearbeiten(item: Mitarbeitender) {
-  bearbeitetesId.value = item.id
-  neuerEintrag.value = {
+function openEditDialog(item: Employee) {
+  editingId.value = item.id
+  newEntry.value = {
     name: item.name,
-    rolle: item.rolle,
-    pensumProzent: item.pensumProzent,
-    ferienwochen: item.ferienwochen,
+    role: item.role,
+    workload: item.workload,
+    vacationWeeks: item.vacationWeeks,
   }
-  dialogOffen.value = true
+  dialogOpen.value = true
 }
 
-function dialogSchliessen() {
-  dialogOffen.value = false
-  neuerEintrag.value = leererEintrag()
-  bearbeitetesId.value = null
+function closeDialog() {
+  dialogOpen.value = false
+  newEntry.value = emptyEntry()
+  editingId.value = null
   formRef.value?.reset()
 }
 
-function speichern() {
-  const istBearbeitung = bearbeitetesId.value !== null
-
-  if (istBearbeitung) {
-    const item = mitarbeitende.value.find((m) => m.id === bearbeitetesId.value)
-    if (item) {
-      Object.assign(item, neuerEintrag.value)
-      auditLog.log('mitarbeiterGeaendert', 'Mitarbeiter bearbeitet', item.name)
-    }
+async function save() {
+  if (editingId.value !== null) {
+    const existing = employeeStore.employees.find((e) => e.id === editingId.value)
+    await employeeStore.update(editingId.value, {
+      ...newEntry.value,
+      isActive: existing?.isActive ?? true,
+      department: existing?.department ?? Department.It,
+      education: existing?.education ?? Qualification.GeneralIt,
+    })
+    auditLog.log('EmployeeUpdated', 'Mitarbeiter bearbeitet', editingId.value)
   } else {
-    const neu: Mitarbeitender = { id: naechsteId(), ...neuerEintrag.value, istAktiv: true }
-    mitarbeitende.value.push(neu)
-    auditLog.log('mitarbeiterErfasst', 'Mitarbeiter erfasst', neu.name)
+    const created = await employeeStore.create({
+      ...newEntry.value,
+      isActive: true,
+      department: Department.It,
+      education: Qualification.GeneralIt,
+    })
+    auditLog.log('EmployeeCreated', 'Mitarbeiter erfasst', created.id)
   }
 
-  dialogSchliessen()
+  closeDialog()
 }
+
+onMounted(() => employeeStore.load())
 </script>

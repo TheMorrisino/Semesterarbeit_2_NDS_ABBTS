@@ -4,42 +4,43 @@
       <v-card-title class="d-flex justify-space-between align-center">
         <span><v-icon icon="mdi-clipboard-check" class="mr-2" />{{ t('approval.offeneAntraege') }}</span>
         <v-chip color="warning" size="small" variant="tonal">
-          {{ offeneAntraege.length }} {{ t('approval.ausstehend') }}
+          {{ requestStore.requests.length }} {{ t('approval.ausstehend') }}
         </v-chip>
       </v-card-title>
 
       <v-data-table
         :headers="headers"
-        :items="offeneAntraege"
+        :items="requestStore.requests"
+        :loading="requestStore.loading || employeeStore.loading"
         item-value="id"
       >
-        <template #item.mitarbeiter="{ item }">
+        <template #item.employee="{ item }">
           <div class="d-flex align-center ga-2">
-            <v-avatar size="32" :color="avatarColor(mitarbeiterName(item.mitarbeiterId))">
-              <span class="text-caption">{{ initialen(mitarbeiterName(item.mitarbeiterId)) }}</span>
+            <v-avatar size="32" :color="avatarColor(employeeName(item.employeeId))">
+              <span class="text-caption">{{ initials(employeeName(item.employeeId)) }}</span>
             </v-avatar>
-            {{ mitarbeiterName(item.mitarbeiterId) }}
+            {{ employeeName(item.employeeId) }}
           </div>
         </template>
 
-        <template #item.zeitraum="{ item }">
-          {{ formatDatum(item.von) }} – {{ formatDatum(item.bis) }}
+        <template #item.period="{ item }">
+          {{ formatDate(item.from) }} – {{ formatDate(item.until) }}
         </template>
 
-        <template #item.hinweis="{ item }">
-          <v-chip :color="item.ueberschneidung ? 'error' : 'success'" size="small" variant="tonal">
+        <template #item.hint="{ item }">
+          <v-chip :color="item.overlap ? 'error' : 'success'" size="small" variant="tonal">
             <v-icon start icon="mdi-circle" size="8" />
-            {{ item.ueberschneidung ? t('approval.ueberschneidung') : t('approval.keine') }}
+            {{ item.overlap ? t('approval.ueberschneidung') : t('approval.keine') }}
           </v-chip>
         </template>
 
-        <template #item.eingereichtAm="{ item }">
-          {{ vorTagen(item.eingereichtAm) }}
+        <template #item.submittedOn="{ item }">
+          {{ daysAgo(item.submittedOn) }}
         </template>
 
-        <template #item.entscheidung="{ item }">
-          <v-btn icon="mdi-check" size="small" variant="tonal" color="success" class="mr-1" @click="genehmigen(item)" />
-          <v-btn icon="mdi-close" size="small" variant="tonal" color="error" @click="ablehnen(item)" />
+        <template #item.decision="{ item }">
+          <v-btn icon="mdi-check" size="small" variant="tonal" color="success" class="mr-1" @click="approve(item)" />
+          <v-btn icon="mdi-close" size="small" variant="tonal" color="error" @click="reject(item)" />
         </template>
       </v-data-table>
     </v-card>
@@ -47,87 +48,62 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useEmployeeStore } from "@/stores/employee";
+import { useRequestStore, type Request } from "@/stores/request";
+import { useAuditLogStore } from "@/stores/auditLog";
 
 const { t } = useI18n();
-
-interface Mitarbeitender {
-  id: string;
-  name: string;
-  rolle: string;
-  pensumProzent: number;
-  ferienwochen: number;
-  istAktiv: boolean;
-}
-
-interface Antrag {
-  id: string;
-  mitarbeiterId: string;
-  von: string;
-  bis: string;
-  tage: number;
-  ueberschneidung: boolean;
-  status: 'Offen' | 'Genehmigt' | 'Abgelehnt';
-  eingereichtAm: string;
-}
+const employeeStore = useEmployeeStore();
+const requestStore = useRequestStore();
+const auditLog = useAuditLogStore();
 
 const headers = [
-  { title: t('approval.mitarbeiter'), key: 'mitarbeiter' },
-  { title: t('approval.zeitraum'), key: 'zeitraum', sortable: false },
-  { title: t('approval.tage'), key: 'tage' },
-  { title: t('approval.hinweis'), key: 'hinweis' },
-  { title: t('approval.eingereicht'), key: 'eingereichtAm' },
-  { title: t('approval.entscheidung'), key: 'entscheidung', sortable: false },
+  { title: t('approval.mitarbeiter'), key: 'employee' },
+  { title: t('approval.zeitraum'), key: 'period', sortable: false },
+  { title: t('approval.tage'), key: 'days' },
+  { title: t('approval.hinweis'), key: 'hint' },
+  { title: t('approval.eingereicht'), key: 'submittedOn' },
+  { title: t('approval.entscheidung'), key: 'decision', sortable: false },
 ];
 
-const mitarbeitende = ref<Mitarbeitender[]>([]);
-const offeneAntraege = ref<Antrag[]>([]);
-
-async function ladeMitarbeitende() {
-  const res = await fetch('/api/employees');
-  mitarbeitende.value = await res.json();
+function employeeName(employeeId: string): string {
+  return employeeStore.employees.find((e) => e.id === employeeId)?.name ?? t('approval.unbekannt');
 }
 
-async function ladeOffeneAntraege() {
-  const res = await fetch('/api/antraege?status=offen');
-  offeneAntraege.value = await res.json();
-}
-
-function mitarbeiterName(id: string): string {
-  return mitarbeitende.value.find((m) => m.id === id)?.name ?? t('approval.unbekannt');
-}
-
-function initialen(name: string) {
+function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase();
 }
 
 function avatarColor(name: string) {
-  const farben = ['purple', 'red', 'blue', 'teal', 'indigo'];
-  return farben[name.length % farben.length];
+  const colors = ['purple', 'red', 'blue', 'teal', 'indigo'];
+  return colors[name.length % colors.length];
 }
 
-function formatDatum(iso: string) {
+function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' });
 }
 
-function vorTagen(iso: string) {
-  const tage = Math.round((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (tage <= 0) return t('approval.heute');
-  return tage === 1 ? t('approval.vor1Tag') : t('approval.vorNTagen', { n: tage });
+function daysAgo(iso: string) {
+  const days = Math.round((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days <= 0) return t('approval.heute');
+  return days === 1 ? t('approval.vor1Tag') : t('approval.vorNTagen', { n: days });
 }
 
-async function genehmigen(item: Antrag) {
-  await fetch(`/api/antraege/${item.id}/genehmigen`, { method: 'PUT' });
-  await ladeOffeneAntraege();
+async function approve(item: Request) {
+  await requestStore.approve(item.id);
+  await auditLog.log('RequestUpdated', 'Ferienantrag genehmigt', item.id);
+  await requestStore.load('open');
 }
 
-async function ablehnen(item: Antrag) {
-  await fetch(`/api/antraege/${item.id}/ablehnen`, { method: 'PUT' });
-  await ladeOffeneAntraege();
+async function reject(item: Request) {
+  await requestStore.reject(item.id);
+  await auditLog.log('RequestUpdated', 'Ferienantrag abgelehnt', item.id);
+  await requestStore.load('open');
 }
 
 onMounted(async () => {
-  await Promise.all([ladeMitarbeitende(), ladeOffeneAntraege()]);
+  await Promise.all([employeeStore.load(), requestStore.load('open')]);
 });
 </script>
