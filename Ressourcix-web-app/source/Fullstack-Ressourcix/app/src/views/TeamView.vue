@@ -20,9 +20,9 @@
         <v-card class="pa-4">
           <div class="d-flex align-center ga-2 mb-2 text-medium-emphasis">
             <v-icon icon="mdi-account-clock" size="18" color="blue" />
-            <span class="text-caption text-uppercase">{{ t('teamview.currentlyAbsent') }}</span>
+            <span class="text-caption text-uppercase">{{ t('teamview.currentAbsent') }}</span>
           </div>
-          <div class="text-h4 font-weight-bold">{{ stats.currentlyAbsent }}</div>
+          <div class="text-h4 font-weight-bold">{{ stats.currentAbsent }}</div>
         </v-card>
       </v-col>
 
@@ -158,7 +158,7 @@ function plannedDays(employeeId: string): number {
 // --- Status: is there an open request for this person? ---
 function employeeStatus(employeeId: string): string {
   const hasOpen = requests.value.some((r) => r.employeeId === employeeId && r.status === "Open");
-  return hasOpen ? t("teamview.open") : t("teamview.geplant");
+  return hasOpen ? t("teamview.open") : t("teamview.planned");
 }
 
 const teamRows = computed<TeamRow[]>(() =>
@@ -180,7 +180,7 @@ const teamRows = computed<TeamRow[]>(() =>
 
 const stats = computed(() => ({
   employeeCount: employees.value.length,
-  currentlyAbsent: requests.value.filter((r) => {
+  currentAbsent: requests.value.filter((r) => {
     const today = new Date();
     return r.status === "Approved" && new Date(r.from) <= today && new Date(r.until) >= today;
   }).length,
