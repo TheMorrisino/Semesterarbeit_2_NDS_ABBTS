@@ -6,6 +6,7 @@
     "subtitle2":"Verwaltung",
     "subtitle3":"Konto",
     "nav": {
+      "login": "Login",
       "dashboard": "Dashboard",
       "calender": "Kalender",
       "absences": "Abwesenheiten",
@@ -22,24 +23,32 @@
     "notLoggedIn": "Nicht angemeldet"
   },
 
-  "gallery": {
-    "upload": "Hochladen",
-    "reload": "Nachladen",
-    "delete": "Loeschen",
-    "emptyHeadline": "Keine Bilder",
-    "emptyTitle": "Noch keine Bilder vorhanden",
-    "emptyText": "Lade Bilder hoch, um deine Galerie zu fuellen.",
-    "uploadDisabledHint": "Bitte waehle zuerst mindestens ein Bild aus."
-  },
+  "login": {
+  "subtitle": "Absence and vacation management for SMEs. Sign in to continue.",
+  "username": "Username",
+  "password": "Password",
+  "loginAs": "Log in as (demo role)",
+  "submit": "Log in",
+  "secureConnection": "Encrypted connection · HTTPS/TLS",
+  "roles": {
+    "employee": { "title": "Employee", "subtitle": "Submit requests" },
+    "planner": { "title": "Planner/Lead", "subtitle": "Approve" },
+    "hr": { "title": "HR department", "subtitle": "Manage" },
+    "it": { "title": "IT / Operations", "subtitle": "Audit & operations" }
+  }
+},
 
-  "mitarbeitende": {
+  "employee": {
   "titel": "Mitarbeitende",
-  "verwalten": "Mitarbeitende verwalten",
-  "neuErfassen": "Neu erfassen",
-  "rolle": "Rolle",
-  "pensum": "Pensum",
-  "ferienwochen": "Ferienwochen",
-  "konto": "Konto"
+  "employee":"Mitarbeitenr",
+  "manage": "Mitarbeitende verwalten",
+  "newcapture": "Neu erfassen",
+  "role": "Rolle",
+  "workload": "Pensum",
+  "vacationWeeks": "Ferienwochen",
+  "isActive": "Konto",
+  "empedit": "Mitarbeitende bearbeiten",
+  "empcapture": "Mitarbeitende erfassen"
 },
 
 "absences":{
@@ -56,33 +65,32 @@
 
 "approval":{
   "titel": "Genehmigungen",
-  "offeneAntraege": "Offene Anträge",
-  "ausstehend": "Ausstehend",
-  "ueberschneidung":"Überschneidung",
-  "keine":"Keine",
-  "entscheidung":"Entscheidung",
-  "eingereicht":"Eingereicht",
-  "hinweis": "Hinweis",
-  "tage":"Tage",
-  "zeitraum":"Zeitraum",
-  "mitarbeiter":"Mitarbeiter",
-  "unbekannt":"Unbekannt",
-  "heute":"Heute",
-  "vor1Tag":"vor 1 Tag",
-  "vorNTagen":"vor {n} Tagen"
+  "openRequest": "Offene Anträge",
+  "pending": "Ausstehend",
+  "overlaps":"Überschneidung",
+  "none":"Keine",
+  "decision":"Entscheidung",
+  "tabled":"Eingereicht",
+  "note": "Hinweis",
+  "day":"Tage",
+  "period":"Zeitraum",
+  "employee":"Mitarbeiter",
+  "unknown":"Unbekannt",
+  "today":"Heute",
+  "before1day":"vor 1 Tag",
+  "ForwardNTagen":"vor {n} Tagen"
 },
 
 "teamview":{
   "titel": "Teamübersicht",
-  "aktuellAbwesend":"Aktuell abwesend",
-  "ueberschneidungen":"Überschneidung",
-  "offen":"Offen",
-  "mitarbeitende":"Mitarbeiter",
-  "mitarbeiter": "Mitarbeiter",
-  "anspruch": "Anspruch",
-  "bezogen": "Bezogen",
-  "geplant": "Geplant",
-  "rest": "Rest",
+  "currentAbsent":"Aktuell abwesend",
+  "overlaps":"Überschneidung",
+  "open":"Offen",
+  "employee":"Mitarbeitenr",
+  "entitlement": "Anspruch",
+  "taken": "Bezogen",
+  "planned": "Geplant",
+  "remaining": "Rest",
   "status": "Status",
   "saldoStatus": "Team – Saldo & Status"
   },
@@ -94,7 +102,17 @@
 },
 
 "common": {
-  "name": "Name", "aktion": "Aktion", "suchen": "Suchen...",
-  "aktiv": "Aktiv", "deaktiviert": "Deaktiviert"
+  "name": "Name", "action": "Aktion", "search": "Suchen...",
+  "activ": "Aktiv", "Disabled": "Deaktiviert"
+
+},
+"qualification":{
+        "Roleisrequired":"Rolle ist erforderlich",
+        "planner":"Planner",
+        "hr": "HR",
+        "finance":"Finanzen",
+        "itadmin":"IT Administartor"
+   
+    }
 }
-}
+

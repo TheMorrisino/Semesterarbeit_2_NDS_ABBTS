@@ -2,9 +2,9 @@
   <div>
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
-        <span><v-icon icon="mdi-clipboard-check" class="mr-2" />{{ t('approval.offeneAntraege') }}</span>
+        <span><v-icon icon="mdi-clipboard-check" class="mr-2" />{{ t('approval.openRequest') }}</span>
         <v-chip color="warning" size="small" variant="tonal">
-          {{ requestStore.requests.length }} {{ t('approval.ausstehend') }}
+          {{ requestStore.requests.length }} {{ t('approval.pending') }}
         </v-chip>
       </v-card-title>
 
@@ -30,7 +30,7 @@
         <template #item.hint="{ item }">
           <v-chip :color="item.overlap ? 'error' : 'success'" size="small" variant="tonal">
             <v-icon start icon="mdi-circle" size="8" />
-            {{ item.overlap ? t('approval.ueberschneidung') : t('approval.keine') }}
+            {{ item.overlap ? t('approval.overlaps') : t('approval.none') }}
           </v-chip>
         </template>
 
@@ -60,16 +60,16 @@ const requestStore = useRequestStore();
 const auditLog = useAuditLogStore();
 
 const headers = [
-  { title: t('approval.mitarbeiter'), key: 'employee' },
-  { title: t('approval.zeitraum'), key: 'period', sortable: false },
-  { title: t('approval.tage'), key: 'days' },
-  { title: t('approval.hinweis'), key: 'hint' },
-  { title: t('approval.eingereicht'), key: 'submittedOn' },
-  { title: t('approval.entscheidung'), key: 'decision', sortable: false },
+  { title: t('approval.employee'), key: 'employee' },
+  { title: t('approval.period'), key: 'period', sortable: false },
+  { title: t('approval.day'), key: 'days' },
+  { title: t('approval.note'), key: 'hint' },
+  { title: t('approval.tabled'), key: 'submittedOn' },
+  { title: t('approval.decision'), key: 'decision', sortable: false },
 ];
 
 function employeeName(employeeId: string): string {
-  return employeeStore.employees.find((e) => e.id === employeeId)?.name ?? t('approval.unbekannt');
+  return employeeStore.employees.find((e) => e.id === employeeId)?.name ?? t('approval.unknown');
 }
 
 function initials(name: string) {
@@ -87,8 +87,8 @@ function formatDate(iso: string) {
 
 function daysAgo(iso: string) {
   const days = Math.round((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return t('approval.heute');
-  return days === 1 ? t('approval.vor1Tag') : t('approval.vorNTagen', { n: days });
+  if (days <= 0) return t('approval.today');
+  return days === 1 ? t('approval.before1day') : t('approval.ForwardNTagen', { n: days });
 }
 
 async function approve(item: Request) {
