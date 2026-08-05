@@ -4,15 +4,15 @@
       <h1>{{ t('teamview.titel') }}</h1>
     </div>
 
-    <!-- Stat-Cards -->
+    <!-- Stat Cards -->
     <v-row class="mb-4">
       <v-col cols="12" sm="6" md="3">
         <v-card class="pa-4">
           <div class="d-flex align-center ga-2 mb-2 text-medium-emphasis">
             <v-icon icon="mdi-account-group" size="18" />
-            <span class="text-caption text-uppercase">{{ t('teamview.mitarbeitende') }}</span>
+            <span class="text-caption text-uppercase">{{ t('teamview.employee') }}</span>
           </div>
-          <div class="text-h4 font-weight-bold">{{ stats.mitarbeitendeCount }}</div>
+          <div class="text-h4 font-weight-bold">{{ stats.employeeCount }}</div>
         </v-card>
       </v-col>
 
@@ -20,9 +20,9 @@
         <v-card class="pa-4">
           <div class="d-flex align-center ga-2 mb-2 text-medium-emphasis">
             <v-icon icon="mdi-account-clock" size="18" color="blue" />
-            <span class="text-caption text-uppercase">{{ t('teamview.aktuellAbwesend') }}</span>
+            <span class="text-caption text-uppercase">{{ t('teamview.currentAbsent') }}</span>
           </div>
-          <div class="text-h4 font-weight-bold">{{ stats.aktuellAbwesend }}</div>
+          <div class="text-h4 font-weight-bold">{{ stats.currentAbsent }}</div>
         </v-card>
       </v-col>
 
@@ -30,7 +30,7 @@
         <v-card class="pa-4">
           <div class="d-flex align-center ga-2 mb-2 text-medium-emphasis">
             <v-icon icon="mdi-clock-outline" size="18" color="orange" />
-            <span class="text-caption text-uppercase">{{ t('teamview.offen') }}</span>
+            <span class="text-caption text-uppercase">{{ t('teamview.open') }}</span>
           </div>
           <div class="text-h4 font-weight-bold">{{ stats.offen }}</div>
         </v-card>
@@ -40,14 +40,14 @@
         <v-card class="pa-4">
           <div class="d-flex align-center ga-2 mb-2 text-medium-emphasis">
             <v-icon icon="mdi-alert" size="18" color="red" />
-            <span class="text-caption text-uppercase">{{ t('teamview.ueberschneidungen') }}</span>
+            <span class="text-caption text-uppercase">{{ t('teamview.overlaps') }}</span>
           </div>
-          <div class="text-h4 font-weight-bold">{{ stats.ueberschneidungen }}</div>
+          <div class="text-h4 font-weight-bold">{{ stats.overlaps }}</div>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Team-Tabelle -->
+    <!-- Team Table -->
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <span><v-icon icon="mdi-account-group" class="mr-2" />{{ t('teamview.saldoStatus') }}</span>
@@ -55,13 +55,13 @@
 
       <v-data-table
         :headers="headers"
-        :items="teamZeilen"
+        :items="teamRows"
         item-value="id"
       >
-        <template #item.mitarbeiter="{ item }">
+        <template #item.employee="{ item }">
           <div class="d-flex align-center ga-2">
             <v-avatar size="32" :color="avatarColor(item.name)">
-              <span class="text-caption">{{ initialen(item.name) }}</span>
+              <span class="text-caption">{{ initials(item.name) }}</span>
             </v-avatar>
             {{ item.name }}
           </div>
@@ -84,125 +84,124 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-interface Mitarbeitender {
+interface Employee {
   id: string;
   name: string;
-  rolle: string;
-  pensumProzent: number;
-  ferienwochen: number;
-  istAktiv: boolean;
+  role: string;
+  workloadPercent: number;
+  vacationWeeks: number;
+  isActive: boolean;
 }
 
-interface Antrag {
+interface Request {
   id: string;
-  mitarbeiterId: string;
-  von: string;
-  bis: string;
-  tage: number;
-  ueberschneidung: boolean;
-  status: 'Offen' | 'Genehmigt' | 'Abgelehnt';
-  eingereichtAm: string;
+  employeeId: string;
+  from: string;
+  until: string;
+  days: number;
+  overlap: boolean;
+  status: "Open" | "Approved" | "Rejected";
+  submittedOn: string;
 }
 
-interface TeamZeile {
+interface TeamRow {
   id: string;
   name: string;
-  anspruch: number;
-  bezogen: number;
-  geplant: number;
-  rest: number;
+  entitlement: number;
+  taken: number;
+  planned: number;
+  remaining: number;
   status: string;
 }
 
 const headers = [
-  { title: t('teamview.mitarbeiter'), key: 'mitarbeiter' },
-  { title: t('teamview.anspruch'), key: 'anspruch' },
-  { title: t('teamview.bezogen'), key: 'bezogen' },
-  { title: t('teamview.geplant'), key: 'geplant' },
-  { title: t('teamview.rest'), key: 'rest' },
-  { title: t('teamview.status'), key: 'status' },
+  { title: t("teamview.employee"), key: "employee" },
+  { title: t("teamview.entitlement"), key: "entitlement" },
+  { title: t("teamview.taken"), key: "taken" },
+  { title: t("teamview.planned"), key: "planned" },
+  { title: t("teamview.remaining"), key: "remaining" },
+  { title: t("teamview.status"), key: "status" },
 ];
 
-const mitarbeitende = ref<Mitarbeitender[]>([]);
-const antraege = ref<Antrag[]>([]);
+const employees = ref<Employee[]>([]);
+const requests = ref<Request[]>([]);
 
-async function ladeMitarbeitende() {
-  const res = await fetch('/api/employees');
-  mitarbeitende.value = await res.json();
+async function loadEmployees() {
+  const res = await fetch("/api/employees");
+  employees.value = await res.json();
 }
 
-async function ladeAntraege() {
-  const res = await fetch('/api/antraege');
-  antraege.value = await res.json();
+async function loadRequests() {
+  const res = await fetch("/api/requests");
+  requests.value = await res.json();
 }
 
-// --- Ferienanspruch: aus Ferienwochen -> Tage (z.B. 5 Wochen à 5 Arbeitstage = 25 Tage) ---
-function anspruchTage(m: Mitarbeitender): number {
-  return Math.round(m.ferienwochen * 5);
+// --- Vacation entitlement: from vacation weeks -> days (e.g. 5 weeks x 5 workdays = 25 days) ---
+function entitlementDays(e: Employee): number {
+  return Math.round(e.vacationWeeks * 5);
 }
 
-// --- Bezogen: genehmigte Anträge, deren Enddatum in der Vergangenheit liegt ---
-function bezogenTage(mitarbeiterId: string): number {
-  return antraege.value
-    .filter((a) => a.mitarbeiterId === mitarbeiterId && a.status === 'Genehmigt' && new Date(a.bis) < new Date())
-    .reduce((sum, a) => sum + a.tage, 0);
+// --- Taken: approved requests whose end date is in the past ---
+function takenDays(employeeId: string): number {
+  return requests.value
+    .filter((r) => r.employeeId === employeeId && r.status === "Approved" && new Date(r.until) < new Date())
+    .reduce((sum, r) => sum + r.days, 0);
 }
 
-// --- Geplant: genehmigte Anträge in der Zukunft ---
-function geplantTage(mitarbeiterId: string): number {
-  return antraege.value
-    .filter((a) => a.mitarbeiterId === mitarbeiterId && a.status === 'Genehmigt' && new Date(a.bis) >= new Date())
-    .reduce((sum, a) => sum + a.tage, 0);
+// --- Planned: approved requests in the future ---
+function plannedDays(employeeId: string): number {
+  return requests.value
+    .filter((r) => r.employeeId === employeeId && r.status === "Approved" && new Date(r.until) >= new Date())
+    .reduce((sum, r) => sum + r.days, 0);
 }
 
-// --- Status: gibt es einen offenen Antrag für diese Person? ---
-function mitarbeiterStatus(mitarbeiterId: string): string {
-  const hatOffenen = antraege.value.some((a) => a.mitarbeiterId === mitarbeiterId && a.status === 'Offen');
-  return hatOffenen ? t('teamview.offen') : t('teamview.geplant');
+// --- Status: is there an open request for this person? ---
+function employeeStatus(employeeId: string): string {
+  const hasOpen = requests.value.some((r) => r.employeeId === employeeId && r.status === "Open");
+  return hasOpen ? t("teamview.open") : t("teamview.planned");
 }
 
-const teamZeilen = computed<TeamZeile[]>(() =>
-  mitarbeitende.value.map((m) => {
-    const anspruch = anspruchTage(m);
-    const bezogen = bezogenTage(m.id);
-    const geplant = geplantTage(m.id);
+const teamRows = computed<TeamRow[]>(() =>
+  employees.value.map((e) => {
+    const entitlement = entitlementDays(e);
+    const taken = takenDays(e.id);
+    const planned = plannedDays(e.id);
     return {
-      id: m.id,
-      name: m.name,
-      anspruch,
-      bezogen,
-      geplant,
-      rest: anspruch - bezogen - geplant,
-      status: mitarbeiterStatus(m.id),
+      id: e.id,
+      name: e.name,
+      entitlement,
+      taken,
+      planned,
+      remaining: entitlement - taken - planned,
+      status: employeeStatus(e.id),
     };
   })
 );
 
 const stats = computed(() => ({
-  mitarbeitendeCount: mitarbeitende.value.length,
-  aktuellAbwesend: antraege.value.filter((a) => {
-    const heute = new Date();
-    return a.status === 'Genehmigt' && new Date(a.von) <= heute && new Date(a.bis) >= heute;
+  employeeCount: employees.value.length,
+  currentAbsent: requests.value.filter((r) => {
+    const today = new Date();
+    return r.status === "Approved" && new Date(r.from) <= today && new Date(r.until) >= today;
   }).length,
-  offen: antraege.value.filter((a) => a.status === 'Offen').length,
-  ueberschneidungen: antraege.value.filter((a) => a.ueberschneidung).length,
+  offen: requests.value.filter((r) => r.status === "Open").length,
+  overlaps: requests.value.filter((r) => r.overlap).length,
 }));
 
-function initialen(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase();
+function initials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").toUpperCase();
 }
 
 function avatarColor(name: string) {
-  const farben = ['purple', 'red', 'blue', 'teal', 'indigo'];
-  return farben[name.length % farben.length];
+  const colors = ["purple", "red", "blue", "teal", "indigo"];
+  return colors[name.length % colors.length];
 }
 
 function statusColor(status: string) {
-  return status === t('teamview.antragOffen') ? 'orange' : 'green';
+  return status === t("teamview.open") ? "orange" : "green";
 }
 
-
 onMounted(async () => {
-  await Promise.all([ladeMitarbeitende(), ladeAntraege()]);
+  await Promise.all([loadEmployees(), loadRequests()]);
 });
 </script>

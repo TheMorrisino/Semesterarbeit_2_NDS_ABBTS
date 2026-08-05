@@ -4,7 +4,7 @@
       <v-text-field
         v-model="search"
         prepend-inner-icon="mdi-magnify"
-        :placeholder="t('common.suchen')"
+        :placeholder="t('common.search')"
         density="compact"
         hide-details
         style="max-width: 280px"
@@ -13,8 +13,8 @@
 
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
-        <span><v-icon icon="mdi-badge-account" class="mr-2" />{{ t('mitarbeitende.verwalten') }}</span>
-        <v-btn color="primary" @click="openCreateDialog">{{ t('mitarbeitende.neuErfassen') }}</v-btn>
+        <span><v-icon icon="mdi-badge-account" class="mr-2" />{{ t('employee.manage') }}</span>
+        <v-btn color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
       </v-card-title>
 
       <v-data-table
@@ -38,7 +38,7 @@
         <template #item.isActive="{ item }">
           <v-chip :color="item.isActive ? 'success' : 'default'" size="small" variant="tonal">
             <v-icon start icon="mdi-circle" size="8" />
-            {{ item.isActive ? t('common.aktiv') : t('common.deaktiviert') }}
+            {{ item.isActive ? t('common.activ') : t('common.Disabled') }}
           </v-chip>
         </template>
 
@@ -57,7 +57,7 @@
     <v-dialog v-model="dialogOpen" max-width="480">
       <v-card>
         <v-card-title>
-          {{ editingId ? 'Mitarbeitende bearbeiten' : 'Mitarbeitende erfassen' }}
+          {{ editingId ? t('employee.empedit') : t('employee.empcapture') }}
         </v-card-title>
 
         <v-card-text>
@@ -70,8 +70,8 @@
             <v-select
               v-model="newEntry.role"
               label="Rolle"
-              :items="['Mitarbeitende', 'Planner/Leitung', 'IT/Wartung']"
-              :rules="[(v) => !!v || 'Rolle ist erforderlich']"
+              :items="[t('employee.employee'), t('qualification.planner'),t('qualification.itadmin')]"
+              :rules="[(v) => !!v || t('Rolle ist erforderlich')]"
             />
             <v-text-field
               v-model.number="newEntry.workload"
@@ -111,11 +111,11 @@ const search = ref('')
 
 const headers = [
   { title: t('common.name'), key: 'name' },
-  { title: t('mitarbeitende.rolle'), key: 'role' },
-  { title: t('mitarbeitende.pensum'), key: 'workload' },
-  { title: t('mitarbeitende.ferienwochen'), key: 'vacationWeeks' },
-  { title: t('mitarbeitende.konto'), key: 'isActive' },
-  { title: t('common.aktion'), key: 'action', sortable: false },
+  { title: t('employee.role'), key: 'role' },
+  { title: t('employee.workload'), key: 'workload' },
+  { title: t('employee.vacationWeeks'), key: 'vacationWeeks' },
+  { title: t('employee.isActive'), key: 'isActive' },
+  { title: t('common.action'), key: 'action', sortable: false },
 ]
 
 function initials(name: string) {

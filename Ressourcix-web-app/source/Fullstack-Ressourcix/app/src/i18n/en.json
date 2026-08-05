@@ -29,5 +29,20 @@
     "emptyTitle": "No images yet",
     "emptyText": "Upload images to fill your gallery.",
     "uploadDisabledHint": "Please select at least one image first."
+  },
+  
+  "login": {
+  "subtitle": "Absence and vacation management for SMEs. Sign in to continue.",
+  "username": "Username",
+  "password": "Password",
+  "loginAs": "Log in as (demo role)",
+  "submit": "Log in",
+  "secureConnection": "Encrypted connection · HTTPS/TLS",
+  "roles": {
+    "employee": { "title": "Employee", "subtitle": "Submit requests" },
+    "planner": { "title": "Planner/Lead", "subtitle": "Approve" },
+    "hr": { "title": "HR department", "subtitle": "Manage" },
+    "it": { "title": "IT / Operations", "subtitle": "Audit & operations" }
   }
+}
 }
