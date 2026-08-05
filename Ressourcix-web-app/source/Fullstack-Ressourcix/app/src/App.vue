@@ -1,5 +1,6 @@
 <template>
-  <v-app id="inspire">
+  <RouterView v-if="!authStore.isLoggedIn" name="loginView" />
+  <v-app v-else id="inspire">
 <v-navigation-drawer v-model="drawer">
 <div class="d-flex align-center ga-5 px-4 py-3">
   <div style="width: 30px; height: 30px; overflow: hidden;">
@@ -44,7 +45,7 @@
     </v-app-bar>
     <v-main>
       <v-container>
-        <RouterView />
+        <RouterView name="mainView" />
       </v-container>
     </v-main>
   </v-app>
@@ -57,7 +58,8 @@ import { useRoute } from "vue-router";
 import AppThemeSwitch from "./components/AppThemeSwitch.vue";
 import AppUserInfo from "./components/AppUserInfo.vue";
 import ressourcixLogo from '@/assets/Ressourcix_Icon_OhneB2.png'
-
+import { useAuthStore } from "./stores/auth";
+const authStore = useAuthStore();
 const drawer = ref<boolean | null>(null);
 const { t } = useI18n();
 const route = useRoute();
