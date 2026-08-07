@@ -81,6 +81,22 @@
   "ForwardNTagen":"vor {n} Tagen"
 },
 
+"dashboard": {
+  "greeting": "Willkommen zurück, {name}",
+  "newRequest": "Ferien beantragen",
+  "teamThisWeek": "Team diese Woche",
+  "recentRequests": "Letzte Anträge",
+  "openApprovals": "Offene Genehmigungen",
+  "overlapChart": "Überschneidungen – nächste 14 Tage",
+  "overlapChartHint": "Anzahl gleichzeitig abwesender Mitarbeitender, ausgehend von heute",
+  "recentActivity": "Letzte Aktivität",
+  "viewAll": "Alle ansehen",
+  "noApprovals": "Keine offenen Genehmigungen.",
+  "noRequests": "Noch keine Anträge vorhanden.",
+  "noActivity": "Noch keine Einträge vorhanden.",
+  "absentToday": "abwesend"
+},
+
 "teamview":{
   "titel": "Teamübersicht",
   "currentAbsent":"Aktuell abwesend",

@@ -45,5 +45,19 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
     host: true,
+    warmup: {
+      clientFiles: [
+        "./src/views/LoginView.vue",
+        "./src/views/DashboardView.vue",
+        "./src/views/CalenderView.vue",
+        "./src/views/AbsencesView.vue",
+        "./src/views/ApprovalView.vue",
+        "./src/views/TeamView.vue",
+        "./src/views/EmployeesView.vue",
+        "./src/views/AuditLogView.vue",
+        "./src/views/MessagesView.vue",
+        "./src/views/LogoutView.vue",
+      ],
+    },
   },
 });
