@@ -1,6 +1,6 @@
 <template>
-  <div class="login-page d-flex align-center justify-center">
-    <v-card class="login-card pa-8" rounded="xl" elevation="8">
+  <div class="login-page d-flex ga-3 align-center justify-center">
+    <v-card class="login-card pa-8"  rounded="xl" elevation="8">
       <!-- Logo + Titel -->
       <div class="d-flex align-center ga-3 mb-2">
         <v-avatar color="teal-700" size="40" rounded="lg">
@@ -117,3 +117,16 @@ async function onLogin() {
   }
 }
 </script>
+
+<style>
+
+   .login-page {
+     min-height: 100dvh;
+     align-items: center;
+     justify-content: center;
+   }
+   .login-card {
+     align-items: center;
+     justify-content: center;
+   }
+</style>
