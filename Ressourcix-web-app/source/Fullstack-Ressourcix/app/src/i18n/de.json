@@ -39,16 +39,16 @@
 },
 
   "employee": {
-  "titel": "Mitarbeitende",
-  "employee":"Mitarbeitenr",
-  "manage": "Mitarbeitende verwalten",
-  "newcapture": "Neu erfassen",
-  "role": "Rolle",
-  "workload": "Pensum",
-  "vacationDays": "Ferienwochen",
-  "isActive": "Konto",
-  "empedit": "Mitarbeitende bearbeiten",
-  "empcapture": "Mitarbeitende erfassen"
+    "titel": "Mitarbeitende",
+    "employee":"Mitarbeitenr",
+    "manage": "Mitarbeitende verwalten",
+    "newcapture": "Neu erfassen",
+    "role": "Rolle",
+    "workload": "Pensum",
+    "vacationDays": "Ferienwochen",
+    "isActive": "Konto",
+    "empedit": "Mitarbeitende bearbeiten",
+    "empcapture": "Mitarbeitende erfassen"
 },
 
 "absences":{

@@ -15,28 +15,6 @@
 
         <v-spacer />
 
-        <v-select
-          v-model="departmentFilter"
-          :items="departmentOptions"
-          item-title="title"
-          item-value="value"
-          label="Abteilung"
-          clearable
-          density="compact"
-          hide-details
-          class="filter-select"
-        />
-        <v-select
-          v-model="educationFilter"
-          :items="educationOptions"
-          item-title="title"
-          item-value="value"
-          label="Ausbildung"
-          clearable
-          density="compact"
-          hide-details
-          class="filter-select"
-        />
       </div>
 
       <!-- Legende -->
