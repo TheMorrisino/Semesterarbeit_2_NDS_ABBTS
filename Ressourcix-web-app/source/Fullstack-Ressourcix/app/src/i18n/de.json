@@ -58,7 +58,8 @@
   "to": "BIS",
   "day": "Tage",
   "status": "Status",
-  "aktion": "Aktion"
+  "note": " ",
+  "detailsDialog": "Antragsdetails"
 
 
 },
@@ -119,7 +120,7 @@
 
 "common": {
   "name": "Name", "action": "Aktion", "search": "Suchen...",
-  "activ": "Aktiv", "Disabled": "Deaktiviert"
+  "activ": "Aktiv", "Disabled": "Deaktiviert", "close": "Schliessen"
 
 },
 "role":{

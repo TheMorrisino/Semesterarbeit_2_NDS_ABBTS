@@ -83,7 +83,7 @@
               v-model.number="newEntry.vacationDays"
               label="Ferienwochen"
               type="number"
-              step="0.1"
+              step="1"
             />
           </v-form>
         </v-card-text>

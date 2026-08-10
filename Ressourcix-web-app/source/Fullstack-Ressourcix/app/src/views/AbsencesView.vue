@@ -21,28 +21,65 @@
           <v-btn
             size="small"
             variant="outlined"
-            :disabled="item.status === RequestStatus.Taken"
-            @click="onAction(item)"
+            @click="openDetails(item)"
           >
             {{ actionLabel(item.status) }}
           </v-btn>
         </template>
       </v-data-table>
+
+      <v-dialog v-model="detailsDialog" max-width="480">
+        <v-card v-if="selectedItem" :title="t('absences.detailsDialog')">
+          <v-card-text>
+            <div class="detail-row">
+              <span class="detail-label">{{ t('common.name') }}</span>
+              <span>{{ employeeName(selectedItem.employeeId) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">{{ t('absences.typ') }}</span>
+              <span>{{ selectedItem.type }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">{{ t('absences.by') }}</span>
+              <span>{{ selectedItem.from }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">{{ t('absences.to') }}</span>
+              <span>{{ selectedItem.until }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">{{ t('absences.day') }}</span>
+              <span>{{ selectedItem.days }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">{{ t('absences.status') }}</span>
+              <v-chip :color="statusColor(selectedItem.status)" size="small" variant="tonal">
+                {{ selectedItem.status }}
+              </v-chip>
+            </div>
+            <v-divider class="my-3" />
+            <div class="detail-label mb-1">{{ t('absences.note') }}</div>
+            <div>{{ selectedItem.remark || '–' }}</div>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="detailsDialog = false">{{ t('common.close') }}</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useEmployeeStore } from "@/stores/employee";
 import { useRequestStore, RequestStatus, type Request } from "@/stores/request";
-import { useAuditLogStore } from "@/stores/auditLog";
 
 const { t } = useI18n();
 const employeeStore = useEmployeeStore();
 const requestStore = useRequestStore();
-const auditLog = useAuditLogStore();
 
 // Es gibt noch kein Login -> es werden bewusst alle Anträge gezeigt, nicht nur "eigene".
 // Sobald ein echter Login existiert, kann hier nach dem eingeloggten Mitarbeitenden gefiltert werden.
@@ -54,7 +91,7 @@ const headers = [
   { title: t('absences.to'), key: 'until' },
   { title: t('absences.day'), key: 'days' },
   { title: t('absences.status'), key: 'status' },
-  { title: t('absences.aktion'), key: 'action', sortable: false },
+  { title: t('absences.note'), key: 'action', sortable: false },
 ];
 
 function employeeName(employeeId: string): string {
@@ -75,25 +112,39 @@ function statusColor(status: RequestStatus) {
 function actionLabel(status: RequestStatus) {
   const map: Record<RequestStatus, string> = {
     [RequestStatus.Open]: 'Details',
-    [RequestStatus.Approved]: 'Stornieren',
-    [RequestStatus.Taken]: '—',
-    [RequestStatus.Rejected]: 'Grund',
-    [RequestStatus.Cancelled]: '—',
+    [RequestStatus.Approved]: 'Details',
+    [RequestStatus.Taken]: 'Details',
+    [RequestStatus.Rejected]: 'Details',
+    [RequestStatus.Cancelled]: 'Details',
   };
   return map[status] ?? '';
 }
 
-async function onAction(item: Request) {
-  if (item.status === RequestStatus.Approved) {
-    await requestStore.update(item.id, item.until, RequestStatus.Cancelled);
-    await auditLog.log('RequestUpdated', 'Ferienantrag storniert', item.id);
-    return;
-  }
-  // Details-Dialog (Ausstehend) / Ablehnungsgrund (Abgelehnt) sind noch nicht umgesetzt.
-  console.log('Aktion für', item);
+const detailsDialog = ref(false);
+const selectedItem = ref<Request | null>(null);
+
+function openDetails(item: Request) {
+  selectedItem.value = item;
+  detailsDialog.value = true;
 }
 
 onMounted(async () => {
   await Promise.all([employeeStore.load(), requestStore.load()]);
 });
 </script>
+
+<style scoped>
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.detail-label {
+  
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.6;
+}
+</style>
