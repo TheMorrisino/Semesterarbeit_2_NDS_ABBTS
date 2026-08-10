@@ -4,10 +4,10 @@ public class EmployeeStore
 {
     private readonly List<Employee> _employees = new()
     {
-        new() { name = "Morris Meier", role = "Mitarbeitende", workload = 100, vacationWeeks = 5 },
-        new() { name = "Pedro Santos", role = "Planner/Leitung", workload = 100, vacationWeeks = 5 },
-        new() { name = "Lena Brunner", role = "Mitarbeitende", workload = 80, vacationWeeks = 4.4 },
-        new() { name = "Rafael Koch", role = "Mitarbeitende", workload = 60, vacationWeeks = 3.3, isActive = false },
+        new() { name = "Morris Meier", role = "Mitarbeitende", workload = 100, vacationDays = 5 },
+        new() { name = "Pedro Santos", role = "Planner/Leitung", workload = 100, vacationDays = 5 },
+        new() { name = "Lena Brunner", role = "Mitarbeitende", workload = 80, vacationDays = 4.4 },
+        new() { name = "Tiago de Sousa Sá", role = "Mitarbeitende", workload = 60, vacationDays = 3.3, isActive = false },
     };
 
     public IReadOnlyList<Employee> All() => _employees;
@@ -34,9 +34,7 @@ public class EmployeeStore
         employee.name = updated.name;
         employee.role = updated.role;
         employee.workload = updated.workload;
-        employee.vacationWeeks = updated.vacationWeeks;
-        employee.department = updated.department;
-        employee.education = updated.education;
+        employee.vacationDays = updated.vacationDays;
         return true;
     }
 }

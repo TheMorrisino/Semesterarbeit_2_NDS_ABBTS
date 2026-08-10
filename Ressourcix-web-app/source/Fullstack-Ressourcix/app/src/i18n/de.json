@@ -45,7 +45,7 @@
   "newcapture": "Neu erfassen",
   "role": "Rolle",
   "workload": "Pensum",
-  "vacationWeeks": "Ferienwochen",
+  "vacationDays": "Ferienwochen",
   "isActive": "Konto",
   "empedit": "Mitarbeitende bearbeiten",
   "empcapture": "Mitarbeitende erfassen"
@@ -122,12 +122,10 @@
   "activ": "Aktiv", "Disabled": "Deaktiviert"
 
 },
-"qualification":{
-        "Roleisrequired":"Rolle ist erforderlich",
-        "planner":"Planner",
-        "hr": "HR",
-        "finance":"Finanzen",
-        "itadmin":"IT Administartor"
+"role":{
+  "admin":"Administartor",
+  "employee":"Mitarbeitenr"
+
    
     }
 }

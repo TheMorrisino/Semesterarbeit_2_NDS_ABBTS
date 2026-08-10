@@ -378,7 +378,7 @@ function remainingSymbol(entitledDays: number, plannedDays: number): string {
 const rows = computed<EmployeeRow[]>(() =>
   filteredEmployees.value.map((employee) => {
     const planned = plannedDaysCount(employee);
-    const entitled = employee.vacationWeeks * 5;
+    const entitled = employee.vacationDays * 5;
     const cells: DayCell[] = visibleDays.value.map((day) => {
       const iso = toISODate(day);
       const request = requestOnDay(employee.id, day) ?? null;
