@@ -53,18 +53,6 @@ const router = createRouter({
     components: { mainView: () => import('../views/AuditLogView.vue') },
     meta: { titleKey: "app.nav.auditlog" },
     },
-    {
-    path: '/messages',
-    name: 'messages',
-    components: { mainView: () => import('../views/MessagesView.vue') },
-    meta: { titleKey: "app.nav.messages" },
-    },
-    {
-    path: '/logout',
-    name: 'logout',
-    components: { mainView: () => import('../views/LogoutView.vue') },
-    meta: { titleKey: "app.nav.logout" },
-    },
   ],
 });
 
