@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { auditLogApi } from "@/api/auditLog";
+import { useAuthStore } from "@/stores/auth";
 
 // Welche Aktionen den Nutzer interessieren (BR-01.07 "Nachvollziehbarkeit von Mutationen") -
 // bewusst kein technisches/Debug-Logging, nur fachliche Mutationen an Ferienanträgen und Mitarbeitenden.
@@ -21,9 +22,6 @@ export interface AuditLogEntry {
   timestamp: string; // ISO
 }
 
-// Es gibt noch keinen echten Login -> fixer Platzhalter für "wer hat es getan"
-const CURRENT_USER = "Tiago de Sousa";
-
 export const useAuditLogStore = defineStore("auditLog", {
   state: () => ({
     entries: [] as AuditLogEntry[],
@@ -42,7 +40,9 @@ export const useAuditLogStore = defineStore("auditLog", {
       }
     },
     async log(action: AuditLogAction, summary: string, reference: string) {
-      const entry = await auditLogApi.create({ action, summary, reference, actor: CURRENT_USER });
+      const authStore = useAuthStore();
+      const actor = authStore.user?.username ?? "unknown";
+      const entry = await auditLogApi.create({ action, summary, reference, actor });
       this.entries.unshift(entry);
     },
   },
