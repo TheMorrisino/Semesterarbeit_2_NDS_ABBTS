@@ -2,27 +2,7 @@ namespace FullstackRessourcix;
 
 public class RequestsStore
 {
-    private readonly List<Request> _requests;
-
-    public RequestsStore(EmployeeStore employeeStore)
-    {
-        var firstEmployee = employeeStore.All().FirstOrDefault();
-        var sampleEmployeeId = firstEmployee?.id ?? Guid.NewGuid();
-
-        _requests = new List<Request>
-        {
-            new Request(
-                Guid.NewGuid(),
-                employeeId: sampleEmployeeId,
-                from: new DateOnly(2026, 7, 13),
-                until: new DateOnly(2026, 7, 24),
-                days: 10,
-                overlap: true,
-                status: RequestStatus.Open,
-                submittedOn: DateTime.UtcNow.AddDays(-2)
-            ),
-        };
-    }
+    private readonly List<Request> _requests = new();
 
     public IReadOnlyList<Request> All() => _requests;
 

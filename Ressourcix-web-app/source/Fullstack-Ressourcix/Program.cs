@@ -41,7 +41,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddSingleton<EmployeeStore>();
+builder.Services.AddScoped<EmployeeStore>();
 
 builder.Services.AddSingleton<RequestsStore>();
 
@@ -114,20 +114,44 @@ app.MapPost("/api/auth/change-password", async (ChangePasswordRequest request, C
     return Results.Ok();
 }).RequireAuthorization();
 
-app.MapGet("/api/employees", (EmployeeStore store) =>
-    Results.Ok(store.All()));
+app.MapGet("/api/employees", async (EmployeeStore store) =>
+    Results.Ok((await store.AllAsync()).Select(EmployeeResponse.From)))
+    .RequireAuthorization();
 
-app.MapPost("/api/employees", (Employee employee, EmployeeStore store) =>
+app.MapPost("/api/employees", async (CreateEmployeeRequest request, EmployeeStore store, IConfiguration config) =>
 {
-    var created = store.Create(employee);
-    return Results.Created($"/api/employees/{created.id}", created);
-});
+    if (await store.UsernameExistsAsync(request.username))
+    {
+        return Results.Conflict(new { message = "Benutzername bereits vergeben." });
+    }
 
-app.MapPut("/api/employees/{id}/toggle-active", (Guid id, EmployeeStore store) =>
-    store.ToggleActive(id) ? Results.Ok() : Results.NotFound());
+    var defaultPassword = config["Auth:DefaultPassword"]
+        ?? throw new InvalidOperationException("Auth:DefaultPassword ist nicht konfiguriert.");
 
-app.MapPut("/api/employees/{id}", (Guid id, Employee employee, EmployeeStore store) =>
-    store.Update(id, employee) ? Results.Ok() : Results.NotFound());
+    var employee = new Employee
+    {
+        name = request.name,
+        role = request.role,
+        workload = request.workload,
+        vacationDays = request.vacationDays,
+        isActive = true,
+        username = request.username,
+        permissionLevel = request.permissionLevel,
+        mustChangePassword = true,
+    };
+    employee.passwordHash = new PasswordHasher<Employee>().HashPassword(employee, defaultPassword);
+
+    var created = await store.CreateAsync(employee);
+    return Results.Created($"/api/employees/{created.id}", EmployeeResponse.From(created));
+}).RequireAuthorization();
+
+app.MapPut("/api/employees/{id}/toggle-active", async (Guid id, EmployeeStore store) =>
+    await store.ToggleActiveAsync(id) ? Results.Ok() : Results.NotFound())
+    .RequireAuthorization();
+
+app.MapPut("/api/employees/{id}", async (Guid id, UpdateEmployeeRequest request, EmployeeStore store) =>
+    await store.UpdateAsync(id, request) ? Results.Ok() : Results.NotFound())
+    .RequireAuthorization();
 
 app.MapGet("/api/requests", (string? status, RequestsStore store) =>
 {
@@ -204,3 +228,18 @@ internal sealed record AuthUserResponse(Guid id, string username, string name, i
         int.Parse(user.FindFirst("permissionLevel")!.Value),
         bool.Parse(user.FindFirst("mustChangePassword")!.Value));
 }
+
+internal sealed record EmployeeResponse(
+    Guid id, string name, string role, int workload, double vacationDays, bool isActive,
+    string username, int permissionLevel, bool mustChangePassword)
+{
+    public static EmployeeResponse From(Employee e) => new(
+        e.id, e.name, e.role, e.workload, e.vacationDays, e.isActive,
+        e.username, e.permissionLevel, e.mustChangePassword);
+}
+
+internal sealed record CreateEmployeeRequest(
+    string name, string role, int workload, double vacationDays, string username, int permissionLevel);
+
+public sealed record UpdateEmployeeRequest(
+    string name, string role, int workload, double vacationDays, int permissionLevel);
