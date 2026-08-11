@@ -12,6 +12,12 @@ const router = createRouter({
       meta: { titleKey: "app.nav.login", public: true },
     },
     {
+      path: "/change-password",
+      name: "change-password",
+      components: { mainView: () => import("../views/ChangePasswordView.vue") },
+      meta: { titleKey: "app.nav.changePassword" },
+    },
+    {
       path: "/",
       name: "dashboard",
       components: { mainView: () => import("../views/DashboardView.vue") },
