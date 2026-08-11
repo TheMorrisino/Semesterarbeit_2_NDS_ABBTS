@@ -17,10 +17,6 @@
       "logout": "Logout"
     }
   },
-  "user": {
-    "guestMode": "Guest Mode",
-    "notLoggedIn": "Not logged in"
-  },
   "gallery": {
     "upload": "Upload",
     "reload": "Reload",
@@ -63,8 +59,6 @@
   },
 
   "user": {
-    "guestMode": "Guest Mode",
-    "notLoggedIn": "Not logged in",
     "levelLabel": "Level {level}"
   }
 }
