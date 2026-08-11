@@ -1,15 +1,22 @@
 namespace FullstackRessourcix;
 
+using Microsoft.EntityFrameworkCore;
+
 public class RequestsStore
 {
-    private readonly List<Request> _requests = new();
+    private readonly AppDbContext _db;
 
-    public IReadOnlyList<Request> All() => _requests;
+    public RequestsStore(AppDbContext db)
+    {
+        _db = db;
+    }
 
-    public IReadOnlyList<Request> GetOpen() =>
-        _requests.Where(r => r.status == RequestStatus.Open).ToList();
+    public Task<List<Request>> AllAsync() => _db.Requests.AsNoTracking().ToListAsync();
 
-    public Request Create(Request request)
+    public Task<List<Request>> GetOpenAsync() =>
+        _db.Requests.AsNoTracking().Where(r => r.status == RequestStatus.Open).ToListAsync();
+
+    public async Task<Request> CreateAsync(Request request)
     {
         var employeeId = request.employeeId == Guid.Empty ? Guid.NewGuid() : request.employeeId;
         // id, status und submittedOn kommen nie vom Client - der könnte sonst z.B. ein falsches
@@ -21,34 +28,40 @@ public class RequestsStore
             status = RequestStatus.Open,
             submittedOn = DateTime.UtcNow,
         };
-        _requests.Add(created);
+        _db.Requests.Add(created);
+        await _db.SaveChangesAsync();
         return created;
     }
 
-    public bool Update(Guid id, DateOnly until, RequestStatus status)
+    public async Task<bool> UpdateAsync(Guid id, DateOnly until, RequestStatus status)
     {
-        var index = _requests.FindIndex(r => r.id == id);
-        if (index < 0) return false;
+        var existing = await _db.Requests.FindAsync(id);
+        if (existing is null) return false;
 
-        _requests[index] = _requests[index] with { until = until, status = status };
+        // Request ist ein record mit init-only-Properties: die getrackte Instanz kann nicht direkt
+        // mutiert werden, daher CurrentValues.SetValues auf Basis einer neuen "with"-Kopie.
+        _db.Entry(existing).CurrentValues.SetValues(existing with { until = until, status = status });
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public bool SetStatus(Guid id, RequestStatus status)
+    public async Task<bool> SetStatusAsync(Guid id, RequestStatus status)
     {
-        var index = _requests.FindIndex(r => r.id == id);
-        if (index < 0) return false;
+        var existing = await _db.Requests.FindAsync(id);
+        if (existing is null) return false;
 
-        _requests[index] = _requests[index] with { status = status };
+        _db.Entry(existing).CurrentValues.SetValues(existing with { status = status });
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public bool Remove(Guid id)
+    public async Task<bool> RemoveAsync(Guid id)
     {
-        var index = _requests.FindIndex(r => r.id == id);
-        if (index < 0) return false;
+        var existing = await _db.Requests.FindAsync(id);
+        if (existing is null) return false;
 
-        _requests.RemoveAt(index);
+        _db.Requests.Remove(existing);
+        await _db.SaveChangesAsync();
         return true;
     }
 }

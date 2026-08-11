@@ -43,9 +43,9 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<EmployeeStore>();
 
-builder.Services.AddSingleton<RequestsStore>();
+builder.Services.AddScoped<RequestsStore>();
 
-builder.Services.AddSingleton<AuditLogStore>();
+builder.Services.AddScoped<AuditLogStore>();
 
 // Enums als lesbare Strings statt nackter Zahlen serialisieren (z.B. "Open" statt 0)
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -153,41 +153,46 @@ app.MapPut("/api/employees/{id}", async (Guid id, UpdateEmployeeRequest request,
     await store.UpdateAsync(id, request) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization();
 
-app.MapGet("/api/requests", (string? status, RequestsStore store) =>
+app.MapGet("/api/requests", async (string? status, RequestsStore store) =>
 {
-    var requests = status == "open" ? store.GetOpen() : store.All();
+    var requests = status == "open" ? await store.GetOpenAsync() : await store.AllAsync();
     return Results.Ok(requests);
-});
+}).RequireAuthorization();
 
-app.MapPost("/api/requests", (Request request, RequestsStore store) =>
+app.MapPost("/api/requests", async (Request request, RequestsStore store) =>
 {
-    var created = store.Create(request);
+    var created = await store.CreateAsync(request);
     return Results.Created($"/api/requests/{created.id}", created);
-});
+}).RequireAuthorization();
 
 // Enddatum + Status ändern (z.B. aus einem Bearbeiten-Dialog), unabhängig von approve/reject
-app.MapPut("/api/requests/{id}", (Guid id, RequestUpdate update, RequestsStore store) =>
-    store.Update(id, update.until, update.status) ? Results.Ok() : Results.NotFound());
+app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, RequestsStore store) =>
+    await store.UpdateAsync(id, update.until, update.status) ? Results.Ok() : Results.NotFound())
+    .RequireAuthorization();
 
-app.MapPut("/api/requests/{id}/approve", (Guid id, RequestsStore store) =>
-    store.SetStatus(id, RequestStatus.Approved) ? Results.Ok() : Results.NotFound());
+app.MapPut("/api/requests/{id}/approve", async (Guid id, RequestsStore store) =>
+    await store.SetStatusAsync(id, RequestStatus.Approved) ? Results.Ok() : Results.NotFound())
+    .RequireAuthorization();
 
-app.MapPut("/api/requests/{id}/reject", (Guid id, RequestsStore store) =>
-    store.SetStatus(id, RequestStatus.Rejected) ? Results.Ok() : Results.NotFound());
+app.MapPut("/api/requests/{id}/reject", async (Guid id, RequestsStore store) =>
+    await store.SetStatusAsync(id, RequestStatus.Rejected) ? Results.Ok() : Results.NotFound())
+    .RequireAuthorization();
 
-app.MapDelete("/api/requests/{id}", (Guid id, RequestsStore store) =>
-    store.Remove(id) ? Results.Ok() : Results.NotFound());
+app.MapDelete("/api/requests/{id}", async (Guid id, RequestsStore store) =>
+    await store.RemoveAsync(id) ? Results.Ok() : Results.NotFound())
+    .RequireAuthorization();
 
-app.MapGet("/api/auditlog", (AuditLogStore store) =>
-    Results.Ok(store.All()));
+app.MapGet("/api/auditlog", async (AuditLogStore store) =>
+    Results.Ok(await store.AllAsync()))
+    .RequireAuthorization();
 
 // Bewusst kein PUT/DELETE für Audit-Log-Einträge: nachträgliches Ändern/Löschen
 // würde die geforderte Revisionssicherheit (BR-01.07) untergraben.
-app.MapPost("/api/auditlog", (AuditLogEntry entry, AuditLogStore store) =>
+app.MapPost("/api/auditlog", async (AuditLogEntry entry, AuditLogStore store) =>
 {
-    var created = store.Create(entry);
+    var created = await store.CreateAsync(entry);
     return Results.Created($"/api/auditlog/{created.Id}", created);
-});
+}).RequireAuthorization();
 
 app.MapSinglePageApps(appSettings);
 
