@@ -79,30 +79,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useEmployeeStore } from "@/stores/employee";
+import { useRequestStore, RequestStatus } from "@/stores/request";
 
 const { t } = useI18n();
-
-interface Employee {
-  id: string;
-  name: string;
-  role: string;
-  workloadPercent: number;
-  vacationDays: number;
-  isActive: boolean;
-}
-
-interface Request {
-  id: string;
-  employeeId: string;
-  from: string;
-  until: string;
-  days: number;
-  overlap: boolean;
-  status: "Open" | "Approved" | "Rejected";
-  submittedOn: string;
-}
+const employeeStore = useEmployeeStore();
+const requestStore = useRequestStore();
 
 interface TeamRow {
   id: string;
@@ -123,46 +107,33 @@ const headers = [
   { title: t("teamview.status"), key: "status" },
 ];
 
-const employees = ref<Employee[]>([]);
-const requests = ref<Request[]>([]);
-
-async function loadEmployees() {
-  const res = await fetch("/api/employees");
-  employees.value = await res.json();
-}
-
-async function loadRequests() {
-  const res = await fetch("/api/requests");
-  requests.value = await res.json();
-}
-
 // --- Vacation entitlement: from vacation weeks -> days (e.g. 5 weeks x 5 workdays = 25 days) ---
-function entitlementDays(e: Employee): number {
+function entitlementDays(e: { vacationDays: number }): number {
   return Math.round(e.vacationDays * 5);
 }
 
-// --- Taken: approved requests whose end date is in the past ---
+// --- Taken: Anträge mit Status "Bezogen" (Taken) ---
 function takenDays(employeeId: string): number {
-  return requests.value
-    .filter((r) => r.employeeId === employeeId && r.status === "Approved" && new Date(r.until) < new Date())
+  return requestStore.requests
+    .filter((r) => r.employeeId === employeeId && r.status === RequestStatus.Taken)
     .reduce((sum, r) => sum + r.days, 0);
 }
 
-// --- Planned: approved requests in the future ---
+// --- Planned: offene oder genehmigte Anträge (konsistent mit CalenderView.plannedDaysCount) ---
 function plannedDays(employeeId: string): number {
-  return requests.value
-    .filter((r) => r.employeeId === employeeId && r.status === "Approved" && new Date(r.until) >= new Date())
+  return requestStore.requests
+    .filter((r) => r.employeeId === employeeId && (r.status === RequestStatus.Approved || r.status === RequestStatus.Open))
     .reduce((sum, r) => sum + r.days, 0);
 }
 
 // --- Status: is there an open request for this person? ---
 function employeeStatus(employeeId: string): string {
-  const hasOpen = requests.value.some((r) => r.employeeId === employeeId && r.status === "Open");
+  const hasOpen = requestStore.requests.some((r) => r.employeeId === employeeId && r.status === RequestStatus.Open);
   return hasOpen ? t("teamview.open") : t("teamview.planned");
 }
 
 const teamRows = computed<TeamRow[]>(() =>
-  employees.value.map((e) => {
+  employeeStore.employees.map((e) => {
     const entitlement = entitlementDays(e);
     const taken = takenDays(e.id);
     const planned = plannedDays(e.id);
@@ -179,13 +150,13 @@ const teamRows = computed<TeamRow[]>(() =>
 );
 
 const stats = computed(() => ({
-  employeeCount: employees.value.length,
-  currentAbsent: requests.value.filter((r) => {
+  employeeCount: employeeStore.employees.length,
+  currentAbsent: requestStore.requests.filter((r) => {
     const today = new Date();
-    return r.status === "Approved" && new Date(r.from) <= today && new Date(r.until) >= today;
+    return r.status === RequestStatus.Approved && new Date(r.from) <= today && new Date(r.until) >= today;
   }).length,
-  offen: requests.value.filter((r) => r.status === "Open").length,
-  overlaps: requests.value.filter((r) => r.overlap).length,
+  offen: requestStore.requests.filter((r) => r.status === RequestStatus.Open).length,
+  overlaps: requestStore.requests.filter((r) => r.overlap).length,
 }));
 
 function initials(name: string) {
@@ -202,6 +173,6 @@ function statusColor(status: string) {
 }
 
 onMounted(async () => {
-  await Promise.all([loadEmployees(), loadRequests()]);
+  await Promise.all([employeeStore.load(), requestStore.load()]);
 });
 </script>
