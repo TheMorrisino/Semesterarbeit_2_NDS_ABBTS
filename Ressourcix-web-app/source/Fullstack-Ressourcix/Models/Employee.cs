@@ -8,5 +8,9 @@ public class Employee
     public int workload { get; set; }
     public double vacationDays { get; set; }
     public bool isActive { get; set; } = true;
-    
+
+    public string username { get; set; } = "";
+    public string passwordHash { get; set; } = "";
+    public bool mustChangePassword { get; set; } = true;
+    public int permissionLevel { get; set; }
 }

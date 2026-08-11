@@ -2,12 +2,18 @@ using System.Text.Json.Serialization;
 
 using FullstackRessourcix;
 
+using Microsoft.EntityFrameworkCore;
+
 using Mumrich.SpaDevMiddleware.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var appSettings = builder.Configuration.Get<AppSettings>();
 
 ArgumentNullException.ThrowIfNull(appSettings);
+
+var connectionString = builder.Configuration.GetConnectionString("AppDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:AppDb ist nicht konfiguriert.");
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddSingleton<EmployeeStore>();
 
