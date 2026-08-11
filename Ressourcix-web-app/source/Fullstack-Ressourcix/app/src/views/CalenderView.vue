@@ -24,6 +24,9 @@
         <span>❌ Abgelehnt</span>
         <span>🏖 Bezogen</span>
         <span>🚫 Storniert</span>
+        <span>⏳ Ferientage übrig</span>
+        <span>✔ Ferientage aufgebraucht</span>
+        <span>✖ Ferientage überzogen</span>
         <span class="d-flex align-center ga-1"><span class="legend-swatch legend-swatch--weekend" />Wochenende</span>
         <span class="d-flex align-center ga-1"><span class="legend-swatch legend-swatch--overlap" />Überschneidungen (grün → rot)</span>
       </div>
@@ -85,15 +88,6 @@
             density="compact"
           />
 
-          <v-select
-            v-if="entryDialog.mode === 'create'"
-            v-model="entryDialog.type"
-            :items="absenceTypeOptions"
-            item-title="title"
-            item-value="value"
-            label="Typ"
-            density="compact"
-          />
 
           <v-text-field
             v-if="entryDialog.mode === 'create'"
@@ -135,7 +129,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useEmployeeStore, Department, Qualification, type Employee } from "@/stores/employee";
+import { useEmployeeStore,   type Employee } from "@/stores/employee";
 import { useRequestStore, RequestStatus, AbsenceType, type Request } from "@/stores/request";
 import { useAuditLogStore } from "@/stores/auditLog";
 import { overlapColor } from "@/utils/overlapHeatmap";
@@ -150,7 +144,6 @@ interface EntryDialogState {
   entryId: string | null; // null, solange der Antrag noch nicht gespeichert wurde
   startDate: string;
   endDate: string;
-  type: AbsenceType;
   remark: string;
   status: RequestStatus;
 }
@@ -170,27 +163,6 @@ interface EmployeeRow {
   cells: DayCell[];
 }
 
-// ===== Anzeige-Labels für die Backend-Enums =====
-
-const DEPARTMENT_LABELS: Record<Department, string> = {
-  [Department.It]: "IT",
-  [Department.HumanResources]: "Human Resources",
-  [Department.Finance]: "Finance",
-};
-
-const QUALIFICATION_LABELS: Record<Qualification, string> = {
-  [Qualification.GeneralIt]: "Allgemein IT",
-  [Qualification.GeneralHr]: "Allgemein HR",
-  [Qualification.GeneralFinance]: "Allgemein Finance",
-  [Qualification.NursingFaGe]: "Fachfrau/Fachmann Gesundheit (FaGe)",
-  [Qualification.HousekeepingEfz]: "Hauswirtschaft EFZ",
-  [Qualification.SocialPedagogyHf]: "HF Sozialpädagogik",
-  [Qualification.NursingAssistanceSbbk]: "Pflegeassistenz SBBK",
-  [Qualification.Medicine]: "Arzt/Ärztin",
-  [Qualification.PhysiotherapyBsc]: "BSc Physiotherapie",
-  [Qualification.OccupationalTherapyBsc]: "BSc Ergotherapie",
-  [Qualification.SpitexBasicCourse]: "Spitex-Grundkurs",
-};
 
 const STATUS_LABELS: Record<RequestStatus, string> = {
   [RequestStatus.Open]: "Ausstehend",
@@ -200,15 +172,10 @@ const STATUS_LABELS: Record<RequestStatus, string> = {
   [RequestStatus.Cancelled]: "Storniert",
 };
 
-const departmentOptions = Object.values(Department).map((value) => ({ title: DEPARTMENT_LABELS[value], value }));
-const educationOptions = Object.values(Qualification).map((value) => ({ title: QUALIFICATION_LABELS[value], value }));
+
 const statusOptions = Object.values(RequestStatus).map((value) => ({ title: STATUS_LABELS[value], value }));
 
-const absenceTypeOptions: { title: string; value: AbsenceType }[] = [
-  { title: "Ferien", value: AbsenceType.Vacation },
-  { title: "Kompensation", value: AbsenceType.Compensation },
-  { title: "Unbezahlter Urlaub", value: AbsenceType.UnpaidLeave },
-];
+
 
 const STATUS_ICON: Record<RequestStatus, string> = {
   [RequestStatus.Open]: "🕒",
@@ -299,8 +266,7 @@ const visibleDays = ref<Date[]>(
     addDays(centerDate.value, INITIAL_WINDOW_RADIUS_DAYS),
   ),
 );
-const departmentFilter = ref<Department | null>(null);
-const educationFilter = ref<Qualification | null>(null);
+
 const entryDialog = ref<EntryDialogState | null>(null);
 
 // ===== Abgeleitete Daten =====
@@ -309,13 +275,7 @@ const toolbarLabel = computed(() =>
   new Intl.DateTimeFormat("de-CH", { month: "long", year: "numeric" }).format(centerDate.value),
 );
 
-const filteredEmployees = computed(() =>
-  employeeStore.employees.filter(
-    (employee) =>
-      (!departmentFilter.value || employee.department === departmentFilter.value) &&
-      (!educationFilter.value || employee.education === educationFilter.value),
-  ),
-);
+const filteredEmployees = computed(() => employeeStore.employees);
 
 function requestsForEmployee(employeeId: string): Request[] {
   return requestStore.requests.filter((request) => request.employeeId === employeeId);
@@ -426,7 +386,6 @@ function openCreateDialog(employee: Employee, startIso: string) {
     entryId: null,
     startDate: startIso,
     endDate: startIso,
-    type: AbsenceType.Vacation,
     remark: "",
     status: RequestStatus.Open,
   };
@@ -439,7 +398,6 @@ function openEditDialog(employee: Employee, request: Request) {
     entryId: request.id,
     startDate: request.from,
     endDate: request.until,
-    type: request.type,
     remark: request.remark ?? "",
     status: request.status,
   };
@@ -498,7 +456,7 @@ async function saveEntry() {
       until: state.endDate,
       days: daysBetweenInclusive(state.startDate, state.endDate),
       overlap: overlappingColleagues.value.length > 0,
-      type: state.type,
+      type: AbsenceType.Vacation,
       remark: state.remark.trim() || null,
     });
     await auditLog.log("RequestCreated", "Ferienantrag erfasst", created.id);
