@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
 
-export type DemoRole = "employee" | "planner" | "hr" | "it";
+export type Role = "employee" | "admin";
 
 export interface AuthUser {
   username: string;
-  role: DemoRole;
+  role: Role;
 }
 
 const STORAGE_KEY = "ressourcix.auth";
@@ -29,7 +29,7 @@ export const useAuthStore = defineStore("auth", {
   },
   actions: {
     // TODO: durch echten API-Call ersetzen, sobald Backend-Auth existiert
-    async login(username: string, _password: string, role: DemoRole) {
+    async login(username: string, _password: string, role: Role) {
       const user: AuthUser = { username, role };
       this.user = user;
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));

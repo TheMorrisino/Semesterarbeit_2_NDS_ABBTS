@@ -1,6 +1,6 @@
 <template>
-  <div class="login-page d-flex align-center justify-center">
-    <v-card class="login-card pa-8" rounded="xl" elevation="8">
+  <div class="login-page d-flex ga-3 align-center justify-center">
+    <v-card class="login-card pa-8"  rounded="xl" elevation="8">
       <!-- Logo + Titel -->
       <div class="d-flex align-center ga-3 mb-2">
         <v-avatar color="teal-700" size="40" rounded="lg">
@@ -40,26 +40,6 @@
         class="mb-6"
       />
 
-      <!-- Rollen-Auswahl -->
-      <label class="text-subtitle-2 font-weight-medium mb-2 d-block">
-        {{ t('login.loginAs') }}
-      </label>
-
-      <v-row dense class="mb-6">
-        <v-col v-for="role in roles" :key="role.value" cols="6">
-          <v-card
-            :class="['role-card pa-3', { 'role-card--selected': selectedRole === role.value }]"
-            variant="outlined"
-            rounded="lg"
-            @click="selectedRole = role.value"
-          >
-            <v-icon :icon="role.icon" size="20" class="mb-2" />
-            <div class="text-body-2 font-weight-medium">{{ t(role.titleKey) }}</div>
-            <div class="text-caption text-medium-emphasis">{{ t(role.subtitleKey) }}</div>
-          </v-card>
-        </v-col>
-      </v-row>
-
       <!-- Login-Button -->
         <v-btn
         color="teal-700"
@@ -86,22 +66,21 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import { useAuthStore, type DemoRole } from "@/stores/auth";
+import { useAuthStore, type Role } from "@/stores/auth";
 
 const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 
-const roles: { value: DemoRole; icon: string; titleKey: string; subtitleKey: string }[] = [
+const roles: { value: Role; icon: string; titleKey: string; subtitleKey: string }[] = [
   { value: "employee", icon: "mdi-account-outline", titleKey: "login.roles.employee.title", subtitleKey: "login.roles.employee.subtitle" },
-  { value: "planner", icon: "mdi-clipboard-check-outline", titleKey: "login.roles.planner.title", subtitleKey: "login.roles.planner.subtitle" },
-  { value: "hr", icon: "mdi-account-group-outline", titleKey: "login.roles.hr.title", subtitleKey: "login.roles.hr.subtitle" },
-  { value: "it", icon: "mdi-cog-outline", titleKey: "login.roles.it.title", subtitleKey: "login.roles.it.subtitle" },
+  { value: "admin", icon: "mdi-clipboard-check-outline", titleKey: "login.roles.admin.title", subtitleKey: "login.roles.admin.subtitle" },
+
 ];
 
 const username = ref("");
 const password = ref("");
-const selectedRole = ref<DemoRole>("employee");
+const selectedRole = ref<Role>("employee");
 const loading = ref(false);
 
 const canSubmit = computed(() => username.value.trim() !== "" && password.value !== "" && !loading.value);
@@ -117,3 +96,16 @@ async function onLogin() {
   }
 }
 </script>
+
+<style>
+
+   .login-page {
+     min-height: 100dvh;
+     align-items: center;
+     justify-content: center;
+   }
+   .login-card {
+     align-items: center;
+     justify-content: center;
+   }
+</style>

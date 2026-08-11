@@ -39,16 +39,16 @@
 },
 
   "employee": {
-  "titel": "Mitarbeitende",
-  "employee":"Mitarbeitenr",
-  "manage": "Mitarbeitende verwalten",
-  "newcapture": "Neu erfassen",
-  "role": "Rolle",
-  "workload": "Pensum",
-  "vacationWeeks": "Ferienwochen",
-  "isActive": "Konto",
-  "empedit": "Mitarbeitende bearbeiten",
-  "empcapture": "Mitarbeitende erfassen"
+    "titel": "Mitarbeitende",
+    "employee":"Mitarbeitenr",
+    "manage": "Mitarbeitende verwalten",
+    "newcapture": "Neu erfassen",
+    "role": "Rolle",
+    "workload": "Pensum",
+    "vacationDays": "Ferienwochen",
+    "isActive": "Konto",
+    "empedit": "Mitarbeitende bearbeiten",
+    "empcapture": "Mitarbeitende erfassen"
 },
 
 "absences":{
@@ -58,7 +58,8 @@
   "to": "BIS",
   "day": "Tage",
   "status": "Status",
-  "aktion": "Aktion"
+  "note": " ",
+  "detailsDialog": "Antragsdetails"
 
 
 },
@@ -119,15 +120,13 @@
 
 "common": {
   "name": "Name", "action": "Aktion", "search": "Suchen...",
-  "activ": "Aktiv", "Disabled": "Deaktiviert"
+  "activ": "Aktiv", "Disabled": "Deaktiviert", "close": "Schliessen"
 
 },
-"qualification":{
-        "Roleisrequired":"Rolle ist erforderlich",
-        "planner":"Planner",
-        "hr": "HR",
-        "finance":"Finanzen",
-        "itadmin":"IT Administartor"
+"role":{
+  "admin":"Administartor",
+  "employee":"Mitarbeitenr"
+
    
     }
 }

@@ -15,28 +15,6 @@
 
         <v-spacer />
 
-        <v-select
-          v-model="departmentFilter"
-          :items="departmentOptions"
-          item-title="title"
-          item-value="value"
-          label="Abteilung"
-          clearable
-          density="compact"
-          hide-details
-          class="filter-select"
-        />
-        <v-select
-          v-model="educationFilter"
-          :items="educationOptions"
-          item-title="title"
-          item-value="value"
-          label="Ausbildung"
-          clearable
-          density="compact"
-          hide-details
-          class="filter-select"
-        />
       </div>
 
       <!-- Legende -->
@@ -378,7 +356,7 @@ function remainingSymbol(entitledDays: number, plannedDays: number): string {
 const rows = computed<EmployeeRow[]>(() =>
   filteredEmployees.value.map((employee) => {
     const planned = plannedDaysCount(employee);
-    const entitled = employee.vacationWeeks * 5;
+    const entitled = employee.vacationDays * 5;
     const cells: DayCell[] = visibleDays.value.map((day) => {
       const iso = toISODate(day);
       const request = requestOnDay(employee.id, day) ?? null;

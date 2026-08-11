@@ -89,7 +89,7 @@ interface Employee {
   name: string;
   role: string;
   workloadPercent: number;
-  vacationWeeks: number;
+  vacationDays: number;
   isActive: boolean;
 }
 
@@ -138,7 +138,7 @@ async function loadRequests() {
 
 // --- Vacation entitlement: from vacation weeks -> days (e.g. 5 weeks x 5 workdays = 25 days) ---
 function entitlementDays(e: Employee): number {
-  return Math.round(e.vacationWeeks * 5);
+  return Math.round(e.vacationDays * 5);
 }
 
 // --- Taken: approved requests whose end date is in the past ---

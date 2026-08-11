@@ -44,7 +44,7 @@
   <AppThemeSwitch class="mr-3" />
     </v-app-bar>
     <v-main>
-      <v-container>
+      <v-container fluid>
         <RouterView name="mainView" />
       </v-container>
     </v-main>

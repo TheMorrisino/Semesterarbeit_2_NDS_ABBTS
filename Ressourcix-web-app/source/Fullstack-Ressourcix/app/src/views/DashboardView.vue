@@ -238,7 +238,7 @@ function absentCountOnDay(iso: string): number {
 
 const currentEmployee = computed(() => employeeStore.employees[0] ?? null);
 
-const entitledDays = computed(() => (currentEmployee.value ? Math.round(currentEmployee.value.vacationWeeks * 5) : 0));
+const entitledDays = computed(() => (currentEmployee.value ? Math.round(currentEmployee.value.vacationDays * 5) : 0));
 
 const ownRequests = computed(() =>
   currentEmployee.value ? requestStore.requests.filter((r) => r.employeeId === currentEmployee.value!.id) : [],
@@ -381,6 +381,7 @@ onMounted(() => {
   border-radius: 8px;
   padding: 10px 6px 8px;
   text-align: center;
+  color: #0f4c4f;
 }
 
 .day-cell .dow {

@@ -70,7 +70,7 @@
             <v-select
               v-model="newEntry.role"
               label="Rolle"
-              :items="[t('employee.employee'), t('qualification.planner'),t('qualification.itadmin')]"
+              :items="[t('employee.employee'), t('qualification.planner')]"
               :rules="[(v) => !!v || t('Rolle ist erforderlich')]"
             />
             <v-text-field
@@ -80,10 +80,10 @@
               :rules="[(v) => (v > 0 && v <= 100) || 'Zwischen 1 und 100']"
             />
             <v-text-field
-              v-model.number="newEntry.vacationWeeks"
+              v-model.number="newEntry.vacationDays"
               label="Ferienwochen"
               type="number"
-              step="0.1"
+              step="1"
             />
           </v-form>
         </v-card-text>
@@ -113,7 +113,7 @@ const headers = [
   { title: t('common.name'), key: 'name' },
   { title: t('employee.role'), key: 'role' },
   { title: t('employee.workload'), key: 'workload' },
-  { title: t('employee.vacationWeeks'), key: 'vacationWeeks' },
+  { title: t('employee.vacationDays'), key: 'vacationDays' },
   { title: t('employee.isActive'), key: 'isActive' },
   { title: t('common.action'), key: 'action', sortable: false },
 ]
@@ -141,7 +141,7 @@ const emptyEntry = () => ({
   name: '',
   role: '',
   workload: 100,
-  vacationWeeks: 5,
+  vacationDays: 5,
 })
 const newEntry = ref(emptyEntry())
 
@@ -157,7 +157,7 @@ function openEditDialog(item: Employee) {
     name: item.name,
     role: item.role,
     workload: item.workload,
-    vacationWeeks: item.vacationWeeks,
+    vacationDays: item.vacationDays,
   }
   dialogOpen.value = true
 }

@@ -28,7 +28,7 @@ export interface Employee {
   name: string;
   role: string;
   workload: number;
-  vacationWeeks: number;
+  vacationDays: number;
   isActive: boolean;
   department: Department;
   education: Qualification;
