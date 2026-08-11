@@ -15,28 +15,39 @@
       "teamview": "Teamübersicht",
       "auditlog":"Audit-Log",
       "messages":"Benachrichtigungen",
-      "logout":"Abmelden"
+      "logout":"Abmelden",
+      "changePassword": "Passwort ändern"
     }
   },
   "user": {
     "guestMode": "Gastmodus",
-    "notLoggedIn": "Nicht angemeldet"
+    "notLoggedIn": "Nicht angemeldet",
+    "levelLabel": "Level {level}"
   },
 
   "login": {
   "subtitle": "Absence and vacation management for SMEs. Sign in to continue.",
   "username": "Username",
   "password": "Password",
-  "loginAs": "Log in as (demo role)",
   "submit": "Log in",
   "secureConnection": "Encrypted connection · HTTPS/TLS",
-  "roles": {
-    "employee": { "title": "Employee", "subtitle": "Submit requests" },
-    "planner": { "title": "Planner/Lead", "subtitle": "Approve" },
-    "hr": { "title": "HR department", "subtitle": "Manage" },
-    "it": { "title": "IT / Operations", "subtitle": "Audit & operations" }
-  }
+  "invalidCredentials": "Benutzername oder Passwort ist falsch.",
+  "genericError": "Anmeldung fehlgeschlagen. Bitte später erneut versuchen."
 },
+
+  "changePassword": {
+    "title": "Passwort ändern",
+    "subtitle": "Aus Sicherheitsgründen musst du dein Passwort beim ersten Login ändern.",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "submit": "Passwort ändern",
+    "required": "Pflichtfeld",
+    "minLength": "Mindestens 8 Zeichen",
+    "mismatch": "Passwörter stimmen nicht überein",
+    "wrongCurrentPassword": "Aktuelles Passwort ist falsch",
+    "genericError": "Passwort konnte nicht geändert werden"
+  },
 
   "employee": {
     "titel": "Mitarbeitende",
@@ -44,6 +55,10 @@
     "manage": "Mitarbeitende verwalten",
     "newcapture": "Neu erfassen",
     "role": "Rolle",
+    "username": "Benutzername",
+    "usernameRequired": "Benutzername ist erforderlich",
+    "permissionLevel": "Berechtigungslevel",
+    "permissionLevelRequired": "Berechtigungslevel ist erforderlich",
     "workload": "Pensum",
     "vacationDays": "Ferienwochen",
     "isActive": "Konto",
