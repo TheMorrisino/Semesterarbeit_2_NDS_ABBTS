@@ -58,9 +58,11 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const authStore = useAuthStore();
-  console.log("Navigating to", to.path, "| loggedIn:", authStore.isLoggedIn);
   if (!to.meta.public && !authStore.isLoggedIn) {
     return { path: "/login" };
+  }
+  if (authStore.isLoggedIn && authStore.user?.mustChangePassword && to.name !== "change-password") {
+    return { path: "/change-password" };
   }
   return true;
 });
