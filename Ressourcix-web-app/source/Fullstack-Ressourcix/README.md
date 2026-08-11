@@ -118,6 +118,8 @@ Install the following tools before running the project:
   - Download: [https://nodejs.org](https://nodejs.org)
 - ![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white) npm (bundled with Node.js)
   - Docs: [https://docs.npmjs.com/downloading-and-installing-node-js-and-npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+- ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) Docker (für lokales PostgreSQL via Docker Compose)
+  - Download: [https://www.docker.com/get-started](https://www.docker.com/get-started)
 
 Useful verification commands:
 
@@ -137,6 +139,21 @@ npm --version
 cd app
 npm install
 ```
+
+1. Start PostgreSQL locally via Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+1. Install the local .NET tools (once) and apply database migrations:
+
+```bash
+dotnet tool restore
+dotnet tool run dotnet-ef database update
+```
+
+Default login (must be changed on first sign-in): username `morris.meier`, password `Ressourcix#2026`.
 
 1. Start the backend from the project root:
 
