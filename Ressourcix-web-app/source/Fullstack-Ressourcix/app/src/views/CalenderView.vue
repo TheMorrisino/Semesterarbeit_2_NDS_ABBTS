@@ -133,7 +133,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useEmployeeStore, Department, Qualification, type Employee } from "@/stores/employee";
 import { useRequestStore, RequestStatus, AbsenceType, type Request } from "@/stores/request";
 import { useAuditLogStore } from "@/stores/auditLog";
@@ -284,6 +285,8 @@ function daysBetweenInclusive(startIso: string, endIso: string): number {
 
 // ===== Zustand =====
 
+const route = useRoute();
+const router = useRouter();
 const employeeStore = useEmployeeStore();
 const requestStore = useRequestStore();
 const auditLog = useAuditLogStore();
@@ -514,9 +517,25 @@ async function deleteEntry() {
   entryDialog.value = null;
 }
 
+// Springt zu einem per Query-Param übergebenen Antrag (z.B. von der Genehmigungen-Seite aus)
+function jumpToRequest(requestId: string) {
+  const request = requestStore.requests.find((r) => r.id === requestId);
+  const employee = request ? employeeStore.employees.find((e) => e.id === request.employeeId) : undefined;
+  if (!request || !employee) return;
+
+  jumpTo(new Date(request.from));
+  openEditDialog(employee, request);
+  router.replace({ query: {} });
+}
+
 onMounted(async () => {
   nextTick(() => centerScroll());
   await Promise.all([employeeStore.load(), requestStore.load()]);
+
+  const requestId = route.query.requestId;
+  if (typeof requestId === "string") {
+    jumpToRequest(requestId);
+  }
 });
 </script>
 

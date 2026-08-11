@@ -79,7 +79,8 @@
   "unknown":"Unbekannt",
   "today":"Heute",
   "before1day":"vor 1 Tag",
-  "ForwardNTagen":"vor {n} Tagen"
+  "ForwardNTagen":"vor {n} Tagen",
+  "toCalendar":"Zum Kalendereintrag"
 },
 
 "dashboard": {
