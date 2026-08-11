@@ -39,8 +39,15 @@
         </template>
 
         <template #item.decision="{ item }">
-          <v-btn icon="mdi-check" size="small" variant="tonal" color="success" class="mr-1" @click="approve(item)" />
-          <v-btn icon="mdi-close" size="small" variant="tonal" color="error" @click="reject(item)" />
+          <v-btn
+            size="small"
+            variant="tonal"
+            color="primary"
+            prepend-icon="mdi-calendar-arrow-right"
+            @click="goToCalendarEntry(item)"
+          >
+            {{ t('approval.toCalendar') }}
+          </v-btn>
         </template>
       </v-data-table>
     </v-card>
@@ -50,14 +57,14 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import { useEmployeeStore } from "@/stores/employee";
 import { useRequestStore, type Request } from "@/stores/request";
-import { useAuditLogStore } from "@/stores/auditLog";
 
 const { t } = useI18n();
+const router = useRouter();
 const employeeStore = useEmployeeStore();
 const requestStore = useRequestStore();
-const auditLog = useAuditLogStore();
 
 const headers = [
   { title: t('approval.employee'), key: 'employee' },
@@ -91,16 +98,8 @@ function daysAgo(iso: string) {
   return days === 1 ? t('approval.before1day') : t('approval.ForwardNTagen', { n: days });
 }
 
-async function approve(item: Request) {
-  await requestStore.approve(item.id);
-  await auditLog.log('RequestUpdated', 'Ferienantrag genehmigt', item.id);
-  await requestStore.load('open');
-}
-
-async function reject(item: Request) {
-  await requestStore.reject(item.id);
-  await auditLog.log('RequestUpdated', 'Ferienantrag abgelehnt', item.id);
-  await requestStore.load('open');
+function goToCalendarEntry(item: Request) {
+  router.push({ path: '/calender', query: { requestId: item.id } });
 }
 
 onMounted(async () => {
