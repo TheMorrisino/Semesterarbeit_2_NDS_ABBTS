@@ -40,6 +40,10 @@
         class="mb-6"
       />
 
+      <v-alert v-if="errorMessage" type="error" density="compact" class="mb-4">
+        {{ errorMessage }}
+      </v-alert>
+
       <!-- Login-Button -->
         <v-btn
         color="teal-700"
@@ -66,31 +70,31 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import { useAuthStore, type Role } from "@/stores/auth";
+import { useAuthStore } from "@/stores/auth";
+import { ApiError } from "@/api/httpClient";
 
 const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 
-const roles: { value: Role; icon: string; titleKey: string; subtitleKey: string }[] = [
-  { value: "employee", icon: "mdi-account-outline", titleKey: "login.roles.employee.title", subtitleKey: "login.roles.employee.subtitle" },
-  { value: "admin", icon: "mdi-clipboard-check-outline", titleKey: "login.roles.admin.title", subtitleKey: "login.roles.admin.subtitle" },
-
-];
-
 const username = ref("");
 const password = ref("");
-const selectedRole = ref<Role>("employee");
 const loading = ref(false);
+const errorMessage = ref("");
 
 const canSubmit = computed(() => username.value.trim() !== "" && password.value !== "" && !loading.value);
 
 async function onLogin() {
   if (!canSubmit.value) return;
   loading.value = true;
+  errorMessage.value = "";
   try {
-    await authStore.login(username.value.trim(), password.value, selectedRole.value);
+    await authStore.login(username.value.trim(), password.value);
     router.push("/");
+  } catch (error) {
+    errorMessage.value = error instanceof ApiError && error.status === 401
+      ? t("login.invalidCredentials")
+      : t("login.genericError");
   } finally {
     loading.value = false;
   }

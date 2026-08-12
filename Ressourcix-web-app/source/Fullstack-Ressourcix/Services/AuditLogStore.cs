@@ -1,25 +1,33 @@
 namespace FullstackRessourcix;
 
+using Microsoft.EntityFrameworkCore;
+
 public class AuditLogStore
 {
-    // bewusst leer: erfundene Reference-Guids würden auf keine echten Employees/Requests zeigen
-    private readonly List<AuditLogEntry> _entries = new();
+    private readonly AppDbContext _db;
 
-    public IReadOnlyList<AuditLogEntry> All() => _entries;
+    public AuditLogStore(AppDbContext db)
+    {
+        _db = db;
+    }
 
-    public AuditLogEntry Create(AuditLogEntry entry)
+    public Task<List<AuditLogEntry>> AllAsync() => _db.AuditLogEntries.AsNoTracking().ToListAsync();
+
+    public async Task<AuditLogEntry> CreateAsync(AuditLogEntry entry)
     {
         entry.Id = Guid.NewGuid();
-        _entries.Add(entry);
+        _db.AuditLogEntries.Add(entry);
+        await _db.SaveChangesAsync();
         return entry;
     }
 
-    public bool Remove(Guid id)
+    public async Task<bool> RemoveAsync(Guid id)
     {
-        var index = _entries.FindIndex(e => e.Id == id);
-        if (index < 0) return false;
+        var entry = await _db.AuditLogEntries.FindAsync(id);
+        if (entry is null) return false;
 
-        _entries.RemoveAt(index);
+        _db.AuditLogEntries.Remove(entry);
+        await _db.SaveChangesAsync();
         return true;
     }
 }

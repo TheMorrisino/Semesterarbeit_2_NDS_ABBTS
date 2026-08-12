@@ -67,11 +67,23 @@
               label="Name"
               :rules="[(v) => !!v || 'Name ist erforderlich']"
             />
+            <v-text-field
+              v-model="newEntry.username"
+              :label="t('employee.username')"
+              :disabled="editingId !== null"
+              :rules="[(v) => !!v || t('employee.usernameRequired')]"
+            />
             <v-select
               v-model="newEntry.role"
               label="Rolle"
               :items="[t('employee.employee'), t('qualification.planner')]"
               :rules="[(v) => !!v || t('Rolle ist erforderlich')]"
+            />
+            <v-text-field
+              v-model.number="newEntry.permissionLevel"
+              :label="t('employee.permissionLevel')"
+              type="number"
+              :rules="[(v) => v >= 0 || t('employee.permissionLevelRequired')]"
             />
             <v-text-field
               v-model.number="newEntry.workload"
@@ -111,7 +123,9 @@ const search = ref('')
 
 const headers = [
   { title: t('common.name'), key: 'name' },
+  { title: t('employee.username'), key: 'username' },
   { title: t('employee.role'), key: 'role' },
+  { title: t('employee.permissionLevel'), key: 'permissionLevel' },
   { title: t('employee.workload'), key: 'workload' },
   { title: t('employee.vacationDays'), key: 'vacationDays' },
   { title: t('employee.isActive'), key: 'isActive' },
@@ -139,7 +153,9 @@ const editingId = ref<string | null>(null)
 
 const emptyEntry = () => ({
   name: '',
+  username: '',
   role: '',
+  permissionLevel: 1,
   workload: 100,
   vacationDays: 5,
 })
@@ -155,7 +171,9 @@ function openEditDialog(item: Employee) {
   editingId.value = item.id
   newEntry.value = {
     name: item.name,
+    username: item.username,
     role: item.role,
+    permissionLevel: item.permissionLevel,
     workload: item.workload,
     vacationDays: item.vacationDays,
   }

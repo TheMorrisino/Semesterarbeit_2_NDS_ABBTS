@@ -1,40 +1,51 @@
 namespace FullstackRessourcix;
 
+using Microsoft.EntityFrameworkCore;
+
 public class EmployeeStore
 {
-    private readonly List<Employee> _employees = new()
+    private readonly AppDbContext _db;
+
+    public EmployeeStore(AppDbContext db)
     {
-        new() { name = "Morris Meier", role = "Administrator", workload = 100, vacationDays = 5 },
-        new() { name = "Pedro Santos", role = "Administrator", workload = 100, vacationDays = 5 },
-        new() { name = "Lena Brunner", role = "Mitarbeitende", workload = 80, vacationDays = 4 },
-        new() { name = "Tiago de Sousa Sá", role = "Administrator", workload = 60, vacationDays = 3, isActive = false },
-    };
+        _db = db;
+    }
 
-    public IReadOnlyList<Employee> All() => _employees;
+    public Task<List<Employee>> AllAsync() => _db.Employees.AsNoTracking().ToListAsync();
 
-    public Employee Create(Employee employee)
+    public Task<Employee?> FindByUsernameAsync(string username) =>
+        _db.Employees.FirstOrDefaultAsync(e => e.username == username);
+
+    public Task<bool> UsernameExistsAsync(string username) =>
+        _db.Employees.AnyAsync(e => e.username == username);
+
+    public async Task<Employee> CreateAsync(Employee employee)
     {
         employee.id = Guid.NewGuid();
-        _employees.Add(employee);
+        _db.Employees.Add(employee);
+        await _db.SaveChangesAsync();
         return employee;
     }
 
-    public bool ToggleActive(Guid id)
+    public async Task<bool> ToggleActiveAsync(Guid id)
     {
-        var employee = _employees.FirstOrDefault(x => x.id == id);
+        var employee = await _db.Employees.FindAsync(id);
         if (employee is null) return false;
         employee.isActive = !employee.isActive;
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public bool Update(Guid id, Employee updated)
+    public async Task<bool> UpdateAsync(Guid id, UpdateEmployeeRequest updated)
     {
-        var employee = _employees.FirstOrDefault(x => x.id == id);
+        var employee = await _db.Employees.FindAsync(id);
         if (employee is null) return false;
         employee.name = updated.name;
         employee.role = updated.role;
         employee.workload = updated.workload;
         employee.vacationDays = updated.vacationDays;
+        employee.permissionLevel = updated.permissionLevel;
+        await _db.SaveChangesAsync();
         return true;
     }
 }

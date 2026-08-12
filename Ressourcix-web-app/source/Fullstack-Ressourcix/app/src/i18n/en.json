@@ -17,10 +17,6 @@
       "logout": "Logout"
     }
   },
-  "user": {
-    "guestMode": "Guest Mode",
-    "notLoggedIn": "Not logged in"
-  },
   "gallery": {
     "upload": "Upload",
     "reload": "Reload",
@@ -35,14 +31,34 @@
   "subtitle": "Absence and vacation management for SMEs. Sign in to continue.",
   "username": "Username",
   "password": "Password",
-  "loginAs": "Log in as (demo role)",
   "submit": "Log in",
   "secureConnection": "Encrypted connection · HTTPS/TLS",
-  "roles": {
-    "employee": { "title": "Employee", "subtitle": "Submit requests" },
-    "planner": { "title": "Planner/Lead", "subtitle": "Approve" },
-    "hr": { "title": "HR department", "subtitle": "Manage" },
-    "it": { "title": "IT / Operations", "subtitle": "Audit & operations" }
+  "invalidCredentials": "Username or password is incorrect.",
+  "genericError": "Login failed. Please try again later."
+},
+
+  "changePassword": {
+    "title": "Change password",
+    "subtitle": "For security reasons you must change your password on first login.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "submit": "Change password",
+    "required": "Required field",
+    "minLength": "At least 8 characters",
+    "mismatch": "Passwords do not match",
+    "wrongCurrentPassword": "Current password is incorrect",
+    "genericError": "Could not change password"
+  },
+
+  "employee": {
+    "username": "Username",
+    "usernameRequired": "Username is required",
+    "permissionLevel": "Permission level",
+    "permissionLevelRequired": "Permission level is required"
+  },
+
+  "user": {
+    "levelLabel": "Level {level}"
   }
-}
 }

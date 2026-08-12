@@ -32,6 +32,9 @@ export interface Employee {
   isActive: boolean;
   department: Department;
   education: Qualification;
+  username: string;
+  permissionLevel: number;
+  mustChangePassword?: boolean;
 }
 
 export const useEmployeeStore = defineStore("employees", {

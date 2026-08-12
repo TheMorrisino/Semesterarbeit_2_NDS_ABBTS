@@ -21,9 +21,6 @@ export interface AuditLogEntry {
   timestamp: string; // ISO
 }
 
-// Es gibt noch keinen echten Login -> fixer Platzhalter für "wer hat es getan"
-const CURRENT_USER = "Tiago de Sousa";
-
 export const useAuditLogStore = defineStore("auditLog", {
   state: () => ({
     entries: [] as AuditLogEntry[],
@@ -42,7 +39,7 @@ export const useAuditLogStore = defineStore("auditLog", {
       }
     },
     async log(action: AuditLogAction, summary: string, reference: string) {
-      const entry = await auditLogApi.create({ action, summary, reference, actor: CURRENT_USER });
+      const entry = await auditLogApi.create({ action, summary, reference });
       this.entries.unshift(entry);
     },
   },

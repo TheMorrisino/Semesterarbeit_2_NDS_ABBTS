@@ -12,6 +12,7 @@ import { registerPlugins } from '@/plugins'
 
 // Components
 import App from './App.vue'
+import { useAuthStore } from '@/stores/auth'
 
 // Styles
 import 'unfonts.css'
@@ -22,4 +23,14 @@ const app = createApp(App)
 
 registerPlugins(app)
 
-app.mount('#app')
+async function bootstrap() {
+  const authStore = useAuthStore()
+  try {
+    await authStore.checkSession()
+  } catch {
+    // Backend nicht erreichbar o.ä. - App trotzdem mounten (zeigt z.B. die Login-Seite)
+  }
+  app.mount('#app')
+}
+
+bootstrap()

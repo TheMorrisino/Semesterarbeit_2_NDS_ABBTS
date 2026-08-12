@@ -12,6 +12,12 @@ const router = createRouter({
       meta: { titleKey: "app.nav.login", public: true },
     },
     {
+      path: "/change-password",
+      name: "change-password",
+      components: { mainView: () => import("../views/ChangePasswordView.vue") },
+      meta: { titleKey: "app.nav.changePassword" },
+    },
+    {
       path: "/",
       name: "dashboard",
       components: { mainView: () => import("../views/DashboardView.vue") },
@@ -58,9 +64,11 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const authStore = useAuthStore();
-  console.log("Navigating to", to.path, "| loggedIn:", authStore.isLoggedIn);
   if (!to.meta.public && !authStore.isLoggedIn) {
     return { path: "/login" };
+  }
+  if (authStore.isLoggedIn && authStore.user?.mustChangePassword && to.name !== "change-password") {
+    return { path: "/change-password" };
   }
   return true;
 });

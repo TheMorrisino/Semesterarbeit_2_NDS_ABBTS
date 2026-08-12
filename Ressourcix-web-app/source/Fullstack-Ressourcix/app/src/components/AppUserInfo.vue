@@ -3,7 +3,7 @@
     v-if="authStore.isLoggedIn"
     lines="two"
     prepend-avatar="https://randomuser.me/api/portraits/lego/2.jpg"
-    :subtitle="t(`login.roles.${authStore.role}.title`)"
+    :subtitle="t('user.levelLabel', { level: authStore.user?.permissionLevel })"
     :title="authStore.user?.username"
   >
     <template #append>
@@ -30,8 +30,8 @@ const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 
-function onLogout() {
-  authStore.logout();
+async function onLogout() {
+  await authStore.logout();
   router.push("/login");
 }
 </script>

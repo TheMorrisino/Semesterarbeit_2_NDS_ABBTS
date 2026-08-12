@@ -1,42 +1,52 @@
 import { defineStore } from "pinia";
-
-export type Role = "employee" | "admin";
+import { authApi, type AuthUserDto } from "@/api/auth";
+import { ApiError } from "@/api/httpClient";
 
 export interface AuthUser {
+  id: string;
   username: string;
-  role: Role;
+  name: string;
+  permissionLevel: number;
+  mustChangePassword: boolean;
 }
 
-const STORAGE_KEY = "ressourcix.auth";
-
-function loadPersistedUser(): AuthUser | null {
-  const raw = sessionStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as AuthUser;
-  } catch {
-    return null;
-  }
+function toAuthUser(dto: AuthUserDto): AuthUser {
+  return { ...dto };
 }
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: loadPersistedUser() as AuthUser | null,
+    user: null as AuthUser | null,
+    sessionChecked: false,
   }),
   getters: {
     isLoggedIn: (state) => state.user !== null,
-    role: (state) => state.user?.role ?? null,
   },
   actions: {
-    // TODO: durch echten API-Call ersetzen, sobald Backend-Auth existiert
-    async login(username: string, _password: string, role: Role) {
-      const user: AuthUser = { username, role };
-      this.user = user;
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    async login(username: string, password: string) {
+      const dto = await authApi.login(username, password);
+      this.user = toAuthUser(dto);
     },
-    logout() {
+    async logout() {
+      await authApi.logout();
       this.user = null;
-      sessionStorage.removeItem(STORAGE_KEY);
+    },
+    async checkSession() {
+      try {
+        const dto = await authApi.me();
+        this.user = toAuthUser(dto);
+      } catch (error) {
+        if (!(error instanceof ApiError && error.status === 401)) {
+          throw error;
+        }
+        this.user = null;
+      } finally {
+        this.sessionChecked = true;
+      }
+    },
+    async changePassword(currentPassword: string, newPassword: string) {
+      await authApi.changePassword(currentPassword, newPassword);
+      if (this.user) this.user.mustChangePassword = false;
     },
   },
 });
