@@ -49,11 +49,12 @@ public class EmployeeStore
         return true;
     }
 
-    public bool Delete(Guid id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
-        var employee = _employees.FirstOrDefault(x => x.id == id);
+        var employee = await _db.Employees.FindAsync(id);
         if (employee is null) return false;
-        _employees.Remove(employee);
+        _db.Employees.Remove(employee);
+        await _db.SaveChangesAsync();
         return true;
     }
 }

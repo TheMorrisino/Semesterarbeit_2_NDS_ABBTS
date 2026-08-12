@@ -10,15 +10,9 @@ export interface Employee {
   workload: number;
   vacationDays: number;
   isActive: boolean;
-<<<<<<< HEAD
-  department: Department;
-  education: Qualification;
   username: string;
   permissionLevel: number;
   mustChangePassword?: boolean;
-=======
-
->>>>>>> feature/Fronted_anpassungen
 }
 
 export const useEmployeeStore = defineStore("employees", {
