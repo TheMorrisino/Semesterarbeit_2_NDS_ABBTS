@@ -140,9 +140,10 @@ cd app
 npm install
 ```
 
-1. Start PostgreSQL locally via Docker Compose:
+1. Return to the project root and start PostgreSQL locally via Docker Compose:
 
 ```bash
+cd ..
 docker compose up -d
 ```
 
@@ -155,16 +156,16 @@ dotnet tool run dotnet-ef database update
 
 Default login (must be changed on first sign-in): username `morris.meier`, password `Ressourcix#2026`.
 
-1. Start the backend from the project root:
+1. Trust the local HTTPS development certificate (one-time per machine) and start the backend:
 
 ```bash
-cd ..
-dotnet run
+dotnet dev-certs https --trust
+dotnet run --launch-profile https
 ```
 
-1. Open the app in your browser (based on `launchSettings.json`):
+1. Open the app in your browser:
 
-- [http://localhost:5167](http://localhost:5167)
+- [https://localhost:7057](https://localhost:7057)
 
 Official docs:
 

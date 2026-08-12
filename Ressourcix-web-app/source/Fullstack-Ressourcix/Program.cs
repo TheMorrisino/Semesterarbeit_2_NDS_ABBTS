@@ -39,7 +39,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             return Task.CompletedTask;
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ActiveSession", policy =>
+        policy.RequireAuthenticatedUser().RequireAssertion(context =>
+            context.User.FindFirst("mustChangePassword")?.Value != "True"));
+});
 
 builder.Services.AddScoped<EmployeeStore>();
 
@@ -70,7 +75,7 @@ app.MapPost("/api/auth/login", async (LoginRequest request, AppDbContext db, Htt
 {
     var employee = await db.Employees.FirstOrDefaultAsync(e => e.username == request.username);
     var hasher = new PasswordHasher<Employee>();
-    if (employee is null ||
+    if (employee is null || !employee.isActive ||
         hasher.VerifyHashedPassword(employee, employee.passwordHash, request.password) == PasswordVerificationResult.Failed)
     {
         return Results.Unauthorized();
@@ -103,6 +108,16 @@ app.MapPost("/api/auth/change-password", async (ChangePasswordRequest request, C
         return Results.BadRequest(new { message = "Aktuelles Passwort ist falsch." });
     }
 
+    if (request.newPassword.Length < 8)
+    {
+        return Results.BadRequest(new { message = "Neues Passwort muss mindestens 8 Zeichen lang sein." });
+    }
+
+    if (request.newPassword == request.currentPassword)
+    {
+        return Results.BadRequest(new { message = "Neues Passwort muss sich vom aktuellen unterscheiden." });
+    }
+
     employee.passwordHash = hasher.HashPassword(employee, request.newPassword);
     employee.mustChangePassword = false;
     await db.SaveChangesAsync();
@@ -116,7 +131,7 @@ app.MapPost("/api/auth/change-password", async (ChangePasswordRequest request, C
 
 app.MapGet("/api/employees", async (EmployeeStore store) =>
     Results.Ok((await store.AllAsync()).Select(EmployeeResponse.From)))
-    .RequireAuthorization();
+    .RequireAuthorization("ActiveSession");
 
 app.MapPost("/api/employees", async (CreateEmployeeRequest request, EmployeeStore store, IConfiguration config) =>
 {
@@ -143,56 +158,69 @@ app.MapPost("/api/employees", async (CreateEmployeeRequest request, EmployeeStor
 
     var created = await store.CreateAsync(employee);
     return Results.Created($"/api/employees/{created.id}", EmployeeResponse.From(created));
-}).RequireAuthorization();
+}).RequireAuthorization("ActiveSession");
 
 app.MapPut("/api/employees/{id}/toggle-active", async (Guid id, EmployeeStore store) =>
     await store.ToggleActiveAsync(id) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization();
+    .RequireAuthorization("ActiveSession");
 
 app.MapPut("/api/employees/{id}", async (Guid id, UpdateEmployeeRequest request, EmployeeStore store) =>
     await store.UpdateAsync(id, request) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization();
+    .RequireAuthorization("ActiveSession");
 
 app.MapGet("/api/requests", async (string? status, RequestsStore store) =>
 {
     var requests = status == "open" ? await store.GetOpenAsync() : await store.AllAsync();
     return Results.Ok(requests);
-}).RequireAuthorization();
+}).RequireAuthorization("ActiveSession");
 
 app.MapPost("/api/requests", async (Request request, RequestsStore store) =>
 {
+    if (request.employeeId == Guid.Empty)
+    {
+        return Results.BadRequest(new { message = "employeeId ist erforderlich." });
+    }
+
     var created = await store.CreateAsync(request);
     return Results.Created($"/api/requests/{created.id}", created);
-}).RequireAuthorization();
+}).RequireAuthorization("ActiveSession");
 
 // Enddatum + Status ändern (z.B. aus einem Bearbeiten-Dialog), unabhängig von approve/reject
 app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, RequestsStore store) =>
     await store.UpdateAsync(id, update.until, update.status) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization();
+    .RequireAuthorization("ActiveSession");
 
 app.MapPut("/api/requests/{id}/approve", async (Guid id, RequestsStore store) =>
     await store.SetStatusAsync(id, RequestStatus.Approved) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization();
+    .RequireAuthorization("ActiveSession");
 
 app.MapPut("/api/requests/{id}/reject", async (Guid id, RequestsStore store) =>
     await store.SetStatusAsync(id, RequestStatus.Rejected) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization();
+    .RequireAuthorization("ActiveSession");
 
 app.MapDelete("/api/requests/{id}", async (Guid id, RequestsStore store) =>
     await store.RemoveAsync(id) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization();
+    .RequireAuthorization("ActiveSession");
 
 app.MapGet("/api/auditlog", async (AuditLogStore store) =>
     Results.Ok(await store.AllAsync()))
-    .RequireAuthorization();
+    .RequireAuthorization("ActiveSession");
 
 // Bewusst kein PUT/DELETE für Audit-Log-Einträge: nachträgliches Ändern/Löschen
 // würde die geforderte Revisionssicherheit (BR-01.07) untergraben.
-app.MapPost("/api/auditlog", async (AuditLogEntry entry, AuditLogStore store) =>
+app.MapPost("/api/auditlog", async (CreateAuditLogRequest request, ClaimsPrincipal user, AuditLogStore store) =>
 {
+    var entry = new AuditLogEntry
+    {
+        Action = request.Action,
+        Summary = request.Summary,
+        Reference = request.Reference,
+        Actor = user.FindFirst(ClaimTypes.Name)!.Value,
+        Timestamp = DateTime.UtcNow,
+    };
     var created = await store.CreateAsync(entry);
     return Results.Created($"/api/auditlog/{created.Id}", created);
-}).RequireAuthorization();
+}).RequireAuthorization("ActiveSession");
 
 app.MapSinglePageApps(appSettings);
 
@@ -248,3 +276,5 @@ internal sealed record CreateEmployeeRequest(
 
 public sealed record UpdateEmployeeRequest(
     string name, string role, int workload, double vacationDays, int permissionLevel);
+
+internal sealed record CreateAuditLogRequest(AuditLogAction Action, string Summary, Guid Reference);

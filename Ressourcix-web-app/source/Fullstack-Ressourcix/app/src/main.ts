@@ -25,7 +25,11 @@ registerPlugins(app)
 
 async function bootstrap() {
   const authStore = useAuthStore()
-  await authStore.checkSession()
+  try {
+    await authStore.checkSession()
+  } catch {
+    // Backend nicht erreichbar o.ä. - App trotzdem mounten (zeigt z.B. die Login-Seite)
+  }
   app.mount('#app')
 }
 

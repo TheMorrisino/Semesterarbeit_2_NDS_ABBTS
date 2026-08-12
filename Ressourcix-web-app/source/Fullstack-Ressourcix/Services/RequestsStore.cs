@@ -18,13 +18,11 @@ public class RequestsStore
 
     public async Task<Request> CreateAsync(Request request)
     {
-        var employeeId = request.employeeId == Guid.Empty ? Guid.NewGuid() : request.employeeId;
         // id, status und submittedOn kommen nie vom Client - der könnte sonst z.B. ein falsches
         // Einreichdatum vortäuschen.
         var created = request with
         {
             id = Guid.NewGuid(),
-            employeeId = employeeId,
             status = RequestStatus.Open,
             submittedOn = DateTime.UtcNow,
         };

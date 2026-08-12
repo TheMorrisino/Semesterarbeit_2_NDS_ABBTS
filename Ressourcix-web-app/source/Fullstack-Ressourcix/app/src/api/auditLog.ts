@@ -5,7 +5,6 @@ interface CreateAuditLogPayload {
   action: AuditLogAction;
   summary: string;
   reference: string;
-  actor: string;
 }
 
 export const auditLogApi = {
