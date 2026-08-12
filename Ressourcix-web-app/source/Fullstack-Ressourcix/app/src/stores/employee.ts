@@ -1,27 +1,7 @@
 import { defineStore } from "pinia";
 import { employeesApi } from "@/api/employees";
 
-// Organisatorische Abteilung eines Mitarbeitenden (getrennt von der Ausbildung/Qualifikation)
-export enum Department {
-  It = "It",
-  HumanResources = "HumanResources",
-  Finance = "Finance",
-}
 
-// Ausbildung/Qualifikation, unabhängig von der Abteilung
-export enum Qualification {
-  GeneralIt = "GeneralIt",
-  GeneralHr = "GeneralHr",
-  GeneralFinance = "GeneralFinance",
-  NursingFaGe = "NursingFaGe", // Fachfrau/Fachmann Gesundheit (FaGe)
-  HousekeepingEfz = "HousekeepingEfz", // Hauswirtschaft EFZ
-  SocialPedagogyHf = "SocialPedagogyHf", // HF Sozialpädagogik
-  NursingAssistanceSbbk = "NursingAssistanceSbbk", // Pflegeassistenz SBBK
-  Medicine = "Medicine", // Arzt/Ärztin
-  PhysiotherapyBsc = "PhysiotherapyBsc", // BSc Physiotherapie
-  OccupationalTherapyBsc = "OccupationalTherapyBsc", // BSc Ergotherapie
-  SpitexBasicCourse = "SpitexBasicCourse", // Spitex-spezifischer Grundkurs
-}
 
 export interface Employee {
   id: string;
@@ -30,8 +10,6 @@ export interface Employee {
   workload: number;
   vacationDays: number;
   isActive: boolean;
-  department: Department;
-  education: Qualification;
   username: string;
   permissionLevel: number;
   mustChangePassword?: boolean;
@@ -65,6 +43,10 @@ export const useEmployeeStore = defineStore("employees", {
       await employeesApi.toggleActive(id);
       const employee = this.employees.find((e) => e.id === id);
       if (employee) employee.isActive = !employee.isActive;
+    },
+    async remove(id: string) {
+      await employeesApi.remove(id);
+      this.employees = this.employees.filter((e) => e.id !== id);
     },
   },
 });

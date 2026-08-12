@@ -168,6 +168,10 @@ app.MapPut("/api/employees/{id}", async (Guid id, UpdateEmployeeRequest request,
     await store.UpdateAsync(id, request) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization("ActiveSession");
 
+app.MapDelete("/api/employees/{id}", async (Guid id, EmployeeStore store) =>
+    await store.DeleteAsync(id) ? Results.Ok() : Results.NotFound())
+    .RequireAuthorization("ActiveSession");
+
 app.MapGet("/api/requests", async (string? status, RequestsStore store) =>
 {
     var requests = status == "open" ? await store.GetOpenAsync() : await store.AllAsync();

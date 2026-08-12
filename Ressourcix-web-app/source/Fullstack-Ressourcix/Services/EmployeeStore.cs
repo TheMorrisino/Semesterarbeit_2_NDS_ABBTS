@@ -48,4 +48,13 @@ public class EmployeeStore
         await _db.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var employee = await _db.Employees.FindAsync(id);
+        if (employee is null) return false;
+        _db.Employees.Remove(employee);
+        await _db.SaveChangesAsync();
+        return true;
+    }
 }
