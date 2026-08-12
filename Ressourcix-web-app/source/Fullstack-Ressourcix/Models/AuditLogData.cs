@@ -7,7 +7,8 @@ public enum AuditLogAction
     RequestDeleted,
     EmployeeCreated,
     EmployeeUpdated,
-    EmployeeStatusChanged
+    EmployeeStatusChanged,
+    EmployeeDeleted
 }
 
 public class AuditLogEntry

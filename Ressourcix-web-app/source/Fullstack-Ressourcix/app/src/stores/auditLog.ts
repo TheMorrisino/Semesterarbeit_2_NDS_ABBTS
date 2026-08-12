@@ -10,7 +10,8 @@ export type AuditLogAction =
   | "RequestDeleted"
   | "EmployeeCreated"
   | "EmployeeUpdated"
-  | "EmployeeStatusChanged";
+  | "EmployeeStatusChanged"
+  | "EmployeeDeleted";
 
 export interface AuditLogEntry {
   id: string;

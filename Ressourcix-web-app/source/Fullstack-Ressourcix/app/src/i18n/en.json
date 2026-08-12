@@ -37,12 +37,6 @@
   "password": "Password",
   "loginAs": "Log in as (demo role)",
   "submit": "Log in",
-  "secureConnection": "Encrypted connection · HTTPS/TLS",
-  "roles": {
-    "employee": { "title": "Employee", "subtitle": "Submit requests" },
-    "planner": { "title": "Planner/Lead", "subtitle": "Approve" },
-    "hr": { "title": "HR department", "subtitle": "Manage" },
-    "it": { "title": "IT / Operations", "subtitle": "Audit & operations" }
-  }
+  "secureConnection": "Encrypted connection · HTTPS/TLS"
 }
 }

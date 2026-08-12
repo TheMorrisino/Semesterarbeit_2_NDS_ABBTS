@@ -89,6 +89,7 @@
         </v-card-text>
 
         <v-card-actions>
+          <v-btn v-if="editingId" variant="text" color="error" @click="deleteEntry">Löschen</v-btn>
           <v-spacer />
           <v-btn variant="text" @click="closeDialog">Abbrechen</v-btn>
           <v-btn color="primary" :disabled="!formValid" @click="save">Speichern</v-btn>
@@ -101,7 +102,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useEmployeeStore, Department, Qualification, type Employee } from '@/stores/employee'
+import { useEmployeeStore,  type Employee } from '@/stores/employee'
 import { useAuditLogStore } from '@/stores/auditLog'
 
 const { t } = useI18n()
@@ -169,22 +170,27 @@ function closeDialog() {
   formRef.value?.reset()
 }
 
+async function deleteEntry() {
+  if (!editingId.value) return
+  if (!confirm(`${newEntry.value.name} wirklich löschen?`)) return
+
+  await employeeStore.remove(editingId.value)
+  auditLog.log('EmployeeDeleted', 'Mitarbeiter gelöscht', editingId.value)
+  closeDialog()
+}
+
 async function save() {
   if (editingId.value !== null) {
     const existing = employeeStore.employees.find((e) => e.id === editingId.value)
     await employeeStore.update(editingId.value, {
       ...newEntry.value,
       isActive: existing?.isActive ?? true,
-      department: existing?.department ?? Department.It,
-      education: existing?.education ?? Qualification.GeneralIt,
     })
     auditLog.log('EmployeeUpdated', 'Mitarbeiter bearbeitet', editingId.value)
   } else {
     const created = await employeeStore.create({
       ...newEntry.value,
       isActive: true,
-      department: Department.It,
-      education: Qualification.GeneralIt,
     })
     auditLog.log('EmployeeCreated', 'Mitarbeiter erfasst', created.id)
   }

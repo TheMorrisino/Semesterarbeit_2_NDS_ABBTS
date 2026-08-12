@@ -40,6 +40,9 @@ app.MapPut("/api/employees/{id}/toggle-active", (Guid id, EmployeeStore store) =
 app.MapPut("/api/employees/{id}", (Guid id, Employee employee, EmployeeStore store) =>
     store.Update(id, employee) ? Results.Ok() : Results.NotFound());
 
+app.MapDelete("/api/employees/{id}", (Guid id, EmployeeStore store) =>
+    store.Delete(id) ? Results.Ok() : Results.NotFound());
+
 app.MapGet("/api/requests", (string? status, RequestsStore store) =>
 {
     var requests = status == "open" ? store.GetOpen() : store.All();

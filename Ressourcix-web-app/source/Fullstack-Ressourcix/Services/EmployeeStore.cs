@@ -37,4 +37,12 @@ public class EmployeeStore
         employee.vacationDays = updated.vacationDays;
         return true;
     }
+
+    public bool Delete(Guid id)
+    {
+        var employee = _employees.FirstOrDefault(x => x.id == id);
+        if (employee is null) return false;
+        _employees.Remove(employee);
+        return true;
+    }
 }
