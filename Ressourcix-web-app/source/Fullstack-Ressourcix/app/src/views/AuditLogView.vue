@@ -56,6 +56,7 @@ function typeInfo(action: AuditLogAction) {
     EmployeeCreated: { icon: "mdi-account-plus", color: "info", bg: "blue-lighten-4" },
     EmployeeUpdated: { icon: "mdi-account-edit", color: "info", bg: "blue-lighten-4" },
     EmployeeStatusChanged: { icon: "mdi-account-switch", color: "grey", bg: "grey-lighten-3" },
+    EmployeeDeleted: { icon: "mdi-account-remove", color: "error", bg: "red-lighten-4" },
   };
   return map[action];
 }
