@@ -1,20 +1,19 @@
 <template>
   <div>
-    <div class="d-flex justify-end mb-4">
-      <v-text-field
-        v-model="search"
-        prepend-inner-icon="mdi-magnify"
-        :placeholder="t('common.search')"
-        density="compact"
-        hide-details
-        style="max-width: 280px"
-      />
-    </div>
-
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <span><v-icon icon="mdi-badge-account" class="mr-2" />{{ t('employee.manage') }}</span>
-        <v-btn color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
+        <div class="d-flex align-center ga-3">
+          <v-text-field
+            v-model="search"
+            prepend-inner-icon="mdi-magnify"
+            :placeholder="t('common.search')"
+            density="compact"
+            hide-details
+            style="min-width: 130px"
+          />
+          <v-btn color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
+        </div>
       </v-card-title>
 
       <v-data-table
