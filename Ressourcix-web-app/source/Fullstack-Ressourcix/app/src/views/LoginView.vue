@@ -4,7 +4,7 @@
       <!-- Logo + Titel -->
       <div class="d-flex align-center ga-3 mb-2">
         <v-avatar color="teal-700" size="40" rounded="lg">
-          <span class="text-h6 font-weight-bold text-white">R</span>
+          <v-img :src="ressourcixLogo"/>
         </v-avatar>
         <span class="text-h5 font-weight-bold">Ressourcix</span>
       </div>
@@ -72,6 +72,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { ApiError } from "@/api/httpClient";
+import ressourcixLogo from '@/assets/Ressourcix_Icon_OhneB2.png'
 
 const { t } = useI18n();
 const router = useRouter();

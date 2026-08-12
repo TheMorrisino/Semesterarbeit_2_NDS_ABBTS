@@ -1,20 +1,19 @@
 <template>
   <div>
-    <div class="d-flex justify-end mb-4">
-      <v-text-field
-        v-model="search"
-        prepend-inner-icon="mdi-magnify"
-        :placeholder="t('common.search')"
-        density="compact"
-        hide-details
-        style="max-width: 280px"
-      />
-    </div>
-
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <span><v-icon icon="mdi-badge-account" class="mr-2" />{{ t('employee.manage') }}</span>
-        <v-btn color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
+        <div class="d-flex align-center ga-3">
+          <v-text-field
+            v-model="search"
+            prepend-inner-icon="mdi-magnify"
+            :placeholder="t('common.search')"
+            density="compact"
+            hide-details
+            style="min-width: 130px"
+          />
+          <v-btn color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
+        </div>
       </v-card-title>
 
       <v-data-table
@@ -101,6 +100,7 @@
         </v-card-text>
 
         <v-card-actions>
+          <v-btn v-if="editingId" variant="text" color="error" @click="deleteEntry">Löschen</v-btn>
           <v-spacer />
           <v-btn variant="text" @click="closeDialog">Abbrechen</v-btn>
           <v-btn color="primary" :disabled="!formValid" @click="save">Speichern</v-btn>
@@ -113,7 +113,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useEmployeeStore, Department, Qualification, type Employee } from '@/stores/employee'
+import { useEmployeeStore,  type Employee } from '@/stores/employee'
 import { useAuditLogStore } from '@/stores/auditLog'
 
 const { t } = useI18n()
@@ -187,22 +187,27 @@ function closeDialog() {
   formRef.value?.reset()
 }
 
+async function deleteEntry() {
+  if (!editingId.value) return
+  if (!confirm(`${newEntry.value.name} wirklich löschen?`)) return
+
+  await employeeStore.remove(editingId.value)
+  auditLog.log('EmployeeDeleted', 'Mitarbeiter gelöscht', editingId.value)
+  closeDialog()
+}
+
 async function save() {
   if (editingId.value !== null) {
     const existing = employeeStore.employees.find((e) => e.id === editingId.value)
     await employeeStore.update(editingId.value, {
       ...newEntry.value,
       isActive: existing?.isActive ?? true,
-      department: existing?.department ?? Department.It,
-      education: existing?.education ?? Qualification.GeneralIt,
     })
     auditLog.log('EmployeeUpdated', 'Mitarbeiter bearbeitet', editingId.value)
   } else {
     const created = await employeeStore.create({
       ...newEntry.value,
       isActive: true,
-      department: Department.It,
-      education: Qualification.GeneralIt,
     })
     auditLog.log('EmployeeCreated', 'Mitarbeiter erfasst', created.id)
   }

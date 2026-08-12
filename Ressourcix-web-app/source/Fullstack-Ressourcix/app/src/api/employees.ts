@@ -6,4 +6,5 @@ export const employeesApi = {
   create: (employee: Omit<Employee, "id">) => httpClient.post<Employee>("/api/employees", employee),
   update: (id: string, employee: Omit<Employee, "id">) => httpClient.put<void>(`/api/employees/${id}`, employee),
   toggleActive: (id: string) => httpClient.put<void>(`/api/employees/${id}/toggle-active`),
+  remove: (id: string) => httpClient.delete<void>(`/api/employees/${id}`),
 };
