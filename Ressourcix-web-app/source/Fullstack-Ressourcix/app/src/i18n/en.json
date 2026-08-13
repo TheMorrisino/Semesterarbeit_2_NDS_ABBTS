@@ -55,7 +55,8 @@
     "username": "Username",
     "usernameRequired": "Username is required",
     "permissionLevel": "Permission level",
-    "permissionLevelRequired": "Permission level is required"
+    "permissionLevelRequired": "Permission level is required",
+    "isActiveDisabledShort": "disabled"
   },
 
   "user": {

@@ -55,13 +55,15 @@
     "manage": "Mitarbeitende verwalten",
     "newcapture": "Neu erfassen",
     "role": "Rolle",
+    "roleRequired": "Rolle ist erforderlich",
     "username": "Benutzername",
     "usernameRequired": "Benutzername ist erforderlich",
     "permissionLevel": "Berechtigungslevel",
     "permissionLevelRequired": "Berechtigungslevel ist erforderlich",
     "workload": "Pensum",
-    "vacationDays": "Ferienwochen",
+    "vacationDays": "Ferientage",
     "isActive": "Konto",
+    "isActiveDisabledShort": "deaktiviert",
     "empedit": "Mitarbeitende bearbeiten",
     "empcapture": "Mitarbeitende erfassen"
 },
@@ -140,10 +142,9 @@
 
 },
 "role":{
-  "admin":"Administartor",
-  "employee":"Mitarbeitenr"
-
-   
+  "admin":"Administrator",
+  "employee":"Mitarbeitende",
+  "planner":"Planer/Leitung"
     }
 }
 

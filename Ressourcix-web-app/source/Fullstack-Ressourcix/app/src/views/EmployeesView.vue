@@ -74,9 +74,9 @@
             />
             <v-select
               v-model="newEntry.role"
-              label="Rolle"
-              :items="[t('employee.employee'), t('qualification.planner')]"
-              :rules="[(v) => !!v || t('Rolle ist erforderlich')]"
+              :label="t('employee.role')"
+              :items="[t('role.employee'), t('role.admin')]"
+              :rules="[(v) => !!v || t('employee.roleRequired')]"
             />
             <v-text-field
               v-model.number="newEntry.permissionLevel"
@@ -92,7 +92,7 @@
             />
             <v-text-field
               v-model.number="newEntry.vacationDays"
-              label="Ferienwochen"
+              :label="t('employee.vacationDays')"
               type="number"
               step="1"
             />
@@ -157,7 +157,7 @@ const emptyEntry = () => ({
   role: '',
   permissionLevel: 1,
   workload: 100,
-  vacationDays: 5,
+  vacationDays: 25,
 })
 const newEntry = ref(emptyEntry())
 
