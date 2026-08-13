@@ -135,6 +135,7 @@
   },
 
 "auditlog": {
+  "by": "von",
   "untertitel": "Audit-Log – revisionssichere Protokollierung",
   "exportCsv": "Export CSV",
   "leer": "Noch keine Einträge vorhanden."

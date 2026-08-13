@@ -172,8 +172,14 @@ function avatarColor(name: string) {
 }
 
 async function toggleActive(item: Employee) {
+  const wasActive = item.isActive
   await employeeStore.toggleActive(item.id)
-  auditLog.log('EmployeeStatusChanged', 'Mitarbeiter Status geändert', item.id)
+  const activeLabel = (active: boolean) => (active ? t('common.activ') : t('common.Disabled'))
+  auditLog.log(
+    'EmployeeStatusChanged',
+    `Status geändert für ${item.name}: ${activeLabel(wasActive)} → ${activeLabel(!wasActive)}`,
+    item.id,
+  )
 }
 
 // --- Detailansicht (alle Attribute, einzeln kopierbar) ---
@@ -254,24 +260,46 @@ async function deleteEntry() {
   if (!confirm(`${newEntry.value.name} wirklich löschen?`)) return
 
   await employeeStore.remove(editingId.value)
-  auditLog.log('EmployeeDeleted', 'Mitarbeiter gelöscht', editingId.value)
+  auditLog.log('EmployeeDeleted', `Mitarbeiter gelöscht: ${newEntry.value.name}`, editingId.value)
   closeDialog()
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  name: 'Name',
+  username: t('employee.username'),
+  role: t('employee.role'),
+  permissionLevel: t('employee.permissionLevel'),
+  workload: t('employee.workload'),
+  vacationDays: t('employee.vacationDays'),
+}
+
+function diffEntry(before: Employee, after: typeof newEntry.value): string {
+  const changes: string[] = []
+  for (const key of Object.keys(FIELD_LABELS) as (keyof typeof FIELD_LABELS)[]) {
+    const beforeValue = before[key as keyof Employee]
+    const afterValue = after[key as keyof typeof after]
+    if (beforeValue !== afterValue) {
+      changes.push(`${FIELD_LABELS[key]}: ${beforeValue} → ${afterValue}`)
+    }
+  }
+  return changes.length ? changes.join(', ') : 'keine Änderung'
 }
 
 async function save() {
   if (editingId.value !== null) {
     const existing = employeeStore.employees.find((e) => e.id === editingId.value)
+    const changeText = existing ? diffEntry(existing, newEntry.value) : 'keine Änderung'
     await employeeStore.update(editingId.value, {
       ...newEntry.value,
       isActive: existing?.isActive ?? true,
     })
-    auditLog.log('EmployeeUpdated', 'Mitarbeiter bearbeitet', editingId.value)
+    auditLog.log('EmployeeUpdated', `Mitarbeiter bearbeitet: ${newEntry.value.name} — ${changeText}`, editingId.value)
   } else {
     const created = await employeeStore.create({
       ...newEntry.value,
       isActive: true,
     })
-    auditLog.log('EmployeeCreated', 'Mitarbeiter erfasst', created.id)
+    auditLog.log('EmployeeCreated', `Mitarbeiter erfasst: ${created.name}`, created.id)
   }
 
   closeDialog()

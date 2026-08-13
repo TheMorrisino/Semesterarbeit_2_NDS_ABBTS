@@ -463,10 +463,28 @@ async function saveEntry() {
       type: AbsenceType.Vacation,
       remark: state.remark.trim() || null,
     });
-    await auditLog.log("RequestCreated", "Ferienantrag erfasst", created.id);
+    await auditLog.log(
+      "RequestCreated",
+      `Ferienantrag erfasst für ${state.employee.name}: ${formatDate(state.startDate)} – ${formatDate(state.endDate)}`,
+      created.id,
+    );
   } else if (state.entryId) {
+    const before = requestStore.requests.find((r) => r.id === state.entryId);
     await requestStore.update(state.entryId, state.endDate, state.status);
-    await auditLog.log("RequestUpdated", "Ferienantrag geändert", state.entryId);
+
+    const changes: string[] = [];
+    if (before && before.until !== state.endDate) {
+      changes.push(`Ende: ${formatDate(before.until)} → ${formatDate(state.endDate)}`);
+    }
+    if (before && before.status !== state.status) {
+      changes.push(`Status: ${STATUS_LABELS[before.status]} → ${STATUS_LABELS[state.status]}`);
+    }
+    const changeText = changes.length ? changes.join(", ") : "keine Änderung";
+    await auditLog.log(
+      "RequestUpdated",
+      `Ferienantrag geändert für ${state.employee.name}: ${changeText}`,
+      state.entryId,
+    );
   }
   entryDialog.value = null;
 }
@@ -475,7 +493,11 @@ async function deleteEntry() {
   const state = entryDialog.value;
   if (!state || state.mode !== "edit" || !state.entryId) return;
   await requestStore.remove(state.entryId);
-  await auditLog.log("RequestDeleted", "Ferienantrag gelöscht", state.entryId);
+  await auditLog.log(
+    "RequestDeleted",
+    `Ferienantrag gelöscht für ${state.employee.name}: ${formatDate(state.startDate)} – ${formatDate(state.endDate)}`,
+    state.entryId,
+  );
   entryDialog.value = null;
 }
 
