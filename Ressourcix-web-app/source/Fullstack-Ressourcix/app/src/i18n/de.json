@@ -65,7 +65,11 @@
     "isActive": "Konto",
     "isActiveDisabledShort": "deaktiviert",
     "empedit": "Mitarbeitende bearbeiten",
-    "empcapture": "Mitarbeitende erfassen"
+    "empcapture": "Mitarbeitende erfassen",
+    "details": "Details",
+    "copy": "Kopieren",
+    "copied": "In Zwischenablage kopiert",
+    "mustChangePassword": "Passwortänderung erforderlich"
 },
 
 "absences":{

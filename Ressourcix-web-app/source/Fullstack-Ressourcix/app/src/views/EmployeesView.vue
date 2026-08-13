@@ -42,6 +42,7 @@
         </template>
 
         <template #item.action="{ item }">
+          <v-btn icon="mdi-information-outline" size="small" variant="text" @click="openDetailDialog(item)" />
           <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEditDialog(item)" />
           <v-btn
             :icon="item.isActive ? 'mdi-pause' : 'mdi-play'"
@@ -107,11 +108,41 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Detailansicht: alle Attribute eines Mitarbeiters, einzeln kopierbar -->
+    <v-dialog v-model="detailDialogOpen" max-width="480">
+      <v-card v-if="detailEntry">
+        <v-card-title>{{ t('employee.details') }} – {{ detailEntry.name }}</v-card-title>
+        <v-card-text>
+          <v-list density="compact">
+            <v-list-item v-for="field in detailFields" :key="field.key">
+              <v-list-item-title class="text-caption text-medium-emphasis">{{ field.label }}</v-list-item-title>
+              <v-list-item-subtitle class="d-flex align-center ga-2">
+                <span class="detail-value">{{ field.value }}</span>
+                <v-btn
+                  icon="mdi-content-copy"
+                  size="x-small"
+                  variant="text"
+                  :title="t('employee.copy')"
+                  @click="copyValue(field.value)"
+                />
+              </v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="detailDialogOpen = false">{{ t('common.close') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-snackbar v-model="copySnackbar" :timeout="1500">{{ t('employee.copied') }}</v-snackbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEmployeeStore,  type Employee } from '@/stores/employee'
 import { useAuditLogStore } from '@/stores/auditLog'
@@ -143,6 +174,37 @@ function avatarColor(name: string) {
 async function toggleActive(item: Employee) {
   await employeeStore.toggleActive(item.id)
   auditLog.log('EmployeeStatusChanged', 'Mitarbeiter Status geändert', item.id)
+}
+
+// --- Detailansicht (alle Attribute, einzeln kopierbar) ---
+const detailDialogOpen = ref(false)
+const detailEntry = ref<Employee | null>(null)
+const copySnackbar = ref(false)
+
+const detailFields = computed(() => {
+  if (!detailEntry.value) return []
+  const e = detailEntry.value
+  return [
+    { key: 'id', label: 'ID', value: e.id },
+    { key: 'name', label: t('common.name'), value: e.name },
+    { key: 'username', label: t('employee.username'), value: e.username },
+    { key: 'role', label: t('employee.role'), value: e.role },
+    { key: 'permissionLevel', label: t('employee.permissionLevel'), value: String(e.permissionLevel) },
+    { key: 'workload', label: t('employee.workload'), value: String(e.workload) },
+    { key: 'vacationDays', label: t('employee.vacationDays'), value: String(e.vacationDays) },
+    { key: 'isActive', label: t('employee.isActive'), value: e.isActive ? t('common.activ') : t('common.Disabled') },
+    { key: 'mustChangePassword', label: t('employee.mustChangePassword'), value: String(e.mustChangePassword ?? false) },
+  ]
+})
+
+function openDetailDialog(item: Employee) {
+  detailEntry.value = item
+  detailDialogOpen.value = true
+}
+
+async function copyValue(value: string) {
+  await navigator.clipboard.writeText(value)
+  copySnackbar.value = true
 }
 
 // --- Dialog-Logik (ein Dialog für Erfassen + Bearbeiten) ---
@@ -217,3 +279,10 @@ async function save() {
 
 onMounted(() => employeeStore.load())
 </script>
+
+<style scoped>
+.detail-value {
+  font-family: monospace;
+  word-break: break-all;
+}
+</style>
