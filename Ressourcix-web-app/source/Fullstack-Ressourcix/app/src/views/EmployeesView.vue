@@ -76,7 +76,7 @@
             <v-select
               v-model="newEntry.role"
               :label="t('employee.role')"
-              :items="[t('role.employee'), t('role.admin')]"
+              :items="[t('role.employee'), t('role.admin'), t('role.planner')]"
               :rules="[(v) => !!v || t('employee.roleRequired')]"
             />
             <v-text-field

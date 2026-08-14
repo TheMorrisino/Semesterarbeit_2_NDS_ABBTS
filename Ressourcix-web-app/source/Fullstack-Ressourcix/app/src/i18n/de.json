@@ -50,9 +50,9 @@
   },
 
   "employee": {
-    "titel": "Mitarbeitende",
-    "employee":"Mitarbeitenr",
-    "manage": "Mitarbeitende verwalten",
+    "titel": "Mitarbeiter",
+    "employee":"Mitarbeiter",
+    "manage": "Mitarbeiter verwalten",
     "newcapture": "Neu erfassen",
     "role": "Rolle",
     "roleRequired": "Rolle ist erforderlich",
@@ -64,8 +64,8 @@
     "vacationDays": "Ferientage",
     "isActive": "Konto",
     "isActiveDisabledShort": "deaktiviert",
-    "empedit": "Mitarbeitende bearbeiten",
-    "empcapture": "Mitarbeitende erfassen",
+    "empedit": "Mitarbeiter bearbeiten",
+    "empcapture": "Mitarbeiter erfassen",
     "details": "Details",
     "copy": "Kopieren",
     "copied": "In Zwischenablage kopiert",
@@ -125,11 +125,11 @@
   "currentAbsent":"Aktuell abwesend",
   "overlaps":"Überschneidung",
   "open":"Offen",
-  "employee":"Mitarbeitenr",
+  "employee":"Mitarbeiter",
   "entitlement": "Anspruch",
   "taken": "Bezogen",
   "planned": "Geplant",
-  "remaining": "Rest",
+  "remaining": "Verbleibend",
   "status": "Status",
   "saldoStatus": "Team – Saldo & Status"
   },
@@ -148,7 +148,7 @@
 },
 "role":{
   "admin":"Administrator",
-  "employee":"Mitarbeitende",
+  "employee":"Mitarbeiter",
   "planner":"Planer/Leitung"
     }
 }
