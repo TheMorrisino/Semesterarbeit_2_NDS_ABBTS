@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
       <div>
-        <h1 class="dash-heading">{{ t("dashboard.greeting", { name: currentEmployee?.name ?? "–" }) }}</h1>
+        <h1 class="dash-heading">{{ t("dashboard.greeting", { name: authStore.user?.name ?? "–" }) }}</h1>
         <div class="dash-subtext">{{ todayLabel }}</div>
       </div>
       <v-btn color="primary" prepend-icon="mdi-plus" to="/calender">{{ t("dashboard.newRequest") }}</v-btn>
@@ -149,6 +149,7 @@ import { useRequestStore, RequestStatus } from "@/stores/request";
 import { useAuditLogStore, type AuditLogAction } from "@/stores/auditLog";
 import { overlapColor } from "@/utils/overlapHeatmap";
 import OverlapChart, { type OverlapChartPoint } from "@/components/OverlapChart.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const { t } = useI18n();
 const employeeStore = useEmployeeStore();
@@ -157,6 +158,7 @@ const auditLog = useAuditLogStore();
 
 const WEEKDAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 const OVERLAP_CHART_DAYS = 14;
+const authStore = useAuthStore();
 
 const STATUS_LABEL: Record<RequestStatus, string> = {
   [RequestStatus.Open]: "Ausstehend",

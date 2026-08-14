@@ -55,8 +55,6 @@ export default defineConfig({
         "./src/views/TeamView.vue",
         "./src/views/EmployeesView.vue",
         "./src/views/AuditLogView.vue",
-        "./src/views/MessagesView.vue",
-        "./src/views/LogoutView.vue",
       ],
     },
   },
