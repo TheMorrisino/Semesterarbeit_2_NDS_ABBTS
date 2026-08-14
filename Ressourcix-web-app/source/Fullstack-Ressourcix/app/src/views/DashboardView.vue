@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-4">
       <div>
-        <h1 class="dash-heading">{{ t("dashboard.greeting", { name: authStore.user?.name ?? "–" }) }}</h1>
+        <h1 class="dash-heading">{{ t("dashboard.greeting", { name: currentEmployee?.name ?? "–" }) }}</h1>
         <div class="dash-subtext">{{ todayLabel }}</div>
       </div>
       <v-btn color="primary" prepend-icon="mdi-plus" to="/calender">{{ t("dashboard.newRequest") }}</v-btn>
@@ -239,7 +239,7 @@ function absentCountOnDay(iso: string): number {
 
 // ===== Ferien-Statuszeile (Platzhalter-Mitarbeitender, siehe Kommentar oben im Template) =====
 
-const currentEmployee = computed(() => employeeStore.employees[0] ?? null);
+const currentEmployee = computed(() => employeeStore.employees.find((e) => e.name === authStore.user?.name) ?? null);
 
 const entitledDays = computed(() => (currentEmployee.value ? Math.round(currentEmployee.value.vacationDays) : 0));
 
