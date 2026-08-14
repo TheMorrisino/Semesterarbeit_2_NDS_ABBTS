@@ -48,9 +48,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in rows" :key="row.employee.id">
+            <tr v-for="row in rows" :key="row.employee.id" :class="{ 'is-inactive-employee': !row.employee.isActive }">
               <td class="name-col">
                 {{ row.employee.name }}
+                <span v-if="!row.employee.isActive" class="text-caption">({{ t('employee.isActiveDisabledShort') }})</span>
                 <span class="text-caption text-medium-emphasis">
                   [{{ row.plannedDays }}/{{ row.entitledDays }}] {{ row.remainingSymbol }}
                 </span>
@@ -129,10 +130,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useEmployeeStore,   type Employee } from "@/stores/employee";
 import { useRequestStore, RequestStatus, AbsenceType, type Request } from "@/stores/request";
 import { useAuditLogStore } from "@/stores/auditLog";
 import { overlapColor } from "@/utils/overlapHeatmap";
+
+const { t } = useI18n();
 
 // ===== Domain-Typen (Employee/Request kommen aus den Stores, hier nur UI-lokaler Zustand) =====
 
@@ -319,7 +323,7 @@ function remainingSymbol(entitledDays: number, plannedDays: number): string {
 const rows = computed<EmployeeRow[]>(() =>
   filteredEmployees.value.map((employee) => {
     const planned = plannedDaysCount(employee);
-    const entitled = employee.vacationDays * 5;
+    const entitled = employee.vacationDays;
     const cells: DayCell[] = visibleDays.value.map((day) => {
       const iso = toISODate(day);
       const request = requestOnDay(employee.id, day) ?? null;
@@ -459,10 +463,28 @@ async function saveEntry() {
       type: AbsenceType.Vacation,
       remark: state.remark.trim() || null,
     });
-    await auditLog.log("RequestCreated", "Ferienantrag erfasst", created.id);
+    await auditLog.log(
+      "RequestCreated",
+      `Ferienantrag erfasst für ${state.employee.name}: ${formatDate(state.startDate)} – ${formatDate(state.endDate)}`,
+      created.id,
+    );
   } else if (state.entryId) {
+    const before = requestStore.requests.find((r) => r.id === state.entryId);
     await requestStore.update(state.entryId, state.endDate, state.status);
-    await auditLog.log("RequestUpdated", "Ferienantrag geändert", state.entryId);
+
+    const changes: string[] = [];
+    if (before && before.until !== state.endDate) {
+      changes.push(`Ende: ${formatDate(before.until)} → ${formatDate(state.endDate)}`);
+    }
+    if (before && before.status !== state.status) {
+      changes.push(`Status: ${STATUS_LABELS[before.status]} → ${STATUS_LABELS[state.status]}`);
+    }
+    const changeText = changes.length ? changes.join(", ") : "keine Änderung";
+    await auditLog.log(
+      "RequestUpdated",
+      `Ferienantrag geändert für ${state.employee.name}: ${changeText}`,
+      state.entryId,
+    );
   }
   entryDialog.value = null;
 }
@@ -471,7 +493,11 @@ async function deleteEntry() {
   const state = entryDialog.value;
   if (!state || state.mode !== "edit" || !state.entryId) return;
   await requestStore.remove(state.entryId);
-  await auditLog.log("RequestDeleted", "Ferienantrag gelöscht", state.entryId);
+  await auditLog.log(
+    "RequestDeleted",
+    `Ferienantrag gelöscht für ${state.employee.name}: ${formatDate(state.startDate)} – ${formatDate(state.endDate)}`,
+    state.entryId,
+  );
   entryDialog.value = null;
 }
 
@@ -583,6 +609,11 @@ td.clickable {
 
 .legend-swatch--overlap {
   background: linear-gradient(90deg, rgb(210, 245, 210), rgb(255, 250, 200), rgb(255, 200, 200));
+}
+
+.is-inactive-employee {
+  opacity: 0.45;
+  filter: grayscale(1);
 }
 
 .overlap-warning {

@@ -107,9 +107,8 @@ const headers = [
   { title: t("teamview.status"), key: "status" },
 ];
 
-// --- Vacation entitlement: from vacation weeks -> days (e.g. 5 weeks x 5 workdays = 25 days) ---
 function entitlementDays(e: { vacationDays: number }): number {
-  return Math.round(e.vacationDays * 5);
+  return Math.round(e.vacationDays);
 }
 
 // --- Taken: Anträge mit Status "Bezogen" (Taken) ---

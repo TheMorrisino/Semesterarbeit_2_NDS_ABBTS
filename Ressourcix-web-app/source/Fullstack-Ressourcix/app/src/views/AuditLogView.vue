@@ -22,11 +22,11 @@
           </template>
 
           <v-list-item-title class="font-weight-bold">
-            {{ entry.summary }} <span class="font-weight-regular text-medium-emphasis">· {{ entry.reference }}</span>
+            {{ entry.summary }}
           </v-list-item-title>
 
           <v-list-item-subtitle>
-            {{ entry.actor }} · {{ formatDate(entry.timestamp) }}
+            {{ t('auditlog.by') }} {{ entry.actor }} · {{ formatDate(entry.timestamp) }}
           </v-list-item-subtitle>
         </v-list-item>
       </v-list>

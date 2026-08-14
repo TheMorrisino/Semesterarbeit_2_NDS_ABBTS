@@ -42,6 +42,7 @@
         </template>
 
         <template #item.action="{ item }">
+          <v-btn icon="mdi-information-outline" size="small" variant="text" @click="openDetailDialog(item)" />
           <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEditDialog(item)" />
           <v-btn
             :icon="item.isActive ? 'mdi-pause' : 'mdi-play'"
@@ -74,9 +75,9 @@
             />
             <v-select
               v-model="newEntry.role"
-              label="Rolle"
-              :items="[t('employee.employee'), t('qualification.planner')]"
-              :rules="[(v) => !!v || t('Rolle ist erforderlich')]"
+              :label="t('employee.role')"
+              :items="[t('role.employee'), t('role.admin')]"
+              :rules="[(v) => !!v || t('employee.roleRequired')]"
             />
             <v-text-field
               v-model.number="newEntry.permissionLevel"
@@ -92,7 +93,7 @@
             />
             <v-text-field
               v-model.number="newEntry.vacationDays"
-              label="Ferienwochen"
+              :label="t('employee.vacationDays')"
               type="number"
               step="1"
             />
@@ -107,11 +108,41 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Detailansicht: alle Attribute eines Mitarbeiters, einzeln kopierbar -->
+    <v-dialog v-model="detailDialogOpen" max-width="480">
+      <v-card v-if="detailEntry">
+        <v-card-title>{{ t('employee.details') }} – {{ detailEntry.name }}</v-card-title>
+        <v-card-text>
+          <v-list density="compact">
+            <v-list-item v-for="field in detailFields" :key="field.key">
+              <v-list-item-title class="text-caption text-medium-emphasis">{{ field.label }}</v-list-item-title>
+              <v-list-item-subtitle class="d-flex align-center ga-2">
+                <span class="detail-value">{{ field.value }}</span>
+                <v-btn
+                  icon="mdi-content-copy"
+                  size="x-small"
+                  variant="text"
+                  :title="t('employee.copy')"
+                  @click="copyValue(field.value)"
+                />
+              </v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="detailDialogOpen = false">{{ t('common.close') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-snackbar v-model="copySnackbar" :timeout="1500">{{ t('employee.copied') }}</v-snackbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEmployeeStore,  type Employee } from '@/stores/employee'
 import { useAuditLogStore } from '@/stores/auditLog'
@@ -141,8 +172,45 @@ function avatarColor(name: string) {
 }
 
 async function toggleActive(item: Employee) {
+  const wasActive = item.isActive
   await employeeStore.toggleActive(item.id)
-  auditLog.log('EmployeeStatusChanged', 'Mitarbeiter Status geändert', item.id)
+  const activeLabel = (active: boolean) => (active ? t('common.activ') : t('common.Disabled'))
+  auditLog.log(
+    'EmployeeStatusChanged',
+    `Status geändert für ${item.name}: ${activeLabel(wasActive)} → ${activeLabel(!wasActive)}`,
+    item.id,
+  )
+}
+
+// --- Detailansicht (alle Attribute, einzeln kopierbar) ---
+const detailDialogOpen = ref(false)
+const detailEntry = ref<Employee | null>(null)
+const copySnackbar = ref(false)
+
+const detailFields = computed(() => {
+  if (!detailEntry.value) return []
+  const e = detailEntry.value
+  return [
+    { key: 'id', label: 'ID', value: e.id },
+    { key: 'name', label: t('common.name'), value: e.name },
+    { key: 'username', label: t('employee.username'), value: e.username },
+    { key: 'role', label: t('employee.role'), value: e.role },
+    { key: 'permissionLevel', label: t('employee.permissionLevel'), value: String(e.permissionLevel) },
+    { key: 'workload', label: t('employee.workload'), value: String(e.workload) },
+    { key: 'vacationDays', label: t('employee.vacationDays'), value: String(e.vacationDays) },
+    { key: 'isActive', label: t('employee.isActive'), value: e.isActive ? t('common.activ') : t('common.Disabled') },
+    { key: 'mustChangePassword', label: t('employee.mustChangePassword'), value: String(e.mustChangePassword ?? false) },
+  ]
+})
+
+function openDetailDialog(item: Employee) {
+  detailEntry.value = item
+  detailDialogOpen.value = true
+}
+
+async function copyValue(value: string) {
+  await navigator.clipboard.writeText(value)
+  copySnackbar.value = true
 }
 
 // --- Dialog-Logik (ein Dialog für Erfassen + Bearbeiten) ---
@@ -157,7 +225,7 @@ const emptyEntry = () => ({
   role: '',
   permissionLevel: 1,
   workload: 100,
-  vacationDays: 5,
+  vacationDays: 25,
 })
 const newEntry = ref(emptyEntry())
 
@@ -192,24 +260,46 @@ async function deleteEntry() {
   if (!confirm(`${newEntry.value.name} wirklich löschen?`)) return
 
   await employeeStore.remove(editingId.value)
-  auditLog.log('EmployeeDeleted', 'Mitarbeiter gelöscht', editingId.value)
+  auditLog.log('EmployeeDeleted', `Mitarbeiter gelöscht: ${newEntry.value.name}`, editingId.value)
   closeDialog()
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  name: 'Name',
+  username: t('employee.username'),
+  role: t('employee.role'),
+  permissionLevel: t('employee.permissionLevel'),
+  workload: t('employee.workload'),
+  vacationDays: t('employee.vacationDays'),
+}
+
+function diffEntry(before: Employee, after: typeof newEntry.value): string {
+  const changes: string[] = []
+  for (const key of Object.keys(FIELD_LABELS) as (keyof typeof FIELD_LABELS)[]) {
+    const beforeValue = before[key as keyof Employee]
+    const afterValue = after[key as keyof typeof after]
+    if (beforeValue !== afterValue) {
+      changes.push(`${FIELD_LABELS[key]}: ${beforeValue} → ${afterValue}`)
+    }
+  }
+  return changes.length ? changes.join(', ') : 'keine Änderung'
 }
 
 async function save() {
   if (editingId.value !== null) {
     const existing = employeeStore.employees.find((e) => e.id === editingId.value)
+    const changeText = existing ? diffEntry(existing, newEntry.value) : 'keine Änderung'
     await employeeStore.update(editingId.value, {
       ...newEntry.value,
       isActive: existing?.isActive ?? true,
     })
-    auditLog.log('EmployeeUpdated', 'Mitarbeiter bearbeitet', editingId.value)
+    auditLog.log('EmployeeUpdated', `Mitarbeiter bearbeitet: ${newEntry.value.name} — ${changeText}`, editingId.value)
   } else {
     const created = await employeeStore.create({
       ...newEntry.value,
       isActive: true,
     })
-    auditLog.log('EmployeeCreated', 'Mitarbeiter erfasst', created.id)
+    auditLog.log('EmployeeCreated', `Mitarbeiter erfasst: ${created.name}`, created.id)
   }
 
   closeDialog()
@@ -217,3 +307,10 @@ async function save() {
 
 onMounted(() => employeeStore.load())
 </script>
+
+<style scoped>
+.detail-value {
+  font-family: monospace;
+  word-break: break-all;
+}
+</style>
