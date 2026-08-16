@@ -164,6 +164,7 @@
   import { useAuthStore } from '@/stores/auth'
   import { useEmployeeStore } from '@/stores/employee'
   import { RequestStatus, useRequestStore } from '@/stores/request'
+  import { daysBetweenInclusive, formatDate, startOfWeek, toISODate } from '@/utils/date'
   import { overlapColor } from '@/utils/overlapHeatmap'
 
   const { t } = useI18n()
@@ -209,31 +210,6 @@
   }
 
   // ===== Datumshilfsfunktionen =====
-
-  function toISODate (date: Date): string {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
-  function formatDate (iso: string): string {
-    const [year, month, day] = iso.split('-')
-    return `${day}.${month}.${year}`
-  }
-
-  function daysBetweenInclusive (startIso: string, endIso: string): number {
-    const start = new Date(startIso)
-    const end = new Date(endIso)
-    return Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1
-  }
-
-  function startOfWeek (date: Date): Date {
-    const result = new Date(date)
-    const mondayIndex = (result.getDay() + 6) % 7 // Montag = 0 ... Sonntag = 6
-    result.setDate(result.getDate() - mondayIndex)
-    return result
-  }
 
   function timeAgo (iso: string): string {
     const diffMinutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000)
