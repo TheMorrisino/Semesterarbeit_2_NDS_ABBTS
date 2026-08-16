@@ -225,7 +225,7 @@ app.MapPost("/api/requests", async (Request request, ClaimsPrincipal user, Reque
     {
         return Results.BadRequest(new { message = "employeeId ist erforderlich." });
     }
-    if (!IsAdmin(user) && request.employeeId != CurrentEmployeeId(user))
+    if (!CanActOnRequest(user, request.employeeId))
     {
         return Results.Forbid();
     }
@@ -239,7 +239,7 @@ app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, ClaimsPri
 {
     var existing = await store.GetAsync(id);
     if (existing is null) return Results.NotFound();
-    if (!IsAdmin(user) && existing.employeeId != CurrentEmployeeId(user))
+    if (!CanActOnRequest(user, existing.employeeId))
     {
         return Results.Forbid();
     }
@@ -259,7 +259,7 @@ app.MapDelete("/api/requests/{id}", async (Guid id, ClaimsPrincipal user, Reques
 {
     var existing = await store.GetAsync(id);
     if (existing is null) return Results.NotFound();
-    if (!IsAdmin(user) && existing.employeeId != CurrentEmployeeId(user))
+    if (!CanActOnRequest(user, existing.employeeId))
     {
         return Results.Forbid();
     }
@@ -296,6 +296,9 @@ static bool IsAdmin(ClaimsPrincipal user) =>
 
 static Guid CurrentEmployeeId(ClaimsPrincipal user) =>
     Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+static bool CanActOnRequest(ClaimsPrincipal user, Guid employeeId) =>
+    IsAdmin(user) || employeeId == CurrentEmployeeId(user);
 
 static string ActorName(ClaimsPrincipal user) =>
     user.FindFirst("displayName")!.Value;
