@@ -12,8 +12,8 @@
         </template>
 
         <template #item.status="{ item }">
-          <v-chip :color="statusColor(item.status)" size="small" variant="tonal">
-            {{ t(`status.${item.status.toLowerCase()}`) }}
+          <v-chip :color="statusMeta(item.status, t).color" size="small" variant="tonal">
+            {{ statusMeta(item.status, t).label }}
           </v-chip>
         </template>
 
@@ -59,8 +59,8 @@
             <div class="detail-row">
               <span class="detail-label">{{ t('absences.status') }}</span>
 
-              <v-chip :color="statusColor(selectedItem.status)" size="small" variant="tonal">
-                {{ t(`status.${selectedItem.status.toLowerCase()}`) }}
+              <v-chip :color="statusMeta(selectedItem.status, t).color" size="small" variant="tonal">
+                {{ statusMeta(selectedItem.status, t).label }}
               </v-chip>
             </div>
 
@@ -85,7 +85,8 @@
 
   import { useAuthStore } from '@/stores/auth'
   import { useEmployeeStore } from '@/stores/employee'
-  import { type Request, RequestStatus, useRequestStore } from '@/stores/request'
+  import { type Request, useRequestStore } from '@/stores/request'
+  import { statusMeta } from '@/utils/statusMeta'
 
   const { t } = useI18n()
   const employeeStore = useEmployeeStore()
@@ -109,17 +110,6 @@
 
   function employeeName (employeeId: string): string {
     return employeeStore.employees.find(e => e.id === employeeId)?.name ?? t('approval.unknown')
-  }
-
-  function statusColor (status: RequestStatus) {
-    const map: Record<RequestStatus, string> = {
-      [RequestStatus.Open]: 'orange',
-      [RequestStatus.Approved]: 'green',
-      [RequestStatus.Taken]: 'blue',
-      [RequestStatus.Rejected]: 'red',
-      [RequestStatus.Cancelled]: 'grey',
-    }
-    return map[status] ?? 'grey'
   }
 
   const detailsDialog = ref(false)

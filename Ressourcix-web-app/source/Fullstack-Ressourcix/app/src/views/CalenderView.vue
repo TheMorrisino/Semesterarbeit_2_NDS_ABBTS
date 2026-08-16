@@ -203,6 +203,7 @@
   import { uniqueInitials } from '@/utils/initials'
   import { isEmployeeAbsentOn, rangesOverlap } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
+  import { statusMeta } from '@/utils/statusMeta'
 
   const { t } = useI18n()
 
@@ -236,25 +237,9 @@
     cells: DayCell[]
   }
 
-  const STATUS_LABELS = computed<Record<RequestStatus, string>>(() => ({
-    [RequestStatus.Open]: t('status.open'),
-    [RequestStatus.Approved]: t('status.approved'),
-    [RequestStatus.Rejected]: t('status.rejected'),
-    [RequestStatus.Taken]: t('status.taken'),
-    [RequestStatus.Cancelled]: t('status.cancelled'),
-  }))
-
   const statusOptions = computed(() =>
-    Object.values(RequestStatus).map(value => ({ title: STATUS_LABELS.value[value], value })),
+    Object.values(RequestStatus).map(value => ({ title: statusMeta(value, t).label, value })),
   )
-
-  const STATUS_ICON: Record<RequestStatus, string> = {
-    [RequestStatus.Open]: '🕒',
-    [RequestStatus.Approved]: '✅',
-    [RequestStatus.Rejected]: '❌',
-    [RequestStatus.Taken]: '🏖',
-    [RequestStatus.Cancelled]: '🚫',
-  }
 
   // ===== Konstanten für das Tagesraster =====
 
@@ -376,7 +361,7 @@
         return {
           iso,
           color: dayColorByDate.value.get(iso) ?? '',
-          icon: request ? STATUS_ICON[request.status] : '',
+          icon: request ? statusMeta(request.status, t).icon : '',
           entry: request,
         }
       })
