@@ -22,7 +22,7 @@
       <v-list-item class="pl-4" link :title="t('app.nav.calender')" to="/calender" />
 
       <v-list-item
-        v-if="isAdmin"
+        v-if="authStore.isAdmin"
         class="pl-4"
         link
         :title="t('app.nav.approval')"
@@ -69,7 +69,6 @@
   const drawer = ref<boolean | null>(null)
   const { t } = useI18n()
   const route = useRoute()
-  const isAdmin = computed(() => (authStore.user?.permissionLevel ?? 0) >= 5)
 
   // aktualisiert sich automatisch bei jedem Routenwechsel, da route.meta reaktiv ist
   const pageTitle = computed(() => (route.meta.titleKey ? t(route.meta.titleKey) : ''))

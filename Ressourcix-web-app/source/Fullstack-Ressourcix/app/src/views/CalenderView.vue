@@ -153,8 +153,8 @@
             v-if="entryDialog.mode === 'edit'"
             v-model="entryDialog.status"
             density="compact"
-            :disabled="!isAdmin"
-            :hint="!isAdmin ? t('calendar.statusHint') : undefined"
+            :disabled="!authStore.isAdmin"
+            :hint="!authStore.isAdmin ? t('calendar.statusHint') : undefined"
             item-title="title"
             item-value="value"
             :items="statusOptions"
@@ -266,8 +266,6 @@
   const employeeStore = useEmployeeStore()
   const requestStore = useRequestStore()
   const authStore = useAuthStore()
-
-  const isAdmin = computed(() => (authStore.user?.permissionLevel ?? 0) >= 5)
 
   // Bewusst Vuetifys "xs"-Breakpoint (< 600px, echte Handy-Breite) statt des generischen "mobile"-Flags
   // (das standardmässig schon ab < 1280px greift, also auch Tablets/kleine Laptops erfassen würde).
@@ -456,7 +454,7 @@
   // Employees dürfen nur eigene Anträge erfassen/bearbeiten/löschen, Admins dürfen das für jeden (siehe Backend-Check).
   const dialogForeignEmployeeError = computed<string | null>(() => {
     const state = entryDialog.value
-    if (!state || isAdmin.value) return null
+    if (!state || authStore.isAdmin) return null
     if (state.employee.id === authStore.user?.id) return null
     return t('calendar.foreignEmployeeError')
   })

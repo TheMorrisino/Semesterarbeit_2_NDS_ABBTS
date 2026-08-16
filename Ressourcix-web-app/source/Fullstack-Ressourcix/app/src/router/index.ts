@@ -69,7 +69,7 @@ router.beforeEach(to => {
   if (authStore.isLoggedIn && authStore.user?.mustChangePassword && to.name !== 'change-password') {
     return { path: '/change-password' }
   }
-  if (to.meta.requiresAdmin && (authStore.user?.permissionLevel ?? 0) < 5) {
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return { path: '/' }
   }
   return true
