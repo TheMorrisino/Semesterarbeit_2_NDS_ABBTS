@@ -18,7 +18,7 @@
         <template #item.employee="{ item }">
           <div class="d-flex align-center ga-2">
             <v-avatar :color="avatarColor(employeeName(item.employeeId))" size="32">
-              <span class="text-caption">{{ initials(employeeName(item.employeeId)) }}</span>
+              <span class="text-caption">{{ initialsFor(employeeName(item.employeeId)) }}</span>
             </v-avatar>
             {{ employeeName(item.employeeId) }}
           </div>
@@ -61,6 +61,7 @@
   import { useRouter } from 'vue-router'
   import { useEmployeeStore } from '@/stores/employee'
   import { type Request, useRequestStore } from '@/stores/request'
+  import { avatarColor, initialsFor } from '@/utils/initials'
 
   const { t } = useI18n()
   const router = useRouter()
@@ -78,15 +79,6 @@
 
   function employeeName (employeeId: string): string {
     return employeeStore.employees.find(e => e.id === employeeId)?.name ?? t('approval.unknown')
-  }
-
-  function initials (name: string) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase()
-  }
-
-  function avatarColor (name: string) {
-    const colors = ['purple', 'red', 'blue', 'teal', 'indigo']
-    return colors[name.length % colors.length]
   }
 
   function formatDate (iso: string) {

@@ -65,7 +65,7 @@
         <template #item.employee="{ item }">
           <div class="d-flex align-center ga-2">
             <v-avatar :color="avatarColor(item.name)" size="32">
-              <span class="text-caption">{{ initials(item.name) }}</span>
+              <span class="text-caption">{{ initialsFor(item.name) }}</span>
             </v-avatar>
             {{ item.name }}
           </div>
@@ -87,6 +87,7 @@
   import { useI18n } from 'vue-i18n'
   import { useEmployeeStore } from '@/stores/employee'
   import { RequestStatus, useRequestStore } from '@/stores/request'
+  import { avatarColor, initialsFor } from '@/utils/initials'
 
   const { t } = useI18n()
   const employeeStore = useEmployeeStore()
@@ -161,15 +162,6 @@
     offen: requestStore.requests.filter(r => r.status === RequestStatus.Open).length,
     overlaps: requestStore.requests.filter(r => r.overlap).length,
   }))
-
-  function initials (name: string) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase()
-  }
-
-  function avatarColor (name: string) {
-    const colors = ['purple', 'red', 'blue', 'teal', 'indigo']
-    return colors[name.length % colors.length]
-  }
 
   function statusColor (status: string) {
     return status === t('teamview.open') ? 'orange' : 'green'
