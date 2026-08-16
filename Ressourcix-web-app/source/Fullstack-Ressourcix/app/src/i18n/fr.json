@@ -1,11 +1,9 @@
 {
   "app": {
-    "title": "Ressourcix",
-    "name": "Compte",
     "subtitle": "Aperçu",
     "subtitle2": "Gestion",
-    "subtitle3": "Compte",
     "nav": {
+      "login": "Connexion",
       "dashboard": "Tableau de bord",
       "calender": "Calendrier",
       "absences": "Absences",
@@ -13,12 +11,201 @@
       "approval": "Approbations",
       "teamview": "Vue d'équipe",
       "auditlog": "Journal d'audit",
-      "messages": "Messages",
-      "logout": "Déconnexion"
+      "changePassword": "Changer le mot de passe"
     }
   },
   "user": {
-    "guestMode": "Mode invite",
-    "notLoggedIn": "Non connecte"
+    "guestMode": "Mode invité",
+    "notLoggedIn": "Non connecté",
+    "levelLabel": "Niveau {level}"
+  },
+
+  "login": {
+    "subtitle": "Gestion des absences et des vacances pour les PME. Connectez-vous pour continuer.",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "secureConnection": "Connexion chiffrée · HTTPS/TLS",
+    "invalidCredentials": "Nom d'utilisateur ou mot de passe incorrect.",
+    "genericError": "Échec de la connexion. Veuillez réessayer plus tard."
+  },
+
+  "changePassword": {
+    "title": "Changer le mot de passe",
+    "subtitle": "Pour des raisons de sécurité, tu dois changer ton mot de passe lors de la première connexion.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "submit": "Changer le mot de passe",
+    "required": "Champ obligatoire",
+    "minLength": "Au moins 8 caractères, majuscules et minuscules, un chiffre et un caractère spécial",
+    "mismatch": "Les mots de passe ne correspondent pas",
+    "genericError": "Le mot de passe n'a pas pu être modifié"
+  },
+
+  "employee": {
+    "manage": "Gérer les employés",
+    "newcapture": "Nouvelle saisie",
+    "role": "Rôle",
+    "roleRequired": "Le rôle est requis",
+    "username": "Nom d'utilisateur",
+    "usernameRequired": "Le nom d'utilisateur est requis",
+    "permissionLevel": "Niveau d'autorisation",
+    "workload": "Taux d'occupation",
+    "workloadPercent": "Taux d'occupation (%)",
+    "workloadRange": "Entre 1 et 100",
+    "vacationDays": "Jours de vacances",
+    "isActive": "Compte",
+    "isActiveDisabledShort": "désactivé",
+    "empedit": "Modifier l'employé",
+    "empcapture": "Saisir un employé",
+    "details": "Détails",
+    "copy": "Copier",
+    "copied": "Copié dans le presse-papiers",
+    "mustChangePassword": "Changement de mot de passe requis",
+    "nameRequired": "Le nom est requis",
+    "confirmDelete": "Vraiment supprimer {name} ?",
+    "id": "ID"
+  },
+
+  "absences": {
+    "typ": "Type",
+    "by": "DU",
+    "to": "AU",
+    "day": "Jours",
+    "status": "Statut",
+    "note": " ",
+    "detailsDialog": "Détails de la demande"
+  },
+
+  "approval": {
+    "openRequest": "Demandes ouvertes",
+    "pending": "En attente",
+    "overlaps": "Chevauchement",
+    "none": "Aucun",
+    "decision": "Décision",
+    "tabled": "Déposé",
+    "note": "Remarque",
+    "day": "Jours",
+    "period": "Période",
+    "employee": "Employé",
+    "unknown": "Inconnu",
+    "today": "Aujourd'hui",
+    "before1day": "il y a 1 jour",
+    "ForwardNTagen": "il y a {n} jours",
+    "toCalendar": "Vers l'entrée du calendrier"
+  },
+
+  "dashboard": {
+    "greeting": "Bon retour, {name}",
+    "newRequest": "Demander des vacances",
+    "teamThisWeek": "Équipe cette semaine",
+    "recentRequests": "Dernières demandes",
+    "openApprovals": "Approbations ouvertes",
+    "overlapChart": "Chevauchements – 14 prochains jours",
+    "overlapChartHint": "Nombre d'employés absents simultanément, à partir d'aujourd'hui",
+    "recentActivity": "Activité récente",
+    "viewAll": "Tout voir",
+    "noApprovals": "Aucune approbation ouverte.",
+    "noRequests": "Aucune demande pour le moment.",
+    "noActivity": "Aucune entrée pour le moment.",
+    "absentToday": "absent"
+  },
+
+  "teamview": {
+    "titel": "Vue d'équipe",
+    "currentAbsent": "Actuellement absent",
+    "overlaps": "Chevauchement",
+    "open": "Ouvert",
+    "employee": "Employé",
+    "entitlement": "Droit",
+    "taken": "Pris",
+    "planned": "Planifié",
+    "remaining": "Restant",
+    "status": "Statut",
+    "saldoStatus": "Équipe – Solde et statut"
+  },
+
+  "auditlog": {
+    "by": "par",
+    "untertitel": "Journal d'audit – traçabilité inviolable",
+    "exportCsv": "Exporter CSV",
+    "leer": "Aucune entrée pour le moment.",
+    "csvHeader": "Action;Référence;Utilisateur;Horodatage"
+  },
+
+  "common": {
+    "name": "Nom",
+    "action": "Action",
+    "search": "Rechercher...",
+    "activ": "Actif",
+    "Disabled": "Désactivé",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer"
+  },
+
+  "role": {
+    "admin": "Administrateur",
+    "employee": "Employé",
+    "planner": "Planificateur/Direction"
+  },
+
+  "status": {
+    "open": "En attente",
+    "approved": "Approuvé",
+    "rejected": "Rejeté",
+    "taken": "Pris",
+    "cancelled": "Annulé"
+  },
+
+  "weekday": {
+    "sun": "Di",
+    "mon": "Lu",
+    "tue": "Ma",
+    "wed": "Me",
+    "thu": "Je",
+    "fri": "Ve",
+    "sat": "Sa"
+  },
+
+  "time": {
+    "justNow": "à l'instant",
+    "minutesAgo": "il y a {n} min",
+    "hoursAgo": "il y a {n} h",
+    "oneDayAgo": "il y a 1 jour",
+    "daysAgo": "il y a {n} jours"
+  },
+
+  "calendar": {
+    "jumpYearBack": "Un an en arrière",
+    "jumpMonthBack": "Un mois en arrière",
+    "jumpWeekBack": "Une semaine en arrière",
+    "jumpWeekForward": "Une semaine en avant",
+    "jumpMonthForward": "Un mois en avant",
+    "jumpYearForward": "Un an en avant",
+    "legendWeekend": "Week-end",
+    "legendOverlap": "Chevauchements (vert → rouge)",
+    "legendDaysRemaining": "Jours de vacances restants",
+    "legendDaysUsedUp": "Jours de vacances épuisés",
+    "legendDaysExceeded": "Jours de vacances dépassés",
+    "columnHeaderMobile": "Initiales",
+    "columnHeaderDesktop": "Employé [Réel/Cible]",
+    "dialogTitleCreate": "Faire une demande",
+    "dialogTitleEdit": "Modifier la demande",
+    "start": "Début :",
+    "endDateLabel": "Fin",
+    "remarkLabel": "Remarque (facultatif)",
+    "statusHint": "Seuls les administrateurs peuvent changer le statut",
+    "overlapDetected": "Chevauchement détecté :",
+    "overlapSentence": "est également absent(e) pendant la période sélectionnée. | sont également absent(e)s pendant la période sélectionnée.",
+    "validationEndBeforeStart": "La date de fin ne peut pas être antérieure à la date de début",
+    "validationSelfOverlap": "Chevauche une demande existante",
+    "foreignEmployeeError": "Tu ne peux créer, modifier ou supprimer que tes propres demandes."
+  },
+
+  "overlapChart": {
+    "tooltip": "{label} : {value} absent(e)s simultanément"
   }
 }

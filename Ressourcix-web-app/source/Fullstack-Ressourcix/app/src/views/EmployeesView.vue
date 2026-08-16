@@ -65,8 +65,8 @@
           <v-form ref="formRef" v-model="formValid">
             <v-text-field
               v-model="newEntry.name"
-              label="Name"
-              :rules="[(v) => !!v || 'Name ist erforderlich']"
+              :label="t('common.name')"
+              :rules="[(v) => !!v || t('employee.nameRequired')]"
             />
             <v-text-field
               v-model="newEntry.username"
@@ -86,9 +86,9 @@
             </div>
             <v-text-field
               v-model.number="newEntry.workload"
-              label="Pensum (%)"
+              :label="t('employee.workloadPercent')"
               type="number"
-              :rules="[(v) => (v > 0 && v <= 100) || 'Zwischen 1 und 100']"
+              :rules="[(v) => (v > 0 && v <= 100) || t('employee.workloadRange')]"
             />
             <v-text-field
               v-model.number="newEntry.vacationDays"
@@ -100,10 +100,10 @@
         </v-card-text>
 
         <v-card-actions>
-          <v-btn v-if="editingId" variant="text" color="error" @click="deleteEntry">Löschen</v-btn>
+          <v-btn v-if="editingId" variant="text" color="error" @click="deleteEntry">{{ t('common.delete') }}</v-btn>
           <v-spacer />
-          <v-btn variant="text" @click="closeDialog">Abbrechen</v-btn>
-          <v-btn color="primary" :disabled="!formValid" @click="save">Speichern</v-btn>
+          <v-btn variant="text" @click="closeDialog">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="primary" :disabled="!formValid" @click="save">{{ t('common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -183,7 +183,7 @@ const detailFields = computed(() => {
   if (!detailEntry.value) return []
   const e = detailEntry.value
   return [
-    { key: 'id', label: 'ID', value: e.id },
+    { key: 'id', label: t('employee.id'), value: e.id },
     { key: 'name', label: t('common.name'), value: e.name },
     { key: 'username', label: t('employee.username'), value: e.username },
     { key: 'role', label: t('employee.role'), value: e.role },
@@ -253,7 +253,7 @@ function closeDialog() {
 
 async function deleteEntry() {
   if (!editingId.value) return
-  if (!confirm(`${newEntry.value.name} wirklich löschen?`)) return
+  if (!confirm(t('employee.confirmDelete', { name: newEntry.value.name }))) return
 
   await employeeStore.remove(editingId.value)
   closeDialog()

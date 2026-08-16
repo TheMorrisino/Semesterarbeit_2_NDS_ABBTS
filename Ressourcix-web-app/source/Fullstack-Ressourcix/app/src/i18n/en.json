@@ -1,11 +1,9 @@
 {
   "app": {
-    "title": "Ressourcix",
-    "name": "Account",
     "subtitle": "Overview",
     "subtitle2": "Management",
-    "subtitle3": "Account",
     "nav": {
+      "login": "Login",
       "dashboard": "Dashboard",
       "calender": "Calendar",
       "absences": "Absences",
@@ -13,19 +11,24 @@
       "approval": "Approvals",
       "teamview": "Team Overview",
       "auditlog": "Audit Log",
-      "messages": "Messages",
-      "logout": "Logout"
+      "changePassword": "Change password"
     }
   },
+  "user": {
+    "guestMode": "Guest mode",
+    "notLoggedIn": "Not logged in",
+    "levelLabel": "Level {level}"
+  },
+
   "login": {
-  "subtitle": "Absence and vacation management for SMEs. Sign in to continue.",
-  "username": "Username",
-  "password": "Password",
-  "submit": "Log in",
-  "secureConnection": "Encrypted connection · HTTPS/TLS",
-  "invalidCredentials": "Username or password is incorrect.",
-  "genericError": "Login failed. Please try again later."
-},
+    "subtitle": "Absence and vacation management for SMEs. Sign in to continue.",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Log in",
+    "secureConnection": "Encrypted connection · HTTPS/TLS",
+    "invalidCredentials": "Username or password is incorrect.",
+    "genericError": "Login failed. Please try again later."
+  },
 
   "changePassword": {
     "title": "Change password",
@@ -35,20 +38,174 @@
     "confirmPassword": "Confirm new password",
     "submit": "Change password",
     "required": "Required field",
-    "minLength": "At least 8 characters",
+    "minLength": "At least 8 characters, upper and lower case, a number and a special character",
     "mismatch": "Passwords do not match",
     "genericError": "Could not change password"
   },
 
   "employee": {
+    "manage": "Manage employees",
+    "newcapture": "New entry",
+    "role": "Role",
+    "roleRequired": "Role is required",
     "username": "Username",
     "usernameRequired": "Username is required",
     "permissionLevel": "Permission level",
-    "permissionLevelRequired": "Permission level is required",
-    "isActiveDisabledShort": "disabled"
+    "workload": "Workload",
+    "workloadPercent": "Workload (%)",
+    "workloadRange": "Between 1 and 100",
+    "vacationDays": "Vacation days",
+    "isActive": "Account",
+    "isActiveDisabledShort": "disabled",
+    "empedit": "Edit employee",
+    "empcapture": "Add employee",
+    "details": "Details",
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "mustChangePassword": "Password change required",
+    "nameRequired": "Name is required",
+    "confirmDelete": "Really delete {name}?",
+    "id": "ID"
   },
 
-  "user": {
-    "levelLabel": "Level {level}"
+  "absences": {
+    "typ": "Type",
+    "by": "FROM",
+    "to": "TO",
+    "day": "Days",
+    "status": "Status",
+    "note": " ",
+    "detailsDialog": "Request details"
+  },
+
+  "approval": {
+    "openRequest": "Open requests",
+    "pending": "Pending",
+    "overlaps": "Overlap",
+    "none": "None",
+    "decision": "Decision",
+    "tabled": "Submitted",
+    "note": "Note",
+    "day": "Days",
+    "period": "Period",
+    "employee": "Employee",
+    "unknown": "Unknown",
+    "today": "Today",
+    "before1day": "1 day ago",
+    "ForwardNTagen": "{n} days ago",
+    "toCalendar": "To calendar entry"
+  },
+
+  "dashboard": {
+    "greeting": "Welcome back, {name}",
+    "newRequest": "Request vacation",
+    "teamThisWeek": "Team this week",
+    "recentRequests": "Recent requests",
+    "openApprovals": "Open approvals",
+    "overlapChart": "Overlaps – next 14 days",
+    "overlapChartHint": "Number of employees absent at the same time, starting today",
+    "recentActivity": "Recent activity",
+    "viewAll": "View all",
+    "noApprovals": "No open approvals.",
+    "noRequests": "No requests yet.",
+    "noActivity": "No entries yet.",
+    "absentToday": "absent"
+  },
+
+  "teamview": {
+    "titel": "Team overview",
+    "currentAbsent": "Currently absent",
+    "overlaps": "Overlap",
+    "open": "Open",
+    "employee": "Employee",
+    "entitlement": "Entitlement",
+    "taken": "Taken",
+    "planned": "Planned",
+    "remaining": "Remaining",
+    "status": "Status",
+    "saldoStatus": "Team – Balance & Status"
+  },
+
+  "auditlog": {
+    "by": "by",
+    "untertitel": "Audit log – tamper-proof record",
+    "exportCsv": "Export CSV",
+    "leer": "No entries yet.",
+    "csvHeader": "Action;Reference;User;Timestamp"
+  },
+
+  "common": {
+    "name": "Name",
+    "action": "Action",
+    "search": "Search...",
+    "activ": "Active",
+    "Disabled": "Disabled",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+
+  "role": {
+    "admin": "Administrator",
+    "employee": "Employee",
+    "planner": "Planner/Lead"
+  },
+
+  "status": {
+    "open": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "taken": "Taken",
+    "cancelled": "Cancelled"
+  },
+
+  "weekday": {
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat"
+  },
+
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{n} min. ago",
+    "hoursAgo": "{n} hr. ago",
+    "oneDayAgo": "1 day ago",
+    "daysAgo": "{n} days ago"
+  },
+
+  "calendar": {
+    "jumpYearBack": "One year back",
+    "jumpMonthBack": "One month back",
+    "jumpWeekBack": "One week back",
+    "jumpWeekForward": "One week forward",
+    "jumpMonthForward": "One month forward",
+    "jumpYearForward": "One year forward",
+    "legendWeekend": "Weekend",
+    "legendOverlap": "Overlaps (green → red)",
+    "legendDaysRemaining": "Vacation days remaining",
+    "legendDaysUsedUp": "Vacation days used up",
+    "legendDaysExceeded": "Vacation days exceeded",
+    "columnHeaderMobile": "Initials",
+    "columnHeaderDesktop": "Employee [Actual/Target]",
+    "dialogTitleCreate": "Submit request",
+    "dialogTitleEdit": "Edit request",
+    "start": "Start:",
+    "endDateLabel": "End",
+    "remarkLabel": "Remark (optional)",
+    "statusHint": "Only admins can change the status",
+    "overlapDetected": "Overlap detected:",
+    "overlapSentence": "is also absent during the selected period. | are also absent during the selected period.",
+    "validationEndBeforeStart": "End date cannot be before the start date",
+    "validationSelfOverlap": "Overlaps with an existing request of your own",
+    "foreignEmployeeError": "You can only create, edit or delete your own requests."
+  },
+
+  "overlapChart": {
+    "tooltip": "{label}: {value} absent at the same time"
   }
 }

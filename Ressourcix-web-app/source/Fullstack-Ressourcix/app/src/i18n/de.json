@@ -1,21 +1,16 @@
 {
   "app": {
-    "title": "Ressourcix",
-    "name": "Konto",
     "subtitle": "Übersicht",
-    "subtitle2":"Verwaltung",
-    "subtitle3":"Konto",
+    "subtitle2": "Verwaltung",
     "nav": {
       "login": "Login",
       "dashboard": "Dashboard",
       "calender": "Kalender",
       "absences": "Abwesenheiten",
-      "employees" : "Mitarbeiter",
-      "approval" : "Genehmigungen",
+      "employees": "Mitarbeiter",
+      "approval": "Genehmigungen",
       "teamview": "Teamübersicht",
-      "auditlog":"Audit-Log",
-      "messages":"Benachrichtigungen",
-      "logout":"Abmelden",
+      "auditlog": "Audit-Log",
       "changePassword": "Passwort ändern"
     }
   },
@@ -26,14 +21,14 @@
   },
 
   "login": {
-  "subtitle": "Absence and vacation management for SMEs. Sign in to continue.",
-  "username": "Username",
-  "password": "Password",
-  "submit": "Log in",
-  "secureConnection": "Encrypted connection · HTTPS/TLS",
-  "invalidCredentials": "Benutzername oder Passwort ist falsch.",
-  "genericError": "Anmeldung fehlgeschlagen. Bitte später erneut versuchen."
-},
+    "subtitle": "Abwesenheits- und Ferienverwaltung für KMU. Melde dich an, um fortzufahren.",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "submit": "Anmelden",
+    "secureConnection": "Verschlüsselte Verbindung · HTTPS/TLS",
+    "invalidCredentials": "Benutzername oder Passwort ist falsch.",
+    "genericError": "Anmeldung fehlgeschlagen. Bitte später erneut versuchen."
+  },
 
   "changePassword": {
     "title": "Passwort ändern",
@@ -49,8 +44,6 @@
   },
 
   "employee": {
-    "titel": "Mitarbeiter",
-    "employee":"Mitarbeiter",
     "manage": "Mitarbeiter verwalten",
     "newcapture": "Neu erfassen",
     "role": "Rolle",
@@ -58,8 +51,9 @@
     "username": "Benutzername",
     "usernameRequired": "Benutzername ist erforderlich",
     "permissionLevel": "Berechtigungslevel",
-    "permissionLevelRequired": "Berechtigungslevel ist erforderlich",
     "workload": "Pensum",
+    "workloadPercent": "Pensum (%)",
+    "workloadRange": "Zwischen 1 und 100",
     "vacationDays": "Ferientage",
     "isActive": "Konto",
     "isActiveDisabledShort": "deaktiviert",
@@ -68,87 +62,150 @@
     "details": "Details",
     "copy": "Kopieren",
     "copied": "In Zwischenablage kopiert",
-    "mustChangePassword": "Passwortänderung erforderlich"
-},
-
-"absences":{
-  "titel": "Meine Abwesenheiten",
-  "typ": "Typ",
-  "by": "VON",
-  "to": "BIS",
-  "day": "Tage",
-  "status": "Status",
-  "note": " ",
-  "detailsDialog": "Antragsdetails"
-
-
-},
-
-"approval":{
-  "titel": "Genehmigungen",
-  "openRequest": "Offene Anträge",
-  "pending": "Ausstehend",
-  "overlaps":"Überschneidung",
-  "none":"Keine",
-  "decision":"Entscheidung",
-  "tabled":"Eingereicht",
-  "note": "Hinweis",
-  "day":"Tage",
-  "period":"Zeitraum",
-  "employee":"Mitarbeiter",
-  "unknown":"Unbekannt",
-  "today":"Heute",
-  "before1day":"vor 1 Tag",
-  "ForwardNTagen":"vor {n} Tagen",
-  "toCalendar":"Zum Kalendereintrag"
-},
-
-"dashboard": {
-  "greeting": "Willkommen zurück, {name}",
-  "newRequest": "Ferien beantragen",
-  "teamThisWeek": "Team diese Woche",
-  "recentRequests": "Letzte Anträge",
-  "openApprovals": "Offene Genehmigungen",
-  "overlapChart": "Überschneidungen – nächste 14 Tage",
-  "overlapChartHint": "Anzahl gleichzeitig abwesender Mitarbeitender, ausgehend von heute",
-  "recentActivity": "Letzte Aktivität",
-  "viewAll": "Alle ansehen",
-  "noApprovals": "Keine offenen Genehmigungen.",
-  "noRequests": "Noch keine Anträge vorhanden.",
-  "noActivity": "Noch keine Einträge vorhanden.",
-  "absentToday": "abwesend"
-},
-
-"teamview":{
-  "titel": "Teamübersicht",
-  "currentAbsent":"Aktuell abwesend",
-  "overlaps":"Überschneidung",
-  "open":"Offen",
-  "employee":"Mitarbeiter",
-  "entitlement": "Anspruch",
-  "taken": "Bezogen",
-  "planned": "Geplant",
-  "remaining": "Verbleibend",
-  "status": "Status",
-  "saldoStatus": "Team – Saldo & Status"
+    "mustChangePassword": "Passwortänderung erforderlich",
+    "nameRequired": "Name ist erforderlich",
+    "confirmDelete": "{name} wirklich löschen?",
+    "id": "ID"
   },
 
-"auditlog": {
-  "by": "von",
-  "untertitel": "Audit-Log – revisionssichere Protokollierung",
-  "exportCsv": "Export CSV",
-  "leer": "Noch keine Einträge vorhanden."
-},
+  "absences": {
+    "typ": "Typ",
+    "by": "VON",
+    "to": "BIS",
+    "day": "Tage",
+    "status": "Status",
+    "note": " ",
+    "detailsDialog": "Antragsdetails"
+  },
 
-"common": {
-  "name": "Name", "action": "Aktion", "search": "Suchen...",
-  "activ": "Aktiv", "Disabled": "Deaktiviert", "close": "Schliessen"
+  "approval": {
+    "openRequest": "Offene Anträge",
+    "pending": "Ausstehend",
+    "overlaps": "Überschneidung",
+    "none": "Keine",
+    "decision": "Entscheidung",
+    "tabled": "Eingereicht",
+    "note": "Hinweis",
+    "day": "Tage",
+    "period": "Zeitraum",
+    "employee": "Mitarbeiter",
+    "unknown": "Unbekannt",
+    "today": "Heute",
+    "before1day": "vor 1 Tag",
+    "ForwardNTagen": "vor {n} Tagen",
+    "toCalendar": "Zum Kalendereintrag"
+  },
 
-},
-"role":{
-  "admin":"Administrator",
-  "employee":"Mitarbeiter",
-  "planner":"Planer/Leitung"
-    }
+  "dashboard": {
+    "greeting": "Willkommen zurück, {name}",
+    "newRequest": "Ferien beantragen",
+    "teamThisWeek": "Team diese Woche",
+    "recentRequests": "Letzte Anträge",
+    "openApprovals": "Offene Genehmigungen",
+    "overlapChart": "Überschneidungen – nächste 14 Tage",
+    "overlapChartHint": "Anzahl gleichzeitig abwesender Mitarbeitender, ausgehend von heute",
+    "recentActivity": "Letzte Aktivität",
+    "viewAll": "Alle ansehen",
+    "noApprovals": "Keine offenen Genehmigungen.",
+    "noRequests": "Noch keine Anträge vorhanden.",
+    "noActivity": "Noch keine Einträge vorhanden.",
+    "absentToday": "abwesend"
+  },
+
+  "teamview": {
+    "titel": "Teamübersicht",
+    "currentAbsent": "Aktuell abwesend",
+    "overlaps": "Überschneidung",
+    "open": "Offen",
+    "employee": "Mitarbeiter",
+    "entitlement": "Anspruch",
+    "taken": "Bezogen",
+    "planned": "Geplant",
+    "remaining": "Verbleibend",
+    "status": "Status",
+    "saldoStatus": "Team – Saldo & Status"
+  },
+
+  "auditlog": {
+    "by": "von",
+    "untertitel": "Audit-Log – revisionssichere Protokollierung",
+    "exportCsv": "Export CSV",
+    "leer": "Noch keine Einträge vorhanden.",
+    "csvHeader": "Aktion;Referenz;Benutzer;Zeitpunkt"
+  },
+
+  "common": {
+    "name": "Name",
+    "action": "Aktion",
+    "search": "Suchen...",
+    "activ": "Aktiv",
+    "Disabled": "Deaktiviert",
+    "close": "Schliessen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen"
+  },
+
+  "role": {
+    "admin": "Administrator",
+    "employee": "Mitarbeiter",
+    "planner": "Planer/Leitung"
+  },
+
+  "status": {
+    "open": "Ausstehend",
+    "approved": "Genehmigt",
+    "rejected": "Abgelehnt",
+    "taken": "Bezogen",
+    "cancelled": "Storniert"
+  },
+
+  "weekday": {
+    "sun": "So",
+    "mon": "Mo",
+    "tue": "Di",
+    "wed": "Mi",
+    "thu": "Do",
+    "fri": "Fr",
+    "sat": "Sa"
+  },
+
+  "time": {
+    "justNow": "gerade eben",
+    "minutesAgo": "vor {n} Min.",
+    "hoursAgo": "vor {n} Std.",
+    "oneDayAgo": "vor 1 Tag",
+    "daysAgo": "vor {n} Tagen"
+  },
+
+  "calendar": {
+    "jumpYearBack": "Ein Jahr zurück",
+    "jumpMonthBack": "Ein Monat zurück",
+    "jumpWeekBack": "Eine Woche zurück",
+    "jumpWeekForward": "Eine Woche vor",
+    "jumpMonthForward": "Ein Monat vor",
+    "jumpYearForward": "Ein Jahr vor",
+    "legendWeekend": "Wochenende",
+    "legendOverlap": "Überschneidungen (grün → rot)",
+    "legendDaysRemaining": "Ferientage übrig",
+    "legendDaysUsedUp": "Ferientage aufgebraucht",
+    "legendDaysExceeded": "Ferientage überzogen",
+    "columnHeaderMobile": "Kürzel",
+    "columnHeaderDesktop": "Mitarbeiter [Ist/Soll]",
+    "dialogTitleCreate": "Antrag stellen",
+    "dialogTitleEdit": "Antrag bearbeiten",
+    "start": "Start:",
+    "endDateLabel": "Ende",
+    "remarkLabel": "Bemerkung (optional)",
+    "statusHint": "Nur Admins können den Status ändern",
+    "overlapDetected": "Überschneidung erkannt:",
+    "overlapSentence": "ist im gewählten Zeitraum ebenfalls abwesend. | sind im gewählten Zeitraum ebenfalls abwesend.",
+    "validationEndBeforeStart": "Enddatum darf nicht vor dem Startdatum liegen",
+    "validationSelfOverlap": "Überschneidet sich mit einem bestehenden eigenen Antrag",
+    "foreignEmployeeError": "Du kannst nur eigene Anträge erfassen, bearbeiten oder löschen."
+  },
+
+  "overlapChart": {
+    "tooltip": "{label}: {value} gleichzeitig abwesend"
+  }
 }
-

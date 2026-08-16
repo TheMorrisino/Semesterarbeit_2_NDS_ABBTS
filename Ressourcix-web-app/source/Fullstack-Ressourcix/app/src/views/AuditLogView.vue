@@ -72,7 +72,7 @@ function exportCsv() {
   const rows = entries.value.map((e) =>
     [e.summary, e.reference, e.actor, e.timestamp].join(";")
   );
-  const csv = ["Aktion;Referenz;Benutzer;Zeitpunkt", ...rows].join("\n");
+  const csv = [t('auditlog.csvHeader'), ...rows].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

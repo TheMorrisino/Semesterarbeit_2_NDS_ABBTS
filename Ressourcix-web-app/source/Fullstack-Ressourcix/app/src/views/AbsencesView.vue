@@ -13,7 +13,7 @@
 
         <template #item.status="{ item }">
           <v-chip :color="statusColor(item.status)" size="small" variant="tonal">
-            {{ item.status }}
+            {{ t(`status.${item.status.toLowerCase()}`) }}
           </v-chip>
         </template>
 
@@ -23,7 +23,7 @@
             variant="outlined"
             @click="openDetails(item)"
           >
-            {{ actionLabel(item.status) }}
+            {{ t('employee.details') }}
           </v-btn>
         </template>
       </v-data-table>
@@ -54,7 +54,7 @@
             <div class="detail-row">
               <span class="detail-label">{{ t('absences.status') }}</span>
               <v-chip :color="statusColor(selectedItem.status)" size="small" variant="tonal">
-                {{ selectedItem.status }}
+                {{ t(`status.${selectedItem.status.toLowerCase()}`) }}
               </v-chip>
             </div>
             <v-divider class="my-3" />
@@ -100,7 +100,7 @@ const headers = [
 ];
 
 function employeeName(employeeId: string): string {
-  return employeeStore.employees.find((e) => e.id === employeeId)?.name ?? t('approval.unbekannt');
+  return employeeStore.employees.find((e) => e.id === employeeId)?.name ?? t('approval.unknown');
 }
 
 function statusColor(status: RequestStatus) {
@@ -112,17 +112,6 @@ function statusColor(status: RequestStatus) {
     [RequestStatus.Cancelled]: 'grey',
   };
   return map[status] ?? 'grey';
-}
-
-function actionLabel(status: RequestStatus) {
-  const map: Record<RequestStatus, string> = {
-    [RequestStatus.Open]: 'Details',
-    [RequestStatus.Approved]: 'Details',
-    [RequestStatus.Taken]: 'Details',
-    [RequestStatus.Rejected]: 'Details',
-    [RequestStatus.Cancelled]: 'Details',
-  };
-  return map[status] ?? '';
 }
 
 const detailsDialog = ref(false);

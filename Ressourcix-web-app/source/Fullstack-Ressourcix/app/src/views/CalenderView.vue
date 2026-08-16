@@ -4,13 +4,13 @@
       <!-- Toolbar: Jahr-/Monat-/Wochen-Navigation und Filter nach Abteilung/Ausbildung -->
       <div class="d-flex flex-wrap align-center ga-2 pa-4">
         <div class="d-flex align-center ga-1">
-          <v-btn icon="mdi-chevron-double-left" size="small" variant="text" title="Ein Jahr zurück" @click="jumpYears(-1)" />
-          <v-btn icon="mdi-chevron-left" size="small" variant="text" title="Ein Monat zurück" @click="jumpMonths(-1)" />
-          <v-btn icon="mdi-menu-left" size="small" variant="text" title="Eine Woche zurück" @click="jumpWeeks(-1)" />
+          <v-btn icon="mdi-chevron-double-left" size="small" variant="text" :title="t('calendar.jumpYearBack')" @click="jumpYears(-1)" />
+          <v-btn icon="mdi-chevron-left" size="small" variant="text" :title="t('calendar.jumpMonthBack')" @click="jumpMonths(-1)" />
+          <v-btn icon="mdi-menu-left" size="small" variant="text" :title="t('calendar.jumpWeekBack')" @click="jumpWeeks(-1)" />
           <span class="text-subtitle-1 font-weight-medium mx-2 toolbar-label">{{ toolbarLabel }}</span>
-          <v-btn icon="mdi-menu-right" size="small" variant="text" title="Eine Woche vor" @click="jumpWeeks(1)" />
-          <v-btn icon="mdi-chevron-right" size="small" variant="text" title="Ein Monat vor" @click="jumpMonths(1)" />
-          <v-btn icon="mdi-chevron-double-right" size="small" variant="text" title="Ein Jahr vor" @click="jumpYears(1)" />
+          <v-btn icon="mdi-menu-right" size="small" variant="text" :title="t('calendar.jumpWeekForward')" @click="jumpWeeks(1)" />
+          <v-btn icon="mdi-chevron-right" size="small" variant="text" :title="t('calendar.jumpMonthForward')" @click="jumpMonths(1)" />
+          <v-btn icon="mdi-chevron-double-right" size="small" variant="text" :title="t('calendar.jumpYearForward')" @click="jumpYears(1)" />
         </div>
 
         <v-spacer />
@@ -19,16 +19,16 @@
 
       <!-- Legende -->
       <div class="d-flex flex-wrap ga-4 px-4 pb-3 text-caption text-medium-emphasis">
-        <span>🕒 Ausstehend</span>
-        <span>✅ Genehmigt</span>
-        <span>❌ Abgelehnt</span>
-        <span>🏖 Bezogen</span>
-        <span>🚫 Storniert</span>
-        <span>⏳ Ferientage übrig</span>
-        <span>✔ Ferientage aufgebraucht</span>
-        <span>✖ Ferientage überzogen</span>
-        <span class="d-flex align-center ga-1"><span class="legend-swatch legend-swatch--weekend" />Wochenende</span>
-        <span class="d-flex align-center ga-1"><span class="legend-swatch legend-swatch--overlap" />Überschneidungen (grün → rot)</span>
+        <span>🕒 {{ t('status.open') }}</span>
+        <span>✅ {{ t('status.approved') }}</span>
+        <span>❌ {{ t('status.rejected') }}</span>
+        <span>🏖 {{ t('status.taken') }}</span>
+        <span>🚫 {{ t('status.cancelled') }}</span>
+        <span>⏳ {{ t('calendar.legendDaysRemaining') }}</span>
+        <span>✔ {{ t('calendar.legendDaysUsedUp') }}</span>
+        <span>✖ {{ t('calendar.legendDaysExceeded') }}</span>
+        <span class="d-flex align-center ga-1"><span class="legend-swatch legend-swatch--weekend" />{{ t('calendar.legendWeekend') }}</span>
+        <span class="d-flex align-center ga-1"><span class="legend-swatch legend-swatch--overlap" />{{ t('calendar.legendOverlap') }}</span>
       </div>
 
       <!-- Tagesraster: Mitarbeiter als Zeilen, Kalendertage als scrollbare Spalten -->
@@ -36,7 +36,7 @@
         <table class="calendar-table">
           <thead>
             <tr>
-              <th class="name-col">{{ xs ? "Kürzel" : "Mitarbeiter [Ist/Soll]" }}</th>
+              <th class="name-col">{{ xs ? t('calendar.columnHeaderMobile') : t('calendar.columnHeaderDesktop') }}</th>
               <th
                 v-for="day in visibleDays"
                 :key="toISODate(day)"
@@ -78,18 +78,18 @@
     <v-dialog v-model="entryDialogOpen" max-width="460">
       <v-card v-if="entryDialog">
         <v-card-title>
-          {{ entryDialog.mode === "create" ? "Antrag stellen" : "Antrag bearbeiten" }}
+          {{ entryDialog.mode === "create" ? t('calendar.dialogTitleCreate') : t('calendar.dialogTitleEdit') }}
           – {{ entryDialog.employee.name }}
         </v-card-title>
         <v-card-text>
           <div class="mb-3 text-body-2">
-            Start: <strong>{{ formatDate(entryDialog.startDate) }}</strong>
+            {{ t('calendar.start') }} <strong>{{ formatDate(entryDialog.startDate) }}</strong>
           </div>
 
           <v-text-field
             v-model="entryDialog.endDate"
             type="date"
-            label="Ende"
+            :label="t('calendar.endDateLabel')"
             :min="entryDialog.startDate"
             density="compact"
           />
@@ -98,7 +98,7 @@
           <v-text-field
             v-if="entryDialog.mode === 'create'"
             v-model="entryDialog.remark"
-            label="Bemerkung (optional)"
+            :label="t('calendar.remarkLabel')"
             density="compact"
           />
 
@@ -108,10 +108,10 @@
             :items="statusOptions"
             item-title="title"
             item-value="value"
-            label="Status"
+            :label="t('absences.status')"
             density="compact"
             :disabled="!isAdmin"
-            :hint="!isAdmin ? 'Nur Admins können den Status ändern' : undefined"
+            :hint="!isAdmin ? t('calendar.statusHint') : undefined"
             persistent-hint
           />
 
@@ -120,16 +120,16 @@
 
           <!-- informativer Hinweis, Überschneidungen mit Kollegen blockieren das Speichern nicht (BR-01.04) -->
           <div v-if="overlappingColleagues.length" class="overlap-warning mt-3">
-            <strong>Überschneidung erkannt:</strong>
+            <strong>{{ t('calendar.overlapDetected') }}</strong>
             {{ overlappingColleagues.join(", ") }}
-            {{ overlappingColleagues.length === 1 ? "ist" : "sind" }} im gewählten Zeitraum ebenfalls abwesend.
+            {{ t('calendar.overlapSentence', overlappingColleagues.length) }}
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-btn v-if="entryDialog.mode === 'edit'" variant="text" color="error" :disabled="!!dialogForeignEmployeeError" @click="deleteEntry">Löschen</v-btn>
+          <v-btn v-if="entryDialog.mode === 'edit'" variant="text" color="error" :disabled="!!dialogForeignEmployeeError" @click="deleteEntry">{{ t('common.delete') }}</v-btn>
           <v-spacer />
-          <v-btn variant="text" @click="entryDialogOpen = false">Abbrechen</v-btn>
-          <v-btn variant="tonal" color="primary" :disabled="!!dialogEndDateError || !!dialogForeignEmployeeError" @click="saveEntry">Speichern</v-btn>
+          <v-btn variant="text" @click="entryDialogOpen = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn variant="tonal" color="primary" :disabled="!!dialogEndDateError || !!dialogForeignEmployeeError" @click="saveEntry">{{ t('common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -180,16 +180,18 @@ interface EmployeeRow {
 }
 
 
-const STATUS_LABELS: Record<RequestStatus, string> = {
-  [RequestStatus.Open]: "Ausstehend",
-  [RequestStatus.Approved]: "Genehmigt",
-  [RequestStatus.Rejected]: "Abgelehnt",
-  [RequestStatus.Taken]: "Bezogen",
-  [RequestStatus.Cancelled]: "Storniert",
-};
+const STATUS_LABELS = computed<Record<RequestStatus, string>>(() => ({
+  [RequestStatus.Open]: t('status.open'),
+  [RequestStatus.Approved]: t('status.approved'),
+  [RequestStatus.Rejected]: t('status.rejected'),
+  [RequestStatus.Taken]: t('status.taken'),
+  [RequestStatus.Cancelled]: t('status.cancelled'),
+}));
 
 
-const statusOptions = Object.values(RequestStatus).map((value) => ({ title: STATUS_LABELS[value], value }));
+const statusOptions = computed(() =>
+  Object.values(RequestStatus).map((value) => ({ title: STATUS_LABELS.value[value], value })),
+);
 
 
 
@@ -208,7 +210,10 @@ const NAME_COLUMN_WIDTH_DESKTOP_PX = 260;
 const NAME_COLUMN_WIDTH_MOBILE_PX = 56; // nur Platz für das Kürzel (siehe uniqueInitials)
 const FALLBACK_VISIBLE_DAY_COUNT = 30; // Platzhalter, bis der Container einmal vermessen wurde
 
-const WEEKDAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+const WEEKDAY_LABELS = computed(() => [
+  t('weekday.sun'), t('weekday.mon'), t('weekday.tue'), t('weekday.wed'),
+  t('weekday.thu'), t('weekday.fri'), t('weekday.sat'),
+]);
 
 // ===== Datumshilfsfunktionen =====
 
@@ -253,7 +258,7 @@ function formatDate(iso: string): string {
 }
 
 function weekdayLabel(date: Date): string {
-  return WEEKDAY_LABELS[date.getDay()];
+  return WEEKDAY_LABELS.value[date.getDay()];
 }
 
 function isWeekend(date: Date): boolean {
@@ -457,8 +462,8 @@ function hasSelfOverlap(state: EntryDialogState): boolean {
 const dialogEndDateError = computed<string | null>(() => {
   const state = entryDialog.value;
   if (!state) return null;
-  if (state.endDate < state.startDate) return "Enddatum darf nicht vor dem Startdatum liegen";
-  if (hasSelfOverlap(state)) return "Überschneidet sich mit einem bestehenden eigenen Antrag";
+  if (state.endDate < state.startDate) return t('calendar.validationEndBeforeStart');
+  if (hasSelfOverlap(state)) return t('calendar.validationSelfOverlap');
   return null;
 });
 
@@ -467,7 +472,7 @@ const dialogForeignEmployeeError = computed<string | null>(() => {
   const state = entryDialog.value;
   if (!state || isAdmin.value) return null;
   if (state.employee.id === authStore.user?.id) return null;
-  return "Du kannst nur eigene Anträge erfassen, bearbeiten oder löschen.";
+  return t('calendar.foreignEmployeeError');
 });
 
 // Überschneidung mit Kollegen ist nur ein Hinweis und blockiert das Speichern nicht (BR-01.04)

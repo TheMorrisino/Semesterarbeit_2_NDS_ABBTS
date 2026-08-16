@@ -155,17 +155,20 @@ const employeeStore = useEmployeeStore();
 const requestStore = useRequestStore();
 const auditLog = useAuditLogStore();
 
-const WEEKDAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+const WEEKDAY_LABELS = computed(() => [
+  t('weekday.sun'), t('weekday.mon'), t('weekday.tue'), t('weekday.wed'),
+  t('weekday.thu'), t('weekday.fri'), t('weekday.sat'),
+]);
 const OVERLAP_CHART_DAYS = 14;
 const authStore = useAuthStore();
 
-const STATUS_LABEL: Record<RequestStatus, string> = {
-  [RequestStatus.Open]: "Ausstehend",
-  [RequestStatus.Approved]: "Genehmigt",
-  [RequestStatus.Rejected]: "Abgelehnt",
-  [RequestStatus.Taken]: "Bezogen",
-  [RequestStatus.Cancelled]: "Storniert",
-};
+const STATUS_LABEL = computed<Record<RequestStatus, string>>(() => ({
+  [RequestStatus.Open]: t('status.open'),
+  [RequestStatus.Approved]: t('status.approved'),
+  [RequestStatus.Rejected]: t('status.rejected'),
+  [RequestStatus.Taken]: t('status.taken'),
+  [RequestStatus.Cancelled]: t('status.cancelled'),
+}));
 
 const STATUS_COLOR: Record<RequestStatus, string> = {
   [RequestStatus.Open]: "orange",
@@ -218,12 +221,12 @@ function startOfWeek(date: Date): Date {
 
 function timeAgo(iso: string): string {
   const diffMinutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (diffMinutes < 1) return "gerade eben";
-  if (diffMinutes < 60) return `vor ${diffMinutes} Min.`;
+  if (diffMinutes < 1) return t('time.justNow');
+  if (diffMinutes < 60) return t('time.minutesAgo', { n: diffMinutes });
   const diffHours = Math.round(diffMinutes / 60);
-  if (diffHours < 24) return `vor ${diffHours} Std.`;
+  if (diffHours < 24) return t('time.hoursAgo', { n: diffHours });
   const diffDays = Math.round(diffHours / 24);
-  return diffDays === 1 ? "vor 1 Tag" : `vor ${diffDays} Tagen`;
+  return diffDays === 1 ? t('time.oneDayAgo') : t('time.daysAgo', { n: diffDays });
 }
 
 // ===== Überschneidungen: wie viele Mitarbeitende sind an einem Tag gleichzeitig abwesend =====
@@ -272,7 +275,7 @@ const weekDays = computed(() => {
     const dayOfWeek = date.getDay();
     return {
       iso,
-      dow: WEEKDAY_LABELS[dayOfWeek],
+      dow: WEEKDAY_LABELS.value[dayOfWeek],
       dom: date.getDate(),
       count,
       isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
