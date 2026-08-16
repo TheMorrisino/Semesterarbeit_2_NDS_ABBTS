@@ -6,6 +6,7 @@ public class RequestsStore
 {
     private readonly AppDbContext _db;
     private readonly AuditLogStore _auditLog;
+    private readonly ILogger<RequestsStore> _logger;
 
     private static readonly Dictionary<RequestStatus, string> StatusLabels = new()
     {
@@ -16,10 +17,11 @@ public class RequestsStore
         [RequestStatus.Cancelled] = "Storniert",
     };
 
-    public RequestsStore(AppDbContext db, AuditLogStore auditLog)
+    public RequestsStore(AppDbContext db, AuditLogStore auditLog, ILogger<RequestsStore> logger)
     {
         _db = db;
         _auditLog = auditLog;
+        _logger = logger;
     }
 
     public Task<List<Request>> AllAsync() => _db.Requests.AsNoTracking().ToListAsync();
@@ -42,6 +44,7 @@ public class RequestsStore
         };
         _db.Requests.Add(created);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Ferienantrag erstellt: {RequestId}", created.id);
 
         var employeeName = await EmployeeNameAsync(created.employeeId);
         await _auditLog.CreateAsync(new AuditLogEntry
@@ -68,6 +71,7 @@ public class RequestsStore
         var employeeName = await EmployeeNameAsync(existing.employeeId);
         _db.Entry(existing).CurrentValues.SetValues(existing with { until = until, status = effectiveStatus });
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Ferienantrag aktualisiert: {RequestId}", id);
 
         await _auditLog.CreateAsync(new AuditLogEntry
         {
@@ -86,6 +90,7 @@ public class RequestsStore
 
         _db.Entry(existing).CurrentValues.SetValues(existing with { status = status });
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Ferienantrag-Status gesetzt: {RequestId} -> {Status}", id, status);
         return true;
     }
 
@@ -99,6 +104,7 @@ public class RequestsStore
 
         _db.Requests.Remove(existing);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Ferienantrag gelöscht: {RequestId}", id);
 
         await _auditLog.CreateAsync(new AuditLogEntry
         {

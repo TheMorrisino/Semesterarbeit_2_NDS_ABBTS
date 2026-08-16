@@ -6,11 +6,13 @@ public class EmployeeStore
 {
     private readonly AppDbContext _db;
     private readonly AuditLogStore _auditLog;
+    private readonly ILogger<EmployeeStore> _logger;
 
-    public EmployeeStore(AppDbContext db, AuditLogStore auditLog)
+    public EmployeeStore(AppDbContext db, AuditLogStore auditLog, ILogger<EmployeeStore> logger)
     {
         _db = db;
         _auditLog = auditLog;
+        _logger = logger;
     }
 
     public Task<List<Employee>> AllAsync() => _db.Employees.AsNoTracking().ToListAsync();
@@ -26,6 +28,7 @@ public class EmployeeStore
         employee.id = Guid.NewGuid();
         _db.Employees.Add(employee);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Mitarbeiter erstellt: {EmployeeId}", employee.id);
 
         await _auditLog.CreateAsync(new AuditLogEntry
         {
@@ -45,6 +48,7 @@ public class EmployeeStore
         var wasActive = employee.isActive;
         employee.isActive = !wasActive;
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Mitarbeiter-Status umgeschaltet: {EmployeeId} {WasActive} -> {IsActive}", id, wasActive, !wasActive);
 
         await _auditLog.CreateAsync(new AuditLogEntry
         {
@@ -70,6 +74,7 @@ public class EmployeeStore
         employee.vacationDays = updated.vacationDays;
         employee.permissionLevel = newPermissionLevel;
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Mitarbeiter aktualisiert: {EmployeeId}", id);
 
         await _auditLog.CreateAsync(new AuditLogEntry
         {
@@ -88,6 +93,7 @@ public class EmployeeStore
 
         _db.Employees.Remove(employee);
         await _db.SaveChangesAsync();
+        _logger.LogInformation("Mitarbeiter gelöscht: {EmployeeId}", id);
 
         await _auditLog.CreateAsync(new AuditLogEntry
         {

@@ -33,6 +33,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const message =
       (await extractErrorMessage(response)) ?? `${init?.method ?? "GET"} ${path} failed with ${response.status}`;
+    console.error("[API]", init?.method ?? "GET", path, response.status, message);
     throw new ApiError(response.status, message);
   }
 

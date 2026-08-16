@@ -37,6 +37,7 @@ export const useAuthStore = defineStore("auth", {
         this.user = toAuthUser(dto);
       } catch (error) {
         if (!(error instanceof ApiError && error.status === 401)) {
+          console.error("[auth] checkSession fehlgeschlagen", error);
           throw error;
         }
         this.user = null;

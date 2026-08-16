@@ -98,6 +98,7 @@ async function onLogin() {
     } else if (error instanceof ApiError && error.status === 429) {
       errorMessage.value = error.message;
     } else {
+      console.error("[login] unerwarteter Fehler", error);
       errorMessage.value = t("login.genericError");
     }
   } finally {

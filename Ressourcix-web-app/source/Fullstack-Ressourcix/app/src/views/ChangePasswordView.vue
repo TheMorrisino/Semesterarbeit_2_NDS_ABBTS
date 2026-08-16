@@ -99,9 +99,12 @@ async function onSubmit() {
   } catch (error) {
     // Der Server unterscheidet zwei 400-Fälle (falsches aktuelles Passwort vs. neues Passwort zu
     // schwach) mit je eigener Meldung - die geben wir jetzt 1:1 weiter statt sie zu vereinheitlichen.
-    errorMessage.value = error instanceof ApiError && error.status === 400
-      ? error.message
-      : t("changePassword.genericError");
+    if (error instanceof ApiError && error.status === 400) {
+      errorMessage.value = error.message;
+    } else {
+      console.error("[changePassword] unerwarteter Fehler", error);
+      errorMessage.value = t("changePassword.genericError");
+    }
   } finally {
     loading.value = false;
   }

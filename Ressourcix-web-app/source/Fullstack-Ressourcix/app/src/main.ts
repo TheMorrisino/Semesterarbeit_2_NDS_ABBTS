@@ -27,8 +27,9 @@ async function bootstrap() {
   const authStore = useAuthStore()
   try {
     await authStore.checkSession()
-  } catch {
+  } catch (error) {
     // Backend nicht erreichbar o.ä. - App trotzdem mounten (zeigt z.B. die Login-Seite)
+    console.warn('[bootstrap] checkSession fehlgeschlagen', error)
   }
   app.mount('#app')
 }
