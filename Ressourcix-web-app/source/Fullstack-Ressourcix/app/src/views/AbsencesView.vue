@@ -3,9 +3,9 @@
     <v-card>
       <v-data-table
         :headers="headers"
+        item-value="id"
         :items="ownRequests"
         :loading="requestStore.loading || employeeStore.loading"
-        item-value="id"
       >
         <template #item.employee="{ item }">
           {{ employeeName(item.employeeId) }}
@@ -35,32 +35,40 @@
               <span class="detail-label">{{ t('common.name') }}</span>
               <span>{{ employeeName(selectedItem.employeeId) }}</span>
             </div>
+
             <div class="detail-row">
               <span class="detail-label">{{ t('absences.typ') }}</span>
               <span>{{ selectedItem.type }}</span>
             </div>
+
             <div class="detail-row">
               <span class="detail-label">{{ t('absences.by') }}</span>
               <span>{{ selectedItem.from }}</span>
             </div>
+
             <div class="detail-row">
               <span class="detail-label">{{ t('absences.to') }}</span>
               <span>{{ selectedItem.until }}</span>
             </div>
+
             <div class="detail-row">
               <span class="detail-label">{{ t('absences.day') }}</span>
               <span>{{ selectedItem.days }}</span>
             </div>
+
             <div class="detail-row">
               <span class="detail-label">{{ t('absences.status') }}</span>
+
               <v-chip :color="statusColor(selectedItem.status)" size="small" variant="tonal">
                 {{ t(`status.${selectedItem.status.toLowerCase()}`) }}
               </v-chip>
             </div>
+
             <v-divider class="my-3" />
             <div class="detail-label mb-1">{{ t('absences.note') }}</div>
             <div>{{ selectedItem.remark || '–' }}</div>
           </v-card-text>
+
           <v-card-actions>
             <v-spacer />
             <v-btn variant="text" @click="detailsDialog = false">{{ t('common.close') }}</v-btn>
@@ -72,59 +80,59 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { useI18n } from "vue-i18n";
-import { computed } from "vue";
-import { useEmployeeStore } from "@/stores/employee";
-import { useRequestStore, RequestStatus, type Request } from "@/stores/request";
-import { useAuthStore } from "@/stores/auth";
+  import { computed, onMounted, ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n();
-const employeeStore = useEmployeeStore();
-const requestStore = useRequestStore();
-const authStore = useAuthStore();
+  import { useAuthStore } from '@/stores/auth'
+  import { useEmployeeStore } from '@/stores/employee'
+  import { type Request, RequestStatus, useRequestStore } from '@/stores/request'
 
-// Beide Rollen sehen hier nur ihre eigenen Abwesenheiten (BR: Abwesenheitsview).
-const ownRequests = computed(() =>
-  requestStore.requests.filter((r) => r.employeeId === authStore.user?.id),
-);
+  const { t } = useI18n()
+  const employeeStore = useEmployeeStore()
+  const requestStore = useRequestStore()
+  const authStore = useAuthStore()
 
-const headers = [
-  { title: t('common.name'), key: 'employee' },
-  { title: t('absences.typ'), key: 'type' },
-  { title: t('absences.by'), key: 'from' },
-  { title: t('absences.to'), key: 'until' },
-  { title: t('absences.day'), key: 'days' },
-  { title: t('absences.status'), key: 'status' },
-  { title: t('absences.note'), key: 'action', sortable: false },
-];
+  // Beide Rollen sehen hier nur ihre eigenen Abwesenheiten (BR: Abwesenheitsview).
+  const ownRequests = computed(() =>
+    requestStore.requests.filter(r => r.employeeId === authStore.user?.id),
+  )
 
-function employeeName(employeeId: string): string {
-  return employeeStore.employees.find((e) => e.id === employeeId)?.name ?? t('approval.unknown');
-}
+  const headers = [
+    { title: t('common.name'), key: 'employee' },
+    { title: t('absences.typ'), key: 'type' },
+    { title: t('absences.by'), key: 'from' },
+    { title: t('absences.to'), key: 'until' },
+    { title: t('absences.day'), key: 'days' },
+    { title: t('absences.status'), key: 'status' },
+    { title: t('absences.note'), key: 'action', sortable: false },
+  ]
 
-function statusColor(status: RequestStatus) {
-  const map: Record<RequestStatus, string> = {
-    [RequestStatus.Open]: 'orange',
-    [RequestStatus.Approved]: 'green',
-    [RequestStatus.Taken]: 'blue',
-    [RequestStatus.Rejected]: 'red',
-    [RequestStatus.Cancelled]: 'grey',
-  };
-  return map[status] ?? 'grey';
-}
+  function employeeName (employeeId: string): string {
+    return employeeStore.employees.find(e => e.id === employeeId)?.name ?? t('approval.unknown')
+  }
 
-const detailsDialog = ref(false);
-const selectedItem = ref<Request | null>(null);
+  function statusColor (status: RequestStatus) {
+    const map: Record<RequestStatus, string> = {
+      [RequestStatus.Open]: 'orange',
+      [RequestStatus.Approved]: 'green',
+      [RequestStatus.Taken]: 'blue',
+      [RequestStatus.Rejected]: 'red',
+      [RequestStatus.Cancelled]: 'grey',
+    }
+    return map[status] ?? 'grey'
+  }
 
-function openDetails(item: Request) {
-  selectedItem.value = item;
-  detailsDialog.value = true;
-}
+  const detailsDialog = ref(false)
+  const selectedItem = ref<Request | null>(null)
 
-onMounted(async () => {
-  await Promise.all([employeeStore.load(), requestStore.load()]);
-});
+  function openDetails (item: Request) {
+    selectedItem.value = item
+    detailsDialog.value = true
+  }
+
+  onMounted(async () => {
+    await Promise.all([employeeStore.load(), requestStore.load()])
+  })
 </script>
 
 <style scoped>
@@ -136,7 +144,7 @@ onMounted(async () => {
 }
 
 .detail-label {
-  
+
   text-transform: uppercase;
   letter-spacing: 0.03em;
   opacity: 0.6;

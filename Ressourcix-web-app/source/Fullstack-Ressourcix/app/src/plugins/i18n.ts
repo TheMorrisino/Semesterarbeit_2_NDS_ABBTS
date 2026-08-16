@@ -1,37 +1,37 @@
-import { createI18n } from "vue-i18n";
+import { createI18n } from 'vue-i18n'
 
-const DEFAULT_LOCALE = "en";
-const SUPPORTED_LOCALES = ["de", "en", "fr"] as const;
+const DEFAULT_LOCALE = 'en'
+const SUPPORTED_LOCALES = ['de', 'en', 'fr'] as const
 
-type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
-type LocaleMessage = Record<string, any>;
+type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
+type LocaleMessage = Record<string, any>
 
-const localeModules = import.meta.glob("../i18n/*.json", { eager: true });
+const localeModules = import.meta.glob('../i18n/*.json', { eager: true })
 
 const messages = Object.entries(localeModules).reduce(
   (acc, [path, module]) => {
-    const fileName = path.split("/").pop();
-    const locale = fileName?.replace(".json", "") as
+    const fileName = path.split('/').pop()
+    const locale = fileName?.replace('.json', '') as
       | SupportedLocale
-      | undefined;
+      | undefined
 
     if (locale && SUPPORTED_LOCALES.includes(locale)) {
-      acc[locale] = (module as { default: LocaleMessage }).default;
+      acc[locale] = (module as { default: LocaleMessage }).default
     }
 
-    return acc;
+    return acc
   },
   {} as Record<SupportedLocale, LocaleMessage>,
-);
+)
 
-function resolveInitialLocale(): SupportedLocale {
+function resolveInitialLocale (): SupportedLocale {
   const browserLocale = (navigator.language || DEFAULT_LOCALE)
     .toLowerCase()
-    .split("-")[0] as SupportedLocale;
+    .split('-', 1)[0] as SupportedLocale
 
   return SUPPORTED_LOCALES.includes(browserLocale)
     ? browserLocale
-    : DEFAULT_LOCALE;
+    : DEFAULT_LOCALE
 }
 
 export default createI18n({
@@ -40,4 +40,4 @@ export default createI18n({
   locale: resolveInitialLocale(),
   fallbackLocale: DEFAULT_LOCALE,
   messages,
-});
+})

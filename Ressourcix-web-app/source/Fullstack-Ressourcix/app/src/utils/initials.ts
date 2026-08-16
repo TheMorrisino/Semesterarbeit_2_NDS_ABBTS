@@ -1,9 +1,9 @@
 // Ein Zeichen pro Namensteil, z.B. "Morris Meier" -> "MM".
-export function initialsFor(name: string): string {
+export function initialsFor (name: string): string {
   return name
     .split(' ')
     .filter(Boolean)
-    .map((part) => part[0])
+    .map(part => part[0])
     .join('')
     .toUpperCase()
 }
@@ -11,7 +11,7 @@ export function initialsFor(name: string): string {
 // Kürzel je Mitarbeiter-ID, konsistent mit initialsFor() (z.B. für die Mitarbeiterverwaltung).
 // Bei einem Kollisions-Kürzel (z.B. zwei "MM") wird an die zweite und jede weitere Person eine
 // fortlaufende Nummer angehängt ("MM", "MM2", "MM3", ...), abhängig von der Reihenfolge in `employees`.
-export function uniqueInitials(employees: { id: string; name: string }[]): Record<string, string> {
+export function uniqueInitials (employees: { id: string, name: string }[]): Record<string, string> {
   const counts: Record<string, number> = {}
   const result: Record<string, string> = {}
   for (const employee of employees) {

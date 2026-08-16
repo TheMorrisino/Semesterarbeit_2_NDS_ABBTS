@@ -9,10 +9,9 @@ import { createApp } from 'vue'
 
 // Plugins
 import { registerPlugins } from '@/plugins'
-
+import { useAuthStore } from '@/stores/auth'
 // Components
 import App from './App.vue'
-import { useAuthStore } from '@/stores/auth'
 
 // Styles
 import 'unfonts.css'
@@ -23,7 +22,7 @@ const app = createApp(App)
 
 registerPlugins(app)
 
-async function bootstrap() {
+async function bootstrap () {
   const authStore = useAuthStore()
   try {
     await authStore.checkSession()
