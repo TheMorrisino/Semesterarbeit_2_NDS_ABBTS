@@ -32,7 +32,6 @@
       <v-list-item class="pl-4" link :title="t('app.nav.employees')" to="/employees" />
       <v-list-item class="pl-4" link :title="t('app.nav.auditlog')" to="/auditlog" />
       <v-divider />
-      <!-- <v-list-item :title="t('app.name')" class="pl-4"></v-list-item> -->
 
       <!-- mit Append wird das Konto immer im unteren Bereich angezeigt -->
       <template #append>

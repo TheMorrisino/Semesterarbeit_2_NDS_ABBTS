@@ -8,7 +8,5 @@ export const requestsApi = {
   create: (payload: CreateRequestPayload) => httpClient.post<Request>('/api/requests', payload),
   update: (id: string, until: string, status: RequestStatus) =>
     httpClient.put<void>(`/api/requests/${id}`, { until, status }),
-  approve: (id: string) => httpClient.put<void>(`/api/requests/${id}/approve`),
-  reject: (id: string) => httpClient.put<void>(`/api/requests/${id}/reject`),
   remove: (id: string) => httpClient.delete<void>(`/api/requests/${id}`),
 }

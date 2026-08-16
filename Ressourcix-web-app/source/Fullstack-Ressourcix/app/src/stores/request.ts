@@ -57,20 +57,6 @@ export const useRequestStore = defineStore('requests', {
         request.status = status
       }
     },
-    async approve (id: string) {
-      await requestsApi.approve(id)
-      const request = this.requests.find(r => r.id === id)
-      if (request) {
-        request.status = RequestStatus.Approved
-      }
-    },
-    async reject (id: string) {
-      await requestsApi.reject(id)
-      const request = this.requests.find(r => r.id === id)
-      if (request) {
-        request.status = RequestStatus.Rejected
-      }
-    },
     async remove (id: string) {
       await requestsApi.remove(id)
       this.requests = this.requests.filter(r => r.id !== id)
