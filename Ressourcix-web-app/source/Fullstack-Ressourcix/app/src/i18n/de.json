@@ -89,7 +89,6 @@
     "day": "Tage",
     "period": "Zeitraum",
     "employee": "Mitarbeiter",
-    "unknown": "Unbekannt",
     "today": "Heute",
     "before1day": "vor 1 Tag",
     "ForwardNTagen": "vor {n} Tagen",
@@ -143,7 +142,8 @@
     "close": "Schliessen",
     "save": "Speichern",
     "cancel": "Abbrechen",
-    "delete": "Löschen"
+    "delete": "Löschen",
+    "unknown": "Unbekannt"
   },
 
   "role": {

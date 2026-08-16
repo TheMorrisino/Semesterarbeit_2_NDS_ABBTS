@@ -281,7 +281,7 @@
   const recentActivity = computed(() => auditLog.entries.slice(0, 5))
 
   function employeeName (employeeId: string): string {
-    return employeeStore.employees.find(e => e.id === employeeId)?.name ?? t('approval.unknown')
+    return employeeStore.employeeName(employeeId) ?? t('common.unknown')
   }
 
   const todayLabel = computed(() =>

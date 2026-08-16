@@ -89,7 +89,6 @@
     "day": "Days",
     "period": "Period",
     "employee": "Employee",
-    "unknown": "Unknown",
     "today": "Today",
     "before1day": "1 day ago",
     "ForwardNTagen": "{n} days ago",
@@ -143,7 +142,8 @@
     "close": "Close",
     "save": "Save",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "unknown": "Unknown"
   },
 
   "role": {

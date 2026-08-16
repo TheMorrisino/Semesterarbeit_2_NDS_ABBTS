@@ -18,6 +18,9 @@ export const useEmployeeStore = defineStore('employees', {
     employees: [] as Employee[],
     loading: false,
   }),
+  getters: {
+    employeeName: state => (id: string) => state.employees.find(e => e.id === id)?.name,
+  },
   actions: {
     async load () {
       this.loading = true
