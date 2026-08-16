@@ -103,7 +103,7 @@ namespace FullstackRessourcix.Migrations
                             name = "Morris Meier",
                             passwordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
                             permissionLevel = 1,
-                            role = "Mitarbeitende",
+                            role = "Mitarbeiter",
                             username = "morris.meier",
                             vacationDays = 25.0,
                             workload = 100
@@ -116,7 +116,7 @@ namespace FullstackRessourcix.Migrations
                             name = "Pedro Santos",
                             passwordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
                             permissionLevel = 5,
-                            role = "Planner/Leitung",
+                            role = "Planer/Leitung",
                             username = "pedro.santos",
                             vacationDays = 25.0,
                             workload = 100
@@ -129,7 +129,7 @@ namespace FullstackRessourcix.Migrations
                             name = "Lena Brunner",
                             passwordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
                             permissionLevel = 1,
-                            role = "Mitarbeitende",
+                            role = "Mitarbeiter",
                             username = "lena.brunner",
                             vacationDays = 22.0,
                             workload = 80
@@ -142,7 +142,7 @@ namespace FullstackRessourcix.Migrations
                             name = "Tiago de Sousa Sá",
                             passwordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
                             permissionLevel = 1,
-                            role = "Mitarbeitende",
+                            role = "Mitarbeiter",
                             username = "tiago.desousa",
                             vacationDays = 16.5,
                             workload = 60

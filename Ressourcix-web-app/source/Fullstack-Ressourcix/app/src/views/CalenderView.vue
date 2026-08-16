@@ -105,6 +105,9 @@
             item-value="value"
             label="Status"
             density="compact"
+            :disabled="!isAdmin"
+            :hint="!isAdmin ? 'Nur Admins können den Status ändern' : undefined"
+            persistent-hint
           />
 
           <div v-if="dialogForeignEmployeeError" class="text-error text-body-2 mt-1">{{ dialogForeignEmployeeError }}</div>

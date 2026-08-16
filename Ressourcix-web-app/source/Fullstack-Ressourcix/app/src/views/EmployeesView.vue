@@ -12,7 +12,7 @@
             hide-details
             style="min-width: 130px"
           />
-          <v-btn color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
+          <v-btn v-if="isAdmin" color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
         </div>
       </v-card-title>
 
@@ -43,8 +43,9 @@
 
         <template #item.action="{ item }">
           <v-btn icon="mdi-information-outline" size="small" variant="text" @click="openDetailDialog(item)" />
-          <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEditDialog(item)" />
+          <v-btn v-if="isAdmin" icon="mdi-pencil" size="small" variant="text" @click="openEditDialog(item)" />
           <v-btn
+            v-if="isAdmin"
             :icon="item.isActive ? 'mdi-pause' : 'mdi-play'"
             size="small" variant="text"
             @click="toggleActive(item)"
@@ -79,12 +80,10 @@
               :items="[t('role.employee'), t('role.admin'), t('role.planner')]"
               :rules="[(v) => !!v || t('employee.roleRequired')]"
             />
-            <v-text-field
-              v-model.number="newEntry.permissionLevel"
-              :label="t('employee.permissionLevel')"
-              type="number"
-              :rules="[(v) => v >= 0 || t('employee.permissionLevelRequired')]"
-            />
+            <!-- Berechtigungslevel wird ausschliesslich anhand der Rolle vergeben, nicht direkt editierbar -->
+            <div class="text-caption text-medium-emphasis mb-3">
+              {{ t('employee.permissionLevel') }}: {{ derivedPermissionLevel }}
+            </div>
             <v-text-field
               v-model.number="newEntry.workload"
               label="Pensum (%)"
@@ -146,10 +145,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEmployeeStore,  type Employee } from '@/stores/employee'
 import { useAuditLogStore } from '@/stores/auditLog'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
 const employeeStore = useEmployeeStore()
 const auditLog = useAuditLogStore()
+const authStore = useAuthStore()
+const isAdmin = computed(() => (authStore.user?.permissionLevel ?? 0) >= 5)
 const search = ref('')
 
 const headers = [
@@ -223,11 +225,16 @@ const emptyEntry = () => ({
   name: '',
   username: '',
   role: '',
-  permissionLevel: 1,
   workload: 100,
   vacationDays: 25,
 })
 const newEntry = ref(emptyEntry())
+
+// Berechtigungslevel ist kein eigenes Formularfeld mehr, sondern folgt zwingend aus der Rolle.
+function permissionLevelForRole(role: string): number {
+  return role === t('role.employee') ? 1 : 5
+}
+const derivedPermissionLevel = computed(() => permissionLevelForRole(newEntry.value.role))
 
 function openCreateDialog() {
   editingId.value = null
@@ -241,7 +248,6 @@ function openEditDialog(item: Employee) {
     name: item.name,
     username: item.username,
     role: item.role,
-    permissionLevel: item.permissionLevel,
     workload: item.workload,
     vacationDays: item.vacationDays,
   }
@@ -268,12 +274,11 @@ const FIELD_LABELS: Record<string, string> = {
   name: 'Name',
   username: t('employee.username'),
   role: t('employee.role'),
-  permissionLevel: t('employee.permissionLevel'),
   workload: t('employee.workload'),
   vacationDays: t('employee.vacationDays'),
 }
 
-function diffEntry(before: Employee, after: typeof newEntry.value): string {
+function diffEntry(before: Employee, after: typeof newEntry.value, permissionLevel: number): string {
   const changes: string[] = []
   for (const key of Object.keys(FIELD_LABELS) as (keyof typeof FIELD_LABELS)[]) {
     const beforeValue = before[key as keyof Employee]
@@ -282,21 +287,27 @@ function diffEntry(before: Employee, after: typeof newEntry.value): string {
       changes.push(`${FIELD_LABELS[key]}: ${beforeValue} → ${afterValue}`)
     }
   }
+  if (before.permissionLevel !== permissionLevel) {
+    changes.push(`${t('employee.permissionLevel')}: ${before.permissionLevel} → ${permissionLevel}`)
+  }
   return changes.length ? changes.join(', ') : 'keine Änderung'
 }
 
 async function save() {
+  const permissionLevel = derivedPermissionLevel.value
   if (editingId.value !== null) {
     const existing = employeeStore.employees.find((e) => e.id === editingId.value)
-    const changeText = existing ? diffEntry(existing, newEntry.value) : 'keine Änderung'
+    const changeText = existing ? diffEntry(existing, newEntry.value, permissionLevel) : 'keine Änderung'
     await employeeStore.update(editingId.value, {
       ...newEntry.value,
+      permissionLevel,
       isActive: existing?.isActive ?? true,
     })
     auditLog.log('EmployeeUpdated', `Mitarbeiter bearbeitet: ${newEntry.value.name} — ${changeText}`, editingId.value)
   } else {
     const created = await employeeStore.create({
       ...newEntry.value,
+      permissionLevel,
       isActive: true,
     })
     auditLog.log('EmployeeCreated', `Mitarbeiter erfasst: ${created.name}`, created.id)

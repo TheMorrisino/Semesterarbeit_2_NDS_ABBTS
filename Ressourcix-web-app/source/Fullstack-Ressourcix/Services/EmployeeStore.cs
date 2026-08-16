@@ -44,7 +44,7 @@ public class EmployeeStore
         employee.role = updated.role;
         employee.workload = updated.workload;
         employee.vacationDays = updated.vacationDays;
-        employee.permissionLevel = updated.permissionLevel;
+        employee.permissionLevel = Employee.PermissionLevelForRole(updated.role);
         await _db.SaveChangesAsync();
         return true;
     }

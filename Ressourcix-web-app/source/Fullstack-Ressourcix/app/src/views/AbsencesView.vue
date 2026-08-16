@@ -3,7 +3,7 @@
     <v-card>
       <v-data-table
         :headers="headers"
-        :items="requestStore.requests"
+        :items="ownRequests"
         :loading="requestStore.loading || employeeStore.loading"
         item-value="id"
       >
@@ -74,15 +74,20 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { computed } from "vue";
 import { useEmployeeStore } from "@/stores/employee";
 import { useRequestStore, RequestStatus, type Request } from "@/stores/request";
+import { useAuthStore } from "@/stores/auth";
 
 const { t } = useI18n();
 const employeeStore = useEmployeeStore();
 const requestStore = useRequestStore();
+const authStore = useAuthStore();
 
-// Es gibt noch kein Login -> es werden bewusst alle Anträge gezeigt, nicht nur "eigene".
-// Sobald ein echter Login existiert, kann hier nach dem eingeloggten Mitarbeitenden gefiltert werden.
+// Beide Rollen sehen hier nur ihre eigenen Abwesenheiten (BR: Abwesenheitsview).
+const ownRequests = computed(() =>
+  requestStore.requests.filter((r) => r.employeeId === authStore.user?.id),
+);
 
 const headers = [
   { title: t('common.name'), key: 'employee' },

@@ -157,7 +157,7 @@ app.MapPost("/api/employees", async (CreateEmployeeRequest request, EmployeeStor
         vacationDays = request.vacationDays,
         isActive = true,
         username = request.username,
-        permissionLevel = request.permissionLevel,
+        permissionLevel = Employee.PermissionLevelForRole(request.role),
         mustChangePassword = true,
     };
     employee.passwordHash = new PasswordHasher<Employee>().HashPassword(employee, defaultPassword);
@@ -308,9 +308,9 @@ internal sealed record EmployeeResponse(
 }
 
 internal sealed record CreateEmployeeRequest(
-    string name, string role, int workload, double vacationDays, string username, int permissionLevel);
+    string name, string role, int workload, double vacationDays, string username);
 
 public sealed record UpdateEmployeeRequest(
-    string name, string role, int workload, double vacationDays, int permissionLevel);
+    string name, string role, int workload, double vacationDays);
 
 internal sealed record CreateAuditLogRequest(AuditLogAction Action, string Summary, Guid Reference);

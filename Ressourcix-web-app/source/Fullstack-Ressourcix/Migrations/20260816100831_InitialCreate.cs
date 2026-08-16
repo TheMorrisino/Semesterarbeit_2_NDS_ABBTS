@@ -80,10 +80,10 @@ namespace FullstackRessourcix.Migrations
                 columns: new[] { "id", "isActive", "mustChangePassword", "name", "passwordHash", "permissionLevel", "role", "username", "vacationDays", "workload" },
                 values: new object[,]
                 {
-                    { new Guid("144eda86-a7a2-419d-a37d-e16726e3828c"), false, true, "Tiago de Sousa Sá", "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==", 1, "Mitarbeitende", "tiago.desousa", 3.2999999999999998, 60 },
-                    { new Guid("4c3469de-428f-437e-b752-46f56714f063"), true, true, "Morris Meier", "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==", 1, "Mitarbeitende", "morris.meier", 5.0, 100 },
-                    { new Guid("77f37330-cb2b-4a5b-9f6a-6c2d19fde288"), true, true, "Lena Brunner", "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==", 1, "Mitarbeitende", "lena.brunner", 4.4000000000000004, 80 },
-                    { new Guid("86df2463-1bcd-42de-bb97-2cf112caeabf"), true, true, "Pedro Santos", "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==", 5, "Planner/Leitung", "pedro.santos", 5.0, 100 }
+                    { new Guid("144eda86-a7a2-419d-a37d-e16726e3828c"), false, true, "Tiago de Sousa Sá", "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==", 1, "Mitarbeiter", "tiago.desousa", 16.5, 60 },
+                    { new Guid("4c3469de-428f-437e-b752-46f56714f063"), true, true, "Morris Meier", "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==", 1, "Mitarbeiter", "morris.meier", 25.0, 100 },
+                    { new Guid("77f37330-cb2b-4a5b-9f6a-6c2d19fde288"), true, true, "Lena Brunner", "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==", 1, "Mitarbeiter", "lena.brunner", 22.0, 80 },
+                    { new Guid("86df2463-1bcd-42de-bb97-2cf112caeabf"), true, true, "Pedro Santos", "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==", 5, "Planer/Leitung", "pedro.santos", 25.0, 100 }
                 });
 
             migrationBuilder.InsertData(

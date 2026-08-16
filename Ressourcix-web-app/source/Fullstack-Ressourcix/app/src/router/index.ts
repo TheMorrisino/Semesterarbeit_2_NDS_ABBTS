@@ -39,7 +39,7 @@ const router = createRouter({
     path: '/approval',
     name: 'approval',
     components: { mainView: () => import('../views/ApprovalView.vue') },
-    meta: { titleKey: "app.nav.approval" },
+    meta: { titleKey: "app.nav.approval", requiresAdmin: true },
     },
     {
     path: '/teamview',
@@ -69,6 +69,9 @@ router.beforeEach((to) => {
   }
   if (authStore.isLoggedIn && authStore.user?.mustChangePassword && to.name !== "change-password") {
     return { path: "/change-password" };
+  }
+  if (to.meta.requiresAdmin && (authStore.user?.permissionLevel ?? 0) < 5) {
+    return { path: "/" };
   }
   return true;
 });

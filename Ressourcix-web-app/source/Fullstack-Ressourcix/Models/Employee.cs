@@ -13,4 +13,8 @@ public class Employee
     public string passwordHash { get; set; } = "";
     public bool mustChangePassword { get; set; } = true;
     public int permissionLevel { get; set; }
+
+    // Berechtigungslevel wird ausschliesslich über die Rolle vergeben, nie direkt vom Client gesetzt
+    // (siehe CreateEmployeeRequest/UpdateEmployeeRequest in Program.cs, die kein permissionLevel-Feld mehr haben).
+    public static int PermissionLevelForRole(string role) => role == "Mitarbeiter" ? 1 : 5;
 }

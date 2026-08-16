@@ -30,7 +30,7 @@ public class AppDbContext : DbContext
                 {
                     id = Guid.Parse("4c3469de-428f-437e-b752-46f56714f063"),
                     name = "Morris Meier",
-                    role = "Mitarbeitende",
+                    role = "Mitarbeiter",
                     workload = 100,
                     vacationDays = 25,
                     isActive = true,
@@ -43,7 +43,7 @@ public class AppDbContext : DbContext
                 {
                     id = Guid.Parse("86df2463-1bcd-42de-bb97-2cf112caeabf"),
                     name = "Pedro Santos",
-                    role = "Planner/Leitung",
+                    role = "Planer/Leitung",
                     workload = 100,
                     vacationDays = 25,
                     isActive = true,
@@ -56,7 +56,7 @@ public class AppDbContext : DbContext
                 {
                     id = Guid.Parse("77f37330-cb2b-4a5b-9f6a-6c2d19fde288"),
                     name = "Lena Brunner",
-                    role = "Mitarbeitende",
+                    role = "Mitarbeiter",
                     workload = 80,
                     vacationDays = 22,
                     isActive = true,
@@ -69,7 +69,7 @@ public class AppDbContext : DbContext
                 {
                     id = Guid.Parse("144eda86-a7a2-419d-a37d-e16726e3828c"),
                     name = "Tiago de Sousa Sá",
-                    role = "Mitarbeitende",
+                    role = "Mitarbeiter",
                     workload = 60,
                     vacationDays = 16.5,
                     isActive = false,
