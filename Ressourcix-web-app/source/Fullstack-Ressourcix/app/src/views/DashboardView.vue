@@ -165,6 +165,7 @@
   import { useEmployeeStore } from '@/stores/employee'
   import { RequestStatus, useRequestStore } from '@/stores/request'
   import { daysBetweenInclusive, formatDate, startOfWeek, toISODate } from '@/utils/date'
+  import { isEmployeeAbsentOn } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
 
   const { t } = useI18n()
@@ -225,9 +226,7 @@
 
   function absentCountOnDay (iso: string): number {
     return employeeStore.employees.filter(employee =>
-      requestStore.requests.some(
-        request => request.employeeId === employee.id && iso >= request.from && iso <= request.until,
-      ),
+      isEmployeeAbsentOn(requestStore.requests, employee.id, iso),
     ).length
   }
 

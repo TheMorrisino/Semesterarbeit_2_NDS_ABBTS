@@ -201,6 +201,7 @@
   import { AbsenceType, type Request, RequestStatus, useRequestStore } from '@/stores/request'
   import { addDays, addMonths, addYears, buildDayRange, daysBetweenInclusive, formatDate, isWeekend, toISODate } from '@/utils/date'
   import { uniqueInitials } from '@/utils/initials'
+  import { isEmployeeAbsentOn, rangesOverlap } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
 
   const { t } = useI18n()
@@ -338,7 +339,7 @@
   function absentCountOnDay (day: Date): number {
     const iso = toISODate(day)
     return filteredEmployees.value.filter(employee =>
-      requestsForEmployee(employee.id).some(request => iso >= request.from && iso <= request.until),
+      isEmployeeAbsentOn(requestStore.requests, employee.id, iso),
     ).length
   }
 
@@ -455,8 +456,7 @@
       request =>
         request.employeeId === state.employee.id
         && request.id !== state.entryId
-        && state.startDate <= request.until
-        && state.endDate >= request.from,
+        && rangesOverlap(state.startDate, state.endDate, request.from, request.until),
     )
   }
 
@@ -484,7 +484,7 @@
     for (const request of requestStore.requests) {
       if (request.employeeId === state.employee.id) continue
       if (request.id === state.entryId) continue
-      if (state.startDate <= request.until && state.endDate >= request.from) {
+      if (rangesOverlap(state.startDate, state.endDate, request.from, request.until)) {
         const colleague = employeeStore.employees.find(employee => employee.id === request.employeeId)
         if (colleague) names.add(colleague.name)
       }
