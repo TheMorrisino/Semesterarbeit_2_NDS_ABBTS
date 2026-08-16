@@ -216,7 +216,7 @@ app.MapDelete("/api/employees/{id}", async (Guid id, ClaimsPrincipal user, Emplo
 app.MapGet("/api/requests", async (string? status, RequestsStore store) =>
 {
     var requests = status == "open" ? await store.GetOpenAsync() : await store.AllAsync();
-    return Results.Ok(requests);
+    return Results.Ok(requests.Select(RequestResponse.From));
 }).RequireAuthorization("ActiveSession");
 
 app.MapPost("/api/requests", async (Request request, ClaimsPrincipal user, RequestsStore store) =>
@@ -231,7 +231,7 @@ app.MapPost("/api/requests", async (Request request, ClaimsPrincipal user, Reque
     }
 
     var created = await store.CreateAsync(request, ActorName(user));
-    return Results.Created($"/api/requests/{created.id}", created);
+    return Results.Created($"/api/requests/{created.id}", RequestResponse.From(created));
 }).RequireAuthorization("ActiveSession");
 
 // Enddatum + Status ändern (z.B. aus einem Bearbeiten-Dialog), unabhängig von approve/reject
@@ -271,7 +271,7 @@ app.MapDelete("/api/requests/{id}", async (Guid id, ClaimsPrincipal user, Reques
 // serverseitig als Nebeneffekt der jeweiligen Mutation in EmployeeStore/RequestsStore, damit die
 // geforderte Revisionssicherheit (BR-01.07) nicht durch frei wählbare Client-Werte untergraben wird.
 app.MapGet("/api/auditlog", async (AuditLogStore store) =>
-    Results.Ok(await store.AllAsync()))
+    Results.Ok((await store.AllAsync()).Select(AuditLogResponse.From)))
     .RequireAuthorization("ActiveSession");
 
 app.MapSinglePageApps(appSettings);
@@ -344,3 +344,19 @@ internal sealed record CreateEmployeeRequest(
 
 public sealed record UpdateEmployeeRequest(
     string name, string role, int workload, double vacationDays);
+
+internal sealed record RequestResponse(
+    Guid id, Guid employeeId, DateOnly from, DateOnly until, int days, bool overlap,
+    RequestStatus status, DateTime submittedOn, AbsenceType type, string? remark)
+{
+    public static RequestResponse From(Request r) => new(
+        r.id, r.employeeId, r.from, r.until, r.days, r.overlap,
+        r.status, r.submittedOn, r.type, r.remark);
+}
+
+internal sealed record AuditLogResponse(
+    Guid id, AuditLogAction action, string summary, Guid reference, string actor, DateTime timestamp)
+{
+    public static AuditLogResponse From(AuditLogEntry e) =>
+        new(e.Id, e.Action, e.Summary, e.Reference, e.Actor, e.Timestamp);
+}
