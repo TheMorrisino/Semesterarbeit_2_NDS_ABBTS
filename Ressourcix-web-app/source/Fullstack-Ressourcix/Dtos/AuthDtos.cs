@@ -15,7 +15,7 @@ public sealed record AuthUserResponse(
 )
 {
   public static AuthUserResponse From(Employee e) =>
-    new(e.id, e.username, e.name, e.permissionLevel, e.mustChangePassword);
+    new(e.Id, e.Username, e.Name, e.PermissionLevel, e.MustChangePassword);
 
   public static AuthUserResponse FromClaims(ClaimsPrincipal user) =>
     new(

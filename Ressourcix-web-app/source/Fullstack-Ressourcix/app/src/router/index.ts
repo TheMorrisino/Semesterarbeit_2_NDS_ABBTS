@@ -66,6 +66,11 @@ router.beforeEach(to => {
   if (!to.meta.public && !authStore.isLoggedIn) {
     return { path: '/login' }
   }
+  // Eingeloggte Nutzer sollen nicht mehr auf die Loginseite gelangen (z.B. per Browser-Zurück
+  // oder direkt aufgerufenem Link), sondern landen dort, wo sie ohnehin hin müssten.
+  if (to.name === 'login' && authStore.isLoggedIn) {
+    return authStore.user?.mustChangePassword ? { path: '/change-password' } : { path: '/' }
+  }
   if (authStore.isLoggedIn && authStore.user?.mustChangePassword && to.name !== 'change-password') {
     return { path: '/change-password' }
   }

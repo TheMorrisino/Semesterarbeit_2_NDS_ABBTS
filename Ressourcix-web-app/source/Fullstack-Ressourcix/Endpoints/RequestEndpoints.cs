@@ -34,7 +34,7 @@ public static class RequestEndpoints
           }
 
           var created = await store.CreateAsync(dto, AuthHelpers.ActorName(user));
-          return Results.Created($"/api/requests/{created.id}", RequestResponse.From(created));
+          return Results.Created($"/api/requests/{created.Id}", RequestResponse.From(created));
         }
       )
       .RequireAuthorization("ActiveSession");
@@ -47,7 +47,7 @@ public static class RequestEndpoints
           var existing = await store.GetAsync(id);
           if (existing is null)
             return Results.NotFound();
-          if (!AuthHelpers.CanActOnRequest(user, existing.employeeId))
+          if (!AuthHelpers.CanActOnRequest(user, existing.EmployeeId))
           {
             return Results.Forbid();
           }
@@ -92,7 +92,7 @@ public static class RequestEndpoints
           var existing = await store.GetAsync(id);
           if (existing is null)
             return Results.NotFound();
-          if (!AuthHelpers.CanActOnRequest(user, existing.employeeId))
+          if (!AuthHelpers.CanActOnRequest(user, existing.EmployeeId))
           {
             return Results.Forbid();
           }

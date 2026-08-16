@@ -9,11 +9,11 @@ public static class AuthHelpers
   {
     var claims = new List<Claim>
     {
-      new(ClaimTypes.NameIdentifier, employee.id.ToString()),
-      new(ClaimTypes.Name, employee.username),
-      new("displayName", employee.name),
-      new("permissionLevel", employee.permissionLevel.ToString()),
-      new("mustChangePassword", employee.mustChangePassword.ToString()),
+      new(ClaimTypes.NameIdentifier, employee.Id.ToString()),
+      new(ClaimTypes.Name, employee.Username),
+      new("displayName", employee.Name),
+      new("permissionLevel", employee.PermissionLevel.ToString()),
+      new("mustChangePassword", employee.MustChangePassword.ToString()),
     };
     return new ClaimsPrincipal(
       new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)

@@ -20,4 +20,22 @@ public class AuditLogStore
     await _db.SaveChangesAsync();
     return entry;
   }
+
+  // Kurzform für den in EmployeeStore/RequestsStore wiederkehrenden Aufbau eines AuditLogEntry
+  // aus den vier Pflichtfeldern, ohne dass jede Aufrufstelle den Objekt-Initializer wiederholt.
+  public Task<AuditLogEntry> RecordAsync(
+    AuditLogAction action,
+    Guid reference,
+    string actor,
+    string summary
+  ) =>
+    CreateAsync(
+      new AuditLogEntry
+      {
+        Action = action,
+        Summary = summary,
+        Reference = reference,
+        Actor = actor,
+      }
+    );
 }

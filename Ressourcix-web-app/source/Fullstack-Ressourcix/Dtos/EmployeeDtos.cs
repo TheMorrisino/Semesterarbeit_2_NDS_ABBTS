@@ -14,15 +14,15 @@ public sealed record EmployeeResponse(
 {
   public static EmployeeResponse From(Employee e) =>
     new(
-      e.id,
-      e.name,
-      e.role,
-      e.workload,
-      e.vacationDays,
-      e.isActive,
-      e.username,
-      e.permissionLevel,
-      e.mustChangePassword
+      e.Id,
+      e.Name,
+      e.Role,
+      e.Workload,
+      e.VacationDays,
+      e.IsActive,
+      e.Username,
+      e.PermissionLevel,
+      e.MustChangePassword
     );
 }
 

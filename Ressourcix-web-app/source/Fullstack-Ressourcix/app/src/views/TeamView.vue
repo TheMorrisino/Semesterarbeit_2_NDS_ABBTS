@@ -74,7 +74,7 @@
         <template #item.status="{ item }">
           <v-chip :color="statusColor(item.status)" size="small" variant="tonal">
             <v-icon icon="mdi-circle" size="8" start />
-            {{ item.status }}
+            {{ statusLabel(item.status) }}
           </v-chip>
         </template>
       </v-data-table>
@@ -93,6 +93,8 @@
   const employeeStore = useEmployeeStore()
   const requestStore = useRequestStore()
 
+  type TeamStatus = 'open' | 'planned'
+
   interface TeamRow {
     id: string
     name: string
@@ -100,7 +102,7 @@
     taken: number
     planned: number
     remaining: number
-    status: string
+    status: TeamStatus
   }
 
   const headers = [
@@ -131,9 +133,13 @@
   }
 
   // --- Status: is there an open request for this person? ---
-  function employeeStatus (employeeId: string): string {
+  function employeeStatus (employeeId: string): TeamStatus {
     const hasOpen = requestStore.requests.some(r => r.employeeId === employeeId && r.status === RequestStatus.Open)
-    return hasOpen ? t('teamview.open') : t('teamview.planned')
+    return hasOpen ? 'open' : 'planned'
+  }
+
+  function statusLabel (status: TeamStatus) {
+    return status === 'open' ? t('teamview.open') : t('teamview.planned')
   }
 
   const teamRows = computed<TeamRow[]>(() =>
@@ -163,8 +169,8 @@
     overlaps: requestStore.requests.filter(r => r.overlap).length,
   }))
 
-  function statusColor (status: string) {
-    return status === t('teamview.open') ? 'orange' : 'green'
+  function statusColor (status: TeamStatus) {
+    return status === 'open' ? 'orange' : 'green'
   }
 
   onMounted(async () => {

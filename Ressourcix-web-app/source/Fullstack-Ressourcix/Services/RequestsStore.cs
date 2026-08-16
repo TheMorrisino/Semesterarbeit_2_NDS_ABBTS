@@ -15,49 +15,45 @@ public class RequestsStore
     _logger = logger;
   }
 
-  public Task<List<Request>> AllAsync() => _db.Requests.AsNoTracking().ToListAsync();
+  public Task<List<AbsenceRequest>> AllAsync() => _db.Requests.AsNoTracking().ToListAsync();
 
-  public Task<List<Request>> GetOpenAsync() =>
-    _db.Requests.AsNoTracking().Where(r => r.status == RequestStatus.Open).ToListAsync();
+  public Task<List<AbsenceRequest>> GetOpenAsync() =>
+    _db.Requests.AsNoTracking().Where(r => r.Status == RequestStatus.Open).ToListAsync();
 
-  public Task<Request?> GetAsync(Guid id) =>
-    _db.Requests.AsNoTracking().FirstOrDefaultAsync(r => r.id == id);
+  public Task<AbsenceRequest?> GetAsync(Guid id) =>
+    _db.Requests.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
 
-  public async Task<Request> CreateAsync(CreateRequestDto dto, string actor)
+  public async Task<AbsenceRequest> CreateAsync(CreateRequestDto dto, string actor)
   {
     // days und overlap kommen nie vom Client - der könnte sonst z.B. eine falsche Ferientageanzahl
     // oder ein falsches Überschneidungsflag vortäuschen; beides wird serverseitig berechnet.
     var days = dto.until.DayNumber - dto.from.DayNumber + 1;
     var overlap = await _db
       .Requests.AsNoTracking()
-      .AnyAsync(r => r.employeeId != dto.employeeId && r.from <= dto.until && dto.from <= r.until);
+      .AnyAsync(r => r.EmployeeId != dto.employeeId && r.From <= dto.until && dto.from <= r.Until);
 
-    var created = new Request(
-      id: Guid.NewGuid(),
-      employeeId: dto.employeeId,
-      from: dto.from,
-      until: dto.until,
-      days: days,
-      overlap: overlap,
-      status: RequestStatus.Open,
-      submittedOn: DateTime.UtcNow,
-      type: dto.type,
-      remark: dto.remark
+    var created = new AbsenceRequest(
+      Id: Guid.NewGuid(),
+      EmployeeId: dto.employeeId,
+      From: dto.from,
+      Until: dto.until,
+      Days: days,
+      Overlap: overlap,
+      Status: RequestStatus.Open,
+      SubmittedOn: DateTime.UtcNow,
+      Type: dto.type,
+      Remark: dto.remark
     );
     _db.Requests.Add(created);
     await _db.SaveChangesAsync();
-    _logger.LogInformation("Ferienantrag erstellt: {RequestId}", created.id);
+    _logger.LogInformation("Ferienantrag erstellt: {RequestId}", created.Id);
 
-    var employeeName = await EmployeeNameAsync(created.employeeId);
-    await _auditLog.CreateAsync(
-      new AuditLogEntry
-      {
-        Action = AuditLogAction.RequestCreated,
-        Summary =
-          $"Ferienantrag erfasst für {employeeName}: {AuditSummaryBuilder.FormatDate(created.from)} – {AuditSummaryBuilder.FormatDate(created.until)}",
-        Reference = created.id,
-        Actor = actor,
-      }
+    var employeeName = await EmployeeNameAsync(created.EmployeeId);
+    await _auditLog.RecordAsync(
+      AuditLogAction.RequestCreated,
+      created.Id,
+      actor,
+      $"Ferienantrag erfasst für {employeeName}: {AuditSummaryBuilder.FormatDate(created.From)} – {AuditSummaryBuilder.FormatDate(created.Until)}"
     );
     return created;
   }
@@ -74,27 +70,24 @@ public class RequestsStore
     if (existing is null)
       return false;
 
-    var effectiveStatus = allowStatusChange ? status : existing.status;
+    var effectiveStatus = allowStatusChange ? status : existing.Status;
     var changeText = AuditSummaryBuilder.BuildRequestUpdateSummary(
       existing,
       until,
       effectiveStatus
     );
 
-    var employeeName = await EmployeeNameAsync(existing.employeeId);
+    var employeeName = await EmployeeNameAsync(existing.EmployeeId);
     _db.Entry(existing)
-      .CurrentValues.SetValues(existing with { until = until, status = effectiveStatus });
+      .CurrentValues.SetValues(existing with { Until = until, Status = effectiveStatus });
     await _db.SaveChangesAsync();
     _logger.LogInformation("Ferienantrag aktualisiert: {RequestId}", id);
 
-    await _auditLog.CreateAsync(
-      new AuditLogEntry
-      {
-        Action = AuditLogAction.RequestUpdated,
-        Summary = $"Ferienantrag geändert für {employeeName}: {changeText}",
-        Reference = id,
-        Actor = actor,
-      }
+    await _auditLog.RecordAsync(
+      AuditLogAction.RequestUpdated,
+      id,
+      actor,
+      $"Ferienantrag geändert für {employeeName}: {changeText}"
     );
     return true;
   }
@@ -105,21 +98,18 @@ public class RequestsStore
     if (existing is null)
       return false;
 
-    var employeeName = await EmployeeNameAsync(existing.employeeId);
-    var changeText = AuditSummaryBuilder.BuildRequestStatusChangeSummary(existing.status, status);
+    var employeeName = await EmployeeNameAsync(existing.EmployeeId);
+    var changeText = AuditSummaryBuilder.BuildRequestStatusChangeSummary(existing.Status, status);
 
-    _db.Entry(existing).CurrentValues.SetValues(existing with { status = status });
+    _db.Entry(existing).CurrentValues.SetValues(existing with { Status = status });
     await _db.SaveChangesAsync();
     _logger.LogInformation("Ferienantrag-Status gesetzt: {RequestId} -> {Status}", id, status);
 
-    await _auditLog.CreateAsync(
-      new AuditLogEntry
-      {
-        Action = AuditLogAction.RequestUpdated,
-        Summary = $"Ferienantrag geändert für {employeeName}: {changeText}",
-        Reference = id,
-        Actor = actor,
-      }
+    await _auditLog.RecordAsync(
+      AuditLogAction.RequestUpdated,
+      id,
+      actor,
+      $"Ferienantrag geändert für {employeeName}: {changeText}"
     );
     return true;
   }
@@ -130,31 +120,23 @@ public class RequestsStore
     if (existing is null)
       return false;
 
-    var employeeName = await EmployeeNameAsync(existing.employeeId);
+    var employeeName = await EmployeeNameAsync(existing.EmployeeId);
     var summary =
-      $"Ferienantrag gelöscht für {employeeName}: {AuditSummaryBuilder.FormatDate(existing.from)} – {AuditSummaryBuilder.FormatDate(existing.until)}";
+      $"Ferienantrag gelöscht für {employeeName}: {AuditSummaryBuilder.FormatDate(existing.From)} – {AuditSummaryBuilder.FormatDate(existing.Until)}";
 
     _db.Requests.Remove(existing);
     await _db.SaveChangesAsync();
     _logger.LogInformation("Ferienantrag gelöscht: {RequestId}", id);
 
-    await _auditLog.CreateAsync(
-      new AuditLogEntry
-      {
-        Action = AuditLogAction.RequestDeleted,
-        Summary = summary,
-        Reference = id,
-        Actor = actor,
-      }
-    );
+    await _auditLog.RecordAsync(AuditLogAction.RequestDeleted, id, actor, summary);
     return true;
   }
 
   private async Task<string> EmployeeNameAsync(Guid employeeId) =>
     await _db
       .Employees.AsNoTracking()
-      .Where(e => e.id == employeeId)
-      .Select(e => e.name)
+      .Where(e => e.Id == employeeId)
+      .Select(e => e.Name)
       .FirstOrDefaultAsync()
     ?? "Unbekannt";
 }

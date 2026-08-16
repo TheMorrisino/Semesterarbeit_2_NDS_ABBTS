@@ -40,19 +40,19 @@ public static class EmployeeEndpoints
 
           var employee = new Employee
           {
-            name = request.name,
-            role = request.role,
-            workload = request.workload,
-            vacationDays = request.vacationDays,
-            isActive = true,
-            username = request.username,
-            permissionLevel = permissionLevel,
-            mustChangePassword = true,
+            Name = request.name,
+            Role = request.role,
+            Workload = request.workload,
+            VacationDays = request.vacationDays,
+            IsActive = true,
+            Username = request.username,
+            PermissionLevel = permissionLevel,
+            MustChangePassword = true,
           };
-          employee.passwordHash = hasher.HashPassword(employee, defaultPassword);
+          employee.PasswordHash = hasher.HashPassword(employee, defaultPassword);
 
           var created = await store.CreateAsync(employee, AuthHelpers.ActorName(user));
-          return Results.Created($"/api/employees/{created.id}", EmployeeResponse.From(created));
+          return Results.Created($"/api/employees/{created.Id}", EmployeeResponse.From(created));
         }
       )
       .RequireAuthorization("Admin");

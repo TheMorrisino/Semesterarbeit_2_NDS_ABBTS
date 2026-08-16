@@ -89,7 +89,9 @@
 
             <v-select
               v-model="newEntry.role"
-              :items="[t('role.employee'), t('role.admin'), t('role.planner')]"
+              item-title="title"
+              item-value="value"
+              :items="roleOptions"
               :label="t('employee.role')"
               :rules="[(v) => !!v || t('employee.roleRequired')]"
             />
@@ -184,6 +186,14 @@
 
   const initials = initialsFor
 
+  // Stabile Werte, die 1:1 den vom Backend akzeptierten Rollenstrings (EmployeeRoles) entsprechen -
+  // t() liefert nur die Anzeige, nie den Vergleichs-/Speicherwert (sonst bricht die Auswahl bei
+  // Sprachwechsel bzw. weicht vom serverseitig geprüften Wert ab).
+  const roleOptions = [
+    { value: 'Mitarbeiter', title: t('role.employee') },
+    { value: 'Planer/Leitung', title: t('role.planner') },
+  ]
+
   async function toggleActive (item: Employee) {
     await employeeStore.toggleActive(item.id)
   }
@@ -237,8 +247,9 @@
   const newEntry = ref(emptyEntry())
 
   // Berechtigungslevel ist kein eigenes Formularfeld mehr, sondern folgt zwingend aus der Rolle.
+  // Vergleich gegen den stabilen Rollenwert (siehe roleOptions), nicht gegen übersetzten UI-Text.
   function permissionLevelForRole (role: string): number {
-    return role === t('role.employee') ? 1 : 5
+    return role === 'Mitarbeiter' ? 1 : 5
   }
   const derivedPermissionLevel = computed(() => permissionLevelForRole(newEntry.value.role))
 

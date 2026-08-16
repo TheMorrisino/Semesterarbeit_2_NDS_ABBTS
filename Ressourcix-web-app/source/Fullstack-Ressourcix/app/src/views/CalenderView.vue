@@ -194,34 +194,24 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
   import { useDisplay } from 'vuetify'
+  import { useEntryDialog } from '@/composables/useEntryDialog'
+  import { useVisibleDayCount } from '@/composables/useVisibleDayCount'
   import { useAuthStore } from '@/stores/auth'
   import { type Employee, useEmployeeStore } from '@/stores/employee'
-  import { AbsenceType, type Request, RequestStatus, useRequestStore } from '@/stores/request'
+  import { type Request, RequestStatus, useRequestStore } from '@/stores/request'
   import { addDays, addMonths, addYears, buildDayRange, daysBetweenInclusive, formatDate, isWeekend, toISODate } from '@/utils/date'
   import { uniqueInitials } from '@/utils/initials'
-  import { isEmployeeAbsentOn, rangesOverlap } from '@/utils/overlap'
+  import { isEmployeeAbsentOn } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
   import { statusMeta } from '@/utils/statusMeta'
 
   const { t } = useI18n()
 
   // ===== Domain-Typen (Employee/Request kommen aus den Stores, hier nur UI-lokaler Zustand) =====
-
-  type EntryDialogMode = 'create' | 'edit'
-
-  interface EntryDialogState {
-    mode: EntryDialogMode
-    employee: Employee
-    entryId: string | null // null, solange der Antrag noch nicht gespeichert wurde
-    startDate: string
-    endDate: string
-    remark: string
-    status: RequestStatus
-  }
 
   interface DayCell {
     iso: string
@@ -276,29 +266,25 @@
   const nameColumnWidthPx = computed(() => (xs.value ? NAME_COLUMN_WIDTH_MOBILE_PX : NAME_COLUMN_WIDTH_DESKTOP_PX))
 
   const centerDate = ref(new Date()) // Mitte Juli 2026, passend zu den Seed-Daten des Backends
-  const scrollHost = ref<HTMLDivElement | null>(null)
 
-  // Es wird nie mehr generiert, als in den Container passt: overflow-x bleibt bewusst
-  // deaktiviert (siehe .calendar-scroll), Navigation läuft ausschliesslich über die Pfeile.
-  const visibleDayCount = ref(FALLBACK_VISIBLE_DAY_COUNT)
-  let resizeObserver: ResizeObserver | null = null
-
-  function updateVisibleDayCount () {
-    const el = scrollHost.value
-    if (!el) return
-    const usableWidth = el.clientWidth - nameColumnWidthPx.value
-    visibleDayCount.value = Math.max(1, Math.floor(usableWidth / DAY_COLUMN_WIDTH_PX))
-  }
-
-  // Neu berechnen, sobald sich die Namensspaltenbreite ändert (xs-Breakpoint überschritten),
-  // unabhängig davon, ob der Container selbst im gleichen Moment eine Grössenänderung meldet.
-  watch(nameColumnWidthPx, updateVisibleDayCount)
+  const { scrollHost, visibleDayCount } = useVisibleDayCount(nameColumnWidthPx, DAY_COLUMN_WIDTH_PX, FALLBACK_VISIBLE_DAY_COUNT)
 
   const visibleDays = computed<Date[]>(() =>
     buildDayRange(centerDate.value, addDays(centerDate.value, visibleDayCount.value - 1)),
   )
 
-  const entryDialog = ref<EntryDialogState | null>(null)
+  const {
+    entryDialog,
+    entryDialogOpen,
+    openEditDialog,
+    handleCellClick,
+    dialogEndDateError,
+    dialogStatusError,
+    dialogForeignEmployeeError,
+    overlappingColleagues,
+    saveEntry,
+    deleteEntry,
+  } = useEntryDialog()
 
   // ===== Abgeleitete Daten =====
 
@@ -394,120 +380,7 @@
     jumpTo(addDays(centerDate.value, delta * 7))
   }
 
-  // ===== Antrag stellen / bearbeiten =====
-
-  function handleCellClick (employee: Employee, cell: DayCell) {
-    if (cell.entry) {
-      openEditDialog(employee, cell.entry)
-    } else {
-      openCreateDialog(employee, cell.iso)
-    }
-  }
-
-  function openCreateDialog (employee: Employee, startIso: string) {
-    entryDialog.value = {
-      mode: 'create',
-      employee,
-      entryId: null,
-      startDate: startIso,
-      endDate: startIso,
-      remark: '',
-      status: RequestStatus.Open,
-    }
-  }
-
-  function openEditDialog (employee: Employee, request: Request) {
-    entryDialog.value = {
-      mode: 'edit',
-      employee,
-      entryId: request.id,
-      startDate: request.from,
-      endDate: request.until,
-      remark: request.remark ?? '',
-      status: request.status,
-    }
-  }
-
-  const entryDialogOpen = computed({
-    get: () => entryDialog.value !== null,
-    set: (open: boolean) => {
-      if (!open) entryDialog.value = null
-    },
-  })
-
-  // Ein Mitarbeiter darf sich nicht selbst überschneiden -> blockiert das Speichern
-  function hasSelfOverlap (state: EntryDialogState): boolean {
-    return requestStore.requests.some(
-      request =>
-        request.employeeId === state.employee.id
-        && request.id !== state.entryId
-        && rangesOverlap(state.startDate, state.endDate, request.from, request.until),
-    )
-  }
-
-  const dialogEndDateError = computed<string | null>(() => {
-    const state = entryDialog.value
-    if (!state) return null
-    if (state.endDate < state.startDate) return t('calendar.validationEndBeforeStart')
-    if (hasSelfOverlap(state)) return t('calendar.validationSelfOverlap')
-    return null
-  })
-
-  const dialogStatusError = computed<string | null>(() => {
-    const state = entryDialog.value
-    if (!state) return null
-    if (state.status != RequestStatus.Open) return t('calendar.validationStatusError')
-    return null
-  })
-
-  // Employees dürfen nur eigene Anträge erfassen/bearbeiten/löschen, Admins dürfen das für jeden (siehe Backend-Check).
-  const dialogForeignEmployeeError = computed<string | null>(() => {
-    const state = entryDialog.value
-    if (!state || authStore.isAdmin) return null
-    if (state.employee.id === authStore.user?.id) return null
-    return t('calendar.foreignEmployeeError')
-  })
-
-  // Überschneidung mit Kollegen ist nur ein Hinweis und blockiert das Speichern nicht (BR-01.04)
-  const overlappingColleagues = computed<string[]>(() => {
-    const state = entryDialog.value
-    if (!state) return []
-    const names = new Set<string>()
-    for (const request of requestStore.requests) {
-      if (request.employeeId === state.employee.id) continue
-      if (request.id === state.entryId) continue
-      if (rangesOverlap(state.startDate, state.endDate, request.from, request.until)) {
-        const colleague = employeeStore.employees.find(employee => employee.id === request.employeeId)
-        if (colleague) names.add(colleague.name)
-      }
-    }
-    return Array.from(names)
-  })
-
-  async function saveEntry () {
-    const state = entryDialog.value
-    if (!state || dialogEndDateError.value || dialogForeignEmployeeError.value) return
-
-    if (state.mode === 'create') {
-      await requestStore.create({
-        employeeId: state.employee.id,
-        from: state.startDate,
-        until: state.endDate,
-        type: AbsenceType.Vacation,
-        remark: state.remark.trim() || null,
-      })
-    } else if (state.entryId) {
-      await requestStore.update(state.entryId, state.endDate, state.status)
-    }
-    entryDialog.value = null
-  }
-
-  async function deleteEntry () {
-    const state = entryDialog.value
-    if (!state || state.mode !== 'edit' || !state.entryId || dialogForeignEmployeeError.value) return
-    await requestStore.remove(state.entryId)
-    entryDialog.value = null
-  }
+  // ===== Antrag stellen / bearbeiten (Dialog-Zustand + Validierung siehe useEntryDialog) =====
 
   // Springt zu einem per Query-Param übergebenen Antrag (z.B. von der Genehmigungen-Seite aus)
   function jumpToRequest (requestId: string) {
@@ -521,22 +394,12 @@
   }
 
   onMounted(async () => {
-    updateVisibleDayCount()
-    if (scrollHost.value) {
-      resizeObserver = new ResizeObserver(() => updateVisibleDayCount())
-      resizeObserver.observe(scrollHost.value)
-    }
-
     await Promise.all([employeeStore.load(), requestStore.load()])
 
     const requestId = route.query.requestId
     if (typeof requestId === 'string') {
       jumpToRequest(requestId)
     }
-  })
-
-  onUnmounted(() => {
-    resizeObserver?.disconnect()
   })
 </script>
 
