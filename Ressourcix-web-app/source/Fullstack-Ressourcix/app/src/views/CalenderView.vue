@@ -107,6 +107,7 @@
             density="compact"
           />
 
+          <div v-if="dialogForeignEmployeeError" class="text-error text-body-2 mt-1">{{ dialogForeignEmployeeError }}</div>
           <div v-if="dialogEndDateError" class="text-error text-body-2 mt-1">{{ dialogEndDateError }}</div>
 
           <!-- informativer Hinweis, Überschneidungen mit Kollegen blockieren das Speichern nicht (BR-01.04) -->
@@ -117,10 +118,10 @@
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-btn v-if="entryDialog.mode === 'edit'" variant="text" color="error" @click="deleteEntry">Löschen</v-btn>
+          <v-btn v-if="entryDialog.mode === 'edit'" variant="text" color="error" :disabled="!!dialogForeignEmployeeError" @click="deleteEntry">Löschen</v-btn>
           <v-spacer />
           <v-btn variant="text" @click="entryDialogOpen = false">Abbrechen</v-btn>
-          <v-btn variant="tonal" color="primary" :disabled="!!dialogEndDateError" @click="saveEntry">Speichern</v-btn>
+          <v-btn variant="tonal" color="primary" :disabled="!!dialogEndDateError || !!dialogForeignEmployeeError" @click="saveEntry">Speichern</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -128,12 +129,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useEmployeeStore,   type Employee } from "@/stores/employee";
 import { useRequestStore, RequestStatus, AbsenceType, type Request } from "@/stores/request";
 import { useAuditLogStore } from "@/stores/auditLog";
+import { useAuthStore } from "@/stores/auth";
 import { overlapColor } from "@/utils/overlapHeatmap";
 
 const { t } = useI18n();
@@ -193,7 +195,7 @@ const STATUS_ICON: Record<RequestStatus, string> = {
 
 const DAY_COLUMN_WIDTH_PX = 40;
 const NAME_COLUMN_WIDTH_PX = 260;
-const INITIAL_WINDOW_RADIUS_DAYS = 45; // ca. 1.5 Monate in jede Richtung -> ca. 3 Monate sichtbar
+const FALLBACK_VISIBLE_DAY_COUNT = 30; // Platzhalter, bis der Container einmal vermessen wurde
 
 const WEEKDAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
@@ -261,14 +263,27 @@ const router = useRouter();
 const employeeStore = useEmployeeStore();
 const requestStore = useRequestStore();
 const auditLog = useAuditLogStore();
+const authStore = useAuthStore();
+
+const isAdmin = computed(() => (authStore.user?.permissionLevel ?? 0) >= 5);
 
 const centerDate = ref(new Date()); // Mitte Juli 2026, passend zu den Seed-Daten des Backends
 const scrollHost = ref<HTMLDivElement | null>(null);
-const visibleDays = ref<Date[]>(
-  buildDayRange(
-    centerDate.value,
-    addDays(centerDate.value, INITIAL_WINDOW_RADIUS_DAYS/2),
-  ),
+
+// Es wird nie mehr generiert, als in den Container passt: overflow-x bleibt bewusst
+// deaktiviert (siehe .calendar-scroll), Navigation läuft ausschliesslich über die Pfeile.
+const visibleDayCount = ref(FALLBACK_VISIBLE_DAY_COUNT);
+let resizeObserver: ResizeObserver | null = null;
+
+function updateVisibleDayCount() {
+  const el = scrollHost.value;
+  if (!el) return;
+  const usableWidth = el.clientWidth - NAME_COLUMN_WIDTH_PX;
+  visibleDayCount.value = Math.max(1, Math.floor(usableWidth / DAY_COLUMN_WIDTH_PX));
+}
+
+const visibleDays = computed<Date[]>(() =>
+  buildDayRange(centerDate.value, addDays(centerDate.value, visibleDayCount.value - 1)),
 );
 
 const entryDialog = ref<EntryDialogState | null>(null);
@@ -348,10 +363,6 @@ const rows = computed<EmployeeRow[]>(() =>
 
 function jumpTo(newCenter: Date) {
   centerDate.value = newCenter;
-  visibleDays.value = buildDayRange(
-    newCenter,
-    addDays(newCenter, INITIAL_WINDOW_RADIUS_DAYS/2),
-  );
 }
 
 function jumpYears(delta: number) {
@@ -364,12 +375,6 @@ function jumpMonths(delta: number) {
 
 function jumpWeeks(delta: number) {
   jumpTo(addDays(centerDate.value, delta * 7));
-}
-
-function centerScroll() {
-  const el = scrollHost.value;
-  if (!el) return;
-  el.scrollLeft = Math.max(0, INITIAL_WINDOW_RADIUS_DAYS * DAY_COLUMN_WIDTH_PX - el.clientWidth / 2);
 }
 
 // ===== Antrag stellen / bearbeiten =====
@@ -432,6 +437,14 @@ const dialogEndDateError = computed<string | null>(() => {
   return null;
 });
 
+// Employees dürfen nur eigene Anträge erfassen/bearbeiten/löschen, Admins dürfen das für jeden (siehe Backend-Check).
+const dialogForeignEmployeeError = computed<string | null>(() => {
+  const state = entryDialog.value;
+  if (!state || isAdmin.value) return null;
+  if (state.employee.id === authStore.user?.id) return null;
+  return "Du kannst nur eigene Anträge erfassen, bearbeiten oder löschen.";
+});
+
 // Überschneidung mit Kollegen ist nur ein Hinweis und blockiert das Speichern nicht (BR-01.04)
 const overlappingColleagues = computed<string[]>(() => {
   const state = entryDialog.value;
@@ -450,7 +463,7 @@ const overlappingColleagues = computed<string[]>(() => {
 
 async function saveEntry() {
   const state = entryDialog.value;
-  if (!state || dialogEndDateError.value) return;
+  if (!state || dialogEndDateError.value || dialogForeignEmployeeError.value) return;
 
   if (state.mode === "create") {
     const created = await requestStore.create({
@@ -490,7 +503,7 @@ async function saveEntry() {
 
 async function deleteEntry() {
   const state = entryDialog.value;
-  if (!state || state.mode !== "edit" || !state.entryId) return;
+  if (!state || state.mode !== "edit" || !state.entryId || dialogForeignEmployeeError.value) return;
   await requestStore.remove(state.entryId);
   await auditLog.log(
     "RequestDeleted",
@@ -512,13 +525,22 @@ function jumpToRequest(requestId: string) {
 }
 
 onMounted(async () => {
-  nextTick(() => centerScroll());
+  updateVisibleDayCount();
+  if (scrollHost.value) {
+    resizeObserver = new ResizeObserver(() => updateVisibleDayCount());
+    resizeObserver.observe(scrollHost.value);
+  }
+
   await Promise.all([employeeStore.load(), requestStore.load()]);
 
   const requestId = route.query.requestId;
   if (typeof requestId === "string") {
     jumpToRequest(requestId);
   }
+});
+
+onUnmounted(() => {
+  resizeObserver?.disconnect();
 });
 </script>
 
@@ -533,8 +555,8 @@ onMounted(async () => {
 }
 
 .calendar-scroll {
-  /* hidden statt auto: Navigation läuft ausschliesslich über die Pfeile in der Toolbar (jumpYears/jumpMonths/jumpWeeks),
-     nicht über Scrollbar/Mausrad/Trackpad. Die Pfeile setzen scrollLeft weiterhin per Code (siehe centerScroll). */
+  /* hidden statt auto: es wird nie mehr generiert, als in den Container passt (siehe updateVisibleDayCount),
+     Navigation läuft ausschliesslich über die Pfeile in der Toolbar (jumpYears/jumpMonths/jumpWeeks). */
   overflow-x: hidden;
   max-width: 100%;
 }
