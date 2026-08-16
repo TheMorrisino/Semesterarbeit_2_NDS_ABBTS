@@ -83,14 +83,25 @@ public class RequestsStore
         return true;
     }
 
-    public async Task<bool> SetStatusAsync(Guid id, RequestStatus status)
+    public async Task<bool> SetStatusAsync(Guid id, RequestStatus status, string actor)
     {
         var existing = await _db.Requests.FindAsync(id);
         if (existing is null) return false;
 
+        var employeeName = await EmployeeNameAsync(existing.employeeId);
+        var changeText = $"Status: {StatusLabels[existing.status]} → {StatusLabels[status]}";
+
         _db.Entry(existing).CurrentValues.SetValues(existing with { status = status });
         await _db.SaveChangesAsync();
         _logger.LogInformation("Ferienantrag-Status gesetzt: {RequestId} -> {Status}", id, status);
+
+        await _auditLog.CreateAsync(new AuditLogEntry
+        {
+            Action = AuditLogAction.RequestUpdated,
+            Summary = $"Ferienantrag geändert für {employeeName}: {changeText}",
+            Reference = id,
+            Actor = actor,
+        });
         return true;
     }
 
