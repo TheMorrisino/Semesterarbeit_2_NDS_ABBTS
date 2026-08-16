@@ -1,58 +1,43 @@
-# app
+# Ressourcix – Frontend
 
-Scaffolded with Vuetify CLI.
-
-## ❗️ Documentation
-
-- Primary docs: https://vuetifyjs.com/
-- Getting started guide: https://vuetifyjs.com/en/getting-started/installation/
-- Community support: https://community.vuetifyjs.com/
-- Issue tracker: https://issues.vuetifyjs.com/
+Vue-3-SPA des Ressourcix-Backends (siehe [../README.md](../README.md) für den Gesamtüberblick über Architektur, Rollen und Setup). Läuft im Dev-Betrieb als eigener Vite-Dev-Server, den das Backend per `Mumrich.SpaDevMiddleware` einbindet — separat gestartet wird dieser Ordner normalerweise nicht.
 
 ## 🧱 Stack
 
 - Framework: Vue 3 + Vite
-- UI Library: Vuetify
-- Language: TypeScript
-- Package manager: npm
+- UI-Bibliothek: Vuetify
+- State Management: Pinia
+- Routing: Vue Router
+- i18n: vue-i18n (Deutsch/Englisch/Französisch, siehe `src/i18n/`)
+- Styling: UnoCSS + Vuetify-Preset
+- Sprache: TypeScript
 
-## 🧭 Start Here
+## 📁 Projektstruktur
 
-- Main entry: `src/main.ts`
-- Main app component: `src/App.vue`
-- Main styles: `src/styles/`
-- Plugin setup: `src/plugins/`
+- `src/main.ts` — Einstiegspunkt, registriert Pinia/Router/Vuetify/i18n
+- `src/App.vue` — Wurzelkomponente (Navigation, Login-Weiche)
+- `src/views/` — Seiten (Dashboard, Kalender, Abwesenheiten, Genehmigungen, Mitarbeiter, Audit-Log, Login, Passwort ändern)
+- `src/components/` — wiederverwendbare Komponenten (z.B. `OverlapChart.vue`, `AppUserInfo.vue`)
+- `src/stores/` — Pinia-Stores (`auth`, `employee`, `request`, `auditLog`)
+- `src/api/` — typisierte Fetch-Wrapper pro Ressource, alle über `src/api/httpClient.ts`
+- `src/router/` — Routing inkl. Auth-/Rollen-Guards
+- `src/i18n/` — Übersetzungsdateien `de.json`/`en.json`/`fr.json` (identische Key-Struktur)
+- `src/utils/` — reine Hilfsfunktionen (z.B. `initials.ts`, `overlapHeatmap.ts`)
+- `src/plugins/` — Plugin-Setup (Vuetify, i18n)
+- `src/styles/` — globale Styles/Theme
+- `public/` — statische Dateien
 
-## 📁 Project Structure
-
-- `src/main.ts` — application entry point
-- `src/App.vue` — root component
-- `src/components/` — reusable Vue components
-- `src/plugins/` — plugin registration and setup
-- `src/styles/` — global styles and theme settings
-- `public/` — static public files
-
-## ✨ Enabled Features
-
-- ESLint
-- Pinia
-- Vue I18n
-- Vuetify MCP
-- Vue Router
-- UnoCSS + Vuetify Preset
-
-## 💿 Install
-
-Use your selected package manager (npm) to install dependencies:
+## 💿 Installieren
 
 ```bash
 npm install
 ```
 
-## 🚀 Quick Start
+## 🚀 Entwicklung
+
+Normalerweise über das Backend gestartet (`dotnet run --launch-profile https` im übergeordneten Ordner). Für einen isolierten Frontend-Dev-Server ohne Backend (z.B. reine UI-Arbeit, ohne funktionierende API-Calls):
 
 ```bash
-npm install
 npm run dev
 ```
 
@@ -62,23 +47,18 @@ npm run dev
 npm run build
 ```
 
-## 🧪 Available Scripts
+## 🧪 Verfügbare Scripts
 
-- `npm run dev`
-- `npm run build`
-- `npm run preview`
-- `npm run build-only`
-- `npm run type-check`
-- `npm run lint`
-- `npm run lint:fix`
-- `npm run mcp`
-- `npm run mcp:revert`
+- `npm run dev` — Vite-Dev-Server
+- `npm run build` — Type-Check + Produktions-Build
+- `npm run build-only` — Produktions-Build ohne vorherigen Type-Check
+- `npm run preview` — gebauten Build lokal ausliefern
+- `npm run type-check` — `vue-tsc --build --force`
+- `npm run lint` / `npm run lint:fix` — ESLint
+- `npm run mcp` / `npm run mcp:revert` — Ruler-MCP-Konfiguration anwenden/zurücksetzen
 
-## 💪 Support Vuetify Development
+Kein Testscript vorhanden — es gibt aktuell kein Frontend-Testprojekt (siehe [../ToDoReadme.md](../ToDoReadme.md)).
 
-This project uses Vuetify - an MIT licensed Open Source project. We are glad to welcome contributors and any support for ongoing development:
+## 🧩 Empfohlene VS-Code-Erweiterungen
 
-- Contribute to Vuetify and ecosystem projects: https://github.com/vuetifyjs
-- Request enterprise support: https://support.vuetifyjs.com/
-- Sponsor on GitHub: https://github.com/sponsors/vuetifyjs
-- Support on Open Collective: https://opencollective.com/vuetify
+Hinterlegt in `.vscode/extensions.json`: **Vue - Official** (`vue.volar`) und **Vuetify** (`vuetifyjs.vuetify-vscode`).

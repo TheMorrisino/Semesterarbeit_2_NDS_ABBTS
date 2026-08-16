@@ -1,3 +1,16 @@
-# teaching
+# Ressourcix
 
-This repository contains materials and resources for teaching programming and computer science classes at the [ABB Technikerschule](https://www.abbts.ch).
+Abwesenheits- und Ferienverwaltung für KMU — Semesterarbeit 2 (NDS ABBTS).
+
+Die eigentliche Anwendung (ASP.NET-Core-Backend + Vue-3-Frontend) liegt unter [`source/Fullstack-Ressourcix`](source/Fullstack-Ressourcix). Dort befindet sich auch die vollständige Dokumentation: Architektur, Rollen/Berechtigungen, Setup, Sicherheit, Mehrsprachigkeit.
+
+**→ [source/Fullstack-Ressourcix/README.md](source/Fullstack-Ressourcix/README.md)**
+
+## Struktur dieses Ordners
+
+- `source/Fullstack-Ressourcix/` — die Anwendung selbst (Backend + `app/`-Frontend)
+- `Build/`, `build.ps1`, `build.sh` — Build-Tooling
+- `Deploy/`, `deploy.ps1`, `deploy.sh` — Deploy-Tooling
+- `.config/dotnet-tools.json` — lokale .NET-Tools (u.a. `dotnet-ef`, `csharpier`)
+
+Offene fachliche Punkte je View/Rolle: [source/Fullstack-Ressourcix/ToDoReadme.md](source/Fullstack-Ressourcix/ToDoReadme.md).
