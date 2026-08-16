@@ -247,6 +247,8 @@ app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, ClaimsPri
     return await store.UpdateAsync(id, update.until, update.status, IsAdmin(user), ActorName(user)) ? Results.Ok() : Results.NotFound();
 }).RequireAuthorization("ActiveSession");
 
+// Keine Frontend-Aufrufer (Approve/Reject läuft über PUT /api/requests/{id}); bewusst beibehalten
+// als Admin-API-Surface für direkte/zukünftige Nutzung.
 app.MapPut("/api/requests/{id}/approve", async (Guid id, ClaimsPrincipal user, RequestsStore store) =>
     await store.SetStatusAsync(id, RequestStatus.Approved, ActorName(user)) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization("Admin"); // Nur Admins dürfen Anträge genehmigen, nicht normale Mitarbeiter
