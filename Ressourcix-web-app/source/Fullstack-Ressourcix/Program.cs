@@ -1,11 +1,13 @@
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 using FullstackRessourcix;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 using Mumrich.SpaDevMiddleware.Extensions;
@@ -52,6 +54,29 @@ builder.Services.AddAuthorization(options =>
             level >= 5));
 });
 
+// Bremst Brute-Force-Passwortraten gegen bekannte Benutzernamen aus: max. 5 Login-Versuche
+// pro Minute und IP, danach 429 statt einer weiteren Prüfung.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        return new ValueTask(context.HttpContext.Response.WriteAsJsonAsync(
+            new { message = "Zu viele Login-Versuche. Bitte versuche es in einer Minute erneut." },
+            cancellationToken));
+    };
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+});
+
 builder.Services.AddScoped<EmployeeStore>();
 
 builder.Services.AddScoped<RequestsStore>();
@@ -76,6 +101,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapPost("/api/auth/login", async (LoginRequest request, AppDbContext db, HttpContext http) =>
 {
@@ -89,7 +115,7 @@ app.MapPost("/api/auth/login", async (LoginRequest request, AppDbContext db, Htt
 
     await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, BuildPrincipal(employee));
     return Results.Ok(AuthUserResponse.From(employee));
-});
+}).RequireRateLimiting("login");
 
 app.MapGet("/api/auth/me", (ClaimsPrincipal user) =>
     user.Identity?.IsAuthenticated == true
@@ -114,9 +140,13 @@ app.MapPost("/api/auth/change-password", async (ChangePasswordRequest request, C
         return Results.BadRequest(new { message = "Aktuelles Passwort ist falsch." });
     }
 
-    if (request.newPassword.Length < 8)
+    if (!IsStrongPassword(request.newPassword))
     {
-        return Results.BadRequest(new { message = "Neues Passwort muss mindestens 8 Zeichen lang sein." });
+        return Results.BadRequest(new
+        {
+            message = "Neues Passwort muss mindestens 8 Zeichen lang sein und Gross-/Kleinbuchstaben, " +
+                "eine Zahl und ein Sonderzeichen enthalten.",
+        });
     }
 
     if (request.newPassword == request.currentPassword)
@@ -264,6 +294,13 @@ static Guid CurrentEmployeeId(ClaimsPrincipal user) =>
 
 static string ActorName(ClaimsPrincipal user) =>
     user.FindFirst("displayName")!.Value;
+
+static bool IsStrongPassword(string password) =>
+    password.Length >= 8 &&
+    password.Any(char.IsUpper) &&
+    password.Any(char.IsLower) &&
+    password.Any(char.IsDigit) &&
+    password.Any(ch => !char.IsLetterOrDigit(ch));
 
 internal sealed record ImageResult(string url, string name);
 

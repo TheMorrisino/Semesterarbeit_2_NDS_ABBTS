@@ -11,6 +11,19 @@ export class ApiError extends Error {
   }
 }
 
+// Backend-Fehlerantworten haben die Form { message: "..." } (siehe Program.cs, Results.BadRequest(new { message = ... })
+// u.ä.). Wenn keine oder eine andersartige Antwort kommt (z.B. ein bare 401 ohne Body), bleibt es beim Platzhaltertext.
+async function extractErrorMessage(response: Response): Promise<string | null> {
+  try {
+    const body: unknown = await response.json();
+    return body !== null && typeof body === "object" && "message" in body && typeof body.message === "string"
+      ? body.message
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -18,7 +31,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `${init?.method ?? "GET"} ${path} failed with ${response.status}`);
+    const message =
+      (await extractErrorMessage(response)) ?? `${init?.method ?? "GET"} ${path} failed with ${response.status}`;
+    throw new ApiError(response.status, message);
   }
 
   // Nicht nur 204 prüfen: Minimal-API-Endpunkte, die Results.Ok() ohne Payload zurückgeben,

@@ -25,7 +25,7 @@
             variant="outlined"
             density="comfortable"
             class="mb-4"
-            :rules="[(v: string) => (!!v && v.length >= 8) || t('changePassword.minLength')]"
+            :rules="[(v: string) => isStrongPassword(v) || t('changePassword.minLength')]"
           />
           <v-text-field
             v-model="confirmPassword"
@@ -77,6 +77,18 @@ const confirmPassword = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
 
+// Muss mit IsStrongPassword() im Backend (Program.cs) übereinstimmen.
+function isStrongPassword(value: string): boolean {
+  return (
+    !!value &&
+    value.length >= 8 &&
+    /[A-Z]/.test(value) &&
+    /[a-z]/.test(value) &&
+    /[0-9]/.test(value) &&
+    /[^A-Za-z0-9]/.test(value)
+  );
+}
+
 async function onSubmit() {
   if (!formValid.value) return;
   loading.value = true;
@@ -85,8 +97,10 @@ async function onSubmit() {
     await authStore.changePassword(currentPassword.value, newPassword.value);
     router.push("/");
   } catch (error) {
+    // Der Server unterscheidet zwei 400-Fälle (falsches aktuelles Passwort vs. neues Passwort zu
+    // schwach) mit je eigener Meldung - die geben wir jetzt 1:1 weiter statt sie zu vereinheitlichen.
     errorMessage.value = error instanceof ApiError && error.status === 400
-      ? t("changePassword.wrongCurrentPassword")
+      ? error.message
       : t("changePassword.genericError");
   } finally {
     loading.value = false;

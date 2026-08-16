@@ -93,9 +93,13 @@ async function onLogin() {
     await authStore.login(username.value.trim(), password.value);
     router.push("/");
   } catch (error) {
-    errorMessage.value = error instanceof ApiError && error.status === 401
-      ? t("login.invalidCredentials")
-      : t("login.genericError");
+    if (error instanceof ApiError && error.status === 401) {
+      errorMessage.value = t("login.invalidCredentials");
+    } else if (error instanceof ApiError && error.status === 429) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = t("login.genericError");
+    }
   } finally {
     loading.value = false;
   }
