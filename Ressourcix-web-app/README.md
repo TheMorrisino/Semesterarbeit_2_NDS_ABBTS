@@ -12,5 +12,3 @@ Die eigentliche Anwendung (ASP.NET-Core-Backend + Vue-3-Frontend) liegt unter [`
 - `Build/`, `build.ps1`, `build.sh` — Build-Tooling
 - `Deploy/`, `deploy.ps1`, `deploy.sh` — Deploy-Tooling
 - `.config/dotnet-tools.json` — lokale .NET-Tools (u.a. `dotnet-ef`, `csharpier`)
-
-Offene fachliche Punkte je View/Rolle: [source/Fullstack-Ressourcix/ToDoReadme.md](source/Fullstack-Ressourcix/ToDoReadme.md).
