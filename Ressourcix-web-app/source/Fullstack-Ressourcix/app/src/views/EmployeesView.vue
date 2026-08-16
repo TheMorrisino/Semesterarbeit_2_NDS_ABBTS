@@ -144,13 +144,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEmployeeStore,  type Employee } from '@/stores/employee'
-import { useAuditLogStore } from '@/stores/auditLog'
 import { useAuthStore } from '@/stores/auth'
 import { initialsFor } from '@/utils/initials'
 
 const { t } = useI18n()
 const employeeStore = useEmployeeStore()
-const auditLog = useAuditLogStore()
 const authStore = useAuthStore()
 const isAdmin = computed(() => (authStore.user?.permissionLevel ?? 0) >= 5)
 const search = ref('')
@@ -173,14 +171,7 @@ function avatarColor(name: string) {
 }
 
 async function toggleActive(item: Employee) {
-  const wasActive = item.isActive
   await employeeStore.toggleActive(item.id)
-  const activeLabel = (active: boolean) => (active ? t('common.activ') : t('common.Disabled'))
-  auditLog.log(
-    'EmployeeStatusChanged',
-    `Status geändert für ${item.name}: ${activeLabel(wasActive)} → ${activeLabel(!wasActive)}`,
-    item.id,
-  )
 }
 
 // --- Detailansicht (alle Attribute, einzeln kopierbar) ---
@@ -265,51 +256,24 @@ async function deleteEntry() {
   if (!confirm(`${newEntry.value.name} wirklich löschen?`)) return
 
   await employeeStore.remove(editingId.value)
-  auditLog.log('EmployeeDeleted', `Mitarbeiter gelöscht: ${newEntry.value.name}`, editingId.value)
   closeDialog()
-}
-
-const FIELD_LABELS: Record<string, string> = {
-  name: 'Name',
-  username: t('employee.username'),
-  role: t('employee.role'),
-  workload: t('employee.workload'),
-  vacationDays: t('employee.vacationDays'),
-}
-
-function diffEntry(before: Employee, after: typeof newEntry.value, permissionLevel: number): string {
-  const changes: string[] = []
-  for (const key of Object.keys(FIELD_LABELS) as (keyof typeof FIELD_LABELS)[]) {
-    const beforeValue = before[key as keyof Employee]
-    const afterValue = after[key as keyof typeof after]
-    if (beforeValue !== afterValue) {
-      changes.push(`${FIELD_LABELS[key]}: ${beforeValue} → ${afterValue}`)
-    }
-  }
-  if (before.permissionLevel !== permissionLevel) {
-    changes.push(`${t('employee.permissionLevel')}: ${before.permissionLevel} → ${permissionLevel}`)
-  }
-  return changes.length ? changes.join(', ') : 'keine Änderung'
 }
 
 async function save() {
   const permissionLevel = derivedPermissionLevel.value
   if (editingId.value !== null) {
     const existing = employeeStore.employees.find((e) => e.id === editingId.value)
-    const changeText = existing ? diffEntry(existing, newEntry.value, permissionLevel) : 'keine Änderung'
     await employeeStore.update(editingId.value, {
       ...newEntry.value,
       permissionLevel,
       isActive: existing?.isActive ?? true,
     })
-    auditLog.log('EmployeeUpdated', `Mitarbeiter bearbeitet: ${newEntry.value.name} — ${changeText}`, editingId.value)
   } else {
-    const created = await employeeStore.create({
+    await employeeStore.create({
       ...newEntry.value,
       permissionLevel,
       isActive: true,
     })
-    auditLog.log('EmployeeCreated', `Mitarbeiter erfasst: ${created.name}`, created.id)
   }
 
   closeDialog()

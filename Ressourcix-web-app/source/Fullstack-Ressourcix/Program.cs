@@ -139,7 +139,7 @@ app.MapGet("/api/employees", async (EmployeeStore store) =>
     Results.Ok((await store.AllAsync()).Select(EmployeeResponse.From)))
     .RequireAuthorization("ActiveSession");
 
-app.MapPost("/api/employees", async (CreateEmployeeRequest request, EmployeeStore store, IConfiguration config) =>
+app.MapPost("/api/employees", async (CreateEmployeeRequest request, ClaimsPrincipal user, EmployeeStore store, IConfiguration config) =>
 {
     if (await store.UsernameExistsAsync(request.username))
     {
@@ -162,20 +162,20 @@ app.MapPost("/api/employees", async (CreateEmployeeRequest request, EmployeeStor
     };
     employee.passwordHash = new PasswordHasher<Employee>().HashPassword(employee, defaultPassword);
 
-    var created = await store.CreateAsync(employee);
+    var created = await store.CreateAsync(employee, ActorName(user));
     return Results.Created($"/api/employees/{created.id}", EmployeeResponse.From(created));
 }).RequireAuthorization("Admin");
 
-app.MapPut("/api/employees/{id}/toggle-active", async (Guid id, EmployeeStore store) =>
-    await store.ToggleActiveAsync(id) ? Results.Ok() : Results.NotFound())
+app.MapPut("/api/employees/{id}/toggle-active", async (Guid id, ClaimsPrincipal user, EmployeeStore store) =>
+    await store.ToggleActiveAsync(id, ActorName(user)) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization("Admin");
 
-app.MapPut("/api/employees/{id}", async (Guid id, UpdateEmployeeRequest request, EmployeeStore store) =>
-    await store.UpdateAsync(id, request) ? Results.Ok() : Results.NotFound())
+app.MapPut("/api/employees/{id}", async (Guid id, UpdateEmployeeRequest request, ClaimsPrincipal user, EmployeeStore store) =>
+    await store.UpdateAsync(id, request, ActorName(user)) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization("Admin");
 
-app.MapDelete("/api/employees/{id}", async (Guid id, EmployeeStore store) =>
-    await store.DeleteAsync(id) ? Results.Ok() : Results.NotFound())
+app.MapDelete("/api/employees/{id}", async (Guid id, ClaimsPrincipal user, EmployeeStore store) =>
+    await store.DeleteAsync(id, ActorName(user)) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization("Admin");
 
 app.MapGet("/api/requests", async (string? status, RequestsStore store) =>
@@ -195,7 +195,7 @@ app.MapPost("/api/requests", async (Request request, ClaimsPrincipal user, Reque
         return Results.Forbid();
     }
 
-    var created = await store.CreateAsync(request);
+    var created = await store.CreateAsync(request, ActorName(user));
     return Results.Created($"/api/requests/{created.id}", created);
 }).RequireAuthorization("ActiveSession");
 
@@ -209,7 +209,7 @@ app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, ClaimsPri
         return Results.Forbid();
     }
 
-    return await store.UpdateAsync(id, update.until, update.status, IsAdmin(user)) ? Results.Ok() : Results.NotFound();
+    return await store.UpdateAsync(id, update.until, update.status, IsAdmin(user), ActorName(user)) ? Results.Ok() : Results.NotFound();
 }).RequireAuthorization("ActiveSession");
 
 app.MapPut("/api/requests/{id}/approve", async (Guid id, RequestsStore store) =>
@@ -229,28 +229,15 @@ app.MapDelete("/api/requests/{id}", async (Guid id, ClaimsPrincipal user, Reques
         return Results.Forbid();
     }
 
-    return await store.RemoveAsync(id) ? Results.Ok() : Results.NotFound();
+    return await store.RemoveAsync(id, ActorName(user)) ? Results.Ok() : Results.NotFound();
 }).RequireAuthorization("ActiveSession");
 
+// Kein POST/PUT/DELETE für Audit-Log-Einträge über die API: Einträge entstehen ausschliesslich
+// serverseitig als Nebeneffekt der jeweiligen Mutation in EmployeeStore/RequestsStore, damit die
+// geforderte Revisionssicherheit (BR-01.07) nicht durch frei wählbare Client-Werte untergraben wird.
 app.MapGet("/api/auditlog", async (AuditLogStore store) =>
     Results.Ok(await store.AllAsync()))
     .RequireAuthorization("ActiveSession");
-
-// Bewusst kein PUT/DELETE für Audit-Log-Einträge: nachträgliches Ändern/Löschen
-// würde die geforderte Revisionssicherheit (BR-01.07) untergraben.
-app.MapPost("/api/auditlog", async (CreateAuditLogRequest request, ClaimsPrincipal user, AuditLogStore store) =>
-{
-    var entry = new AuditLogEntry
-    {
-        Action = request.Action,
-        Summary = request.Summary,
-        Reference = request.Reference,
-        Actor = user.FindFirst("displayName")!.Value,
-        Timestamp = DateTime.UtcNow,
-    };
-    var created = await store.CreateAsync(entry);
-    return Results.Created($"/api/auditlog/{created.Id}", created);
-}).RequireAuthorization("ActiveSession");
 
 app.MapSinglePageApps(appSettings);
 
@@ -274,6 +261,9 @@ static bool IsAdmin(ClaimsPrincipal user) =>
 
 static Guid CurrentEmployeeId(ClaimsPrincipal user) =>
     Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+static string ActorName(ClaimsPrincipal user) =>
+    user.FindFirst("displayName")!.Value;
 
 internal sealed record ImageResult(string url, string name);
 
@@ -312,5 +302,3 @@ internal sealed record CreateEmployeeRequest(
 
 public sealed record UpdateEmployeeRequest(
     string name, string role, int workload, double vacationDays);
-
-internal sealed record CreateAuditLogRequest(AuditLogAction Action, string Summary, Guid Reference);

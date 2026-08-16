@@ -39,9 +39,5 @@ export const useAuditLogStore = defineStore("auditLog", {
         this.loading = false;
       }
     },
-    async log(action: AuditLogAction, summary: string, reference: string) {
-      const entry = await auditLogApi.create({ action, summary, reference });
-      this.entries.unshift(entry);
-    },
   },
 });
