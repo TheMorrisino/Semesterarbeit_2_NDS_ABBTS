@@ -36,7 +36,7 @@
         <table class="calendar-table">
           <thead>
             <tr>
-              <th class="name-col">Mitarbeiter [Ist/Soll]</th>
+              <th class="name-col">{{ xs ? "Kürzel" : "Mitarbeiter [Ist/Soll]" }}</th>
               <th
                 v-for="day in visibleDays"
                 :key="toISODate(day)"
@@ -49,12 +49,17 @@
           </thead>
           <tbody>
             <tr v-for="row in rows" :key="row.employee.id" :class="{ 'is-inactive-employee': !row.employee.isActive }">
-              <td class="name-col">
-                {{ row.employee.name }}
-                <span v-if="!row.employee.isActive" class="text-caption">({{ t('employee.isActiveDisabledShort') }})</span>
-                <span class="text-caption text-medium-emphasis">
-                  [{{ row.plannedDays }}/{{ row.entitledDays }}] {{ row.remainingSymbol }}
-                </span>
+              <td class="name-col" :title="xs ? row.employee.name : undefined">
+                <template v-if="xs">
+                  {{ row.label }}
+                </template>
+                <template v-else>
+                  {{ row.employee.name }}
+                  <span v-if="!row.employee.isActive" class="text-caption">({{ t('employee.isActiveDisabledShort') }})</span>
+                  <span class="text-caption text-medium-emphasis">
+                    [{{ row.plannedDays }}/{{ row.entitledDays }}] {{ row.remainingSymbol }}
+                  </span>
+                </template>
               </td>
               <td
                 v-for="cell in row.cells"
@@ -135,11 +140,13 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { useDisplay } from "vuetify";
 import { useEmployeeStore,   type Employee } from "@/stores/employee";
 import { useRequestStore, RequestStatus, AbsenceType, type Request } from "@/stores/request";
 import { useAuditLogStore } from "@/stores/auditLog";
 import { useAuthStore } from "@/stores/auth";
 import { overlapColor } from "@/utils/overlapHeatmap";
+import { uniqueInitials } from "@/utils/initials";
 
 const { t } = useI18n();
 
@@ -166,6 +173,7 @@ interface DayCell {
 
 interface EmployeeRow {
   employee: Employee;
+  label: string;
   plannedDays: number;
   entitledDays: number;
   remainingSymbol: string;
@@ -197,7 +205,8 @@ const STATUS_ICON: Record<RequestStatus, string> = {
 // ===== Konstanten für das Tagesraster =====
 
 const DAY_COLUMN_WIDTH_PX = 40;
-const NAME_COLUMN_WIDTH_PX = 260;
+const NAME_COLUMN_WIDTH_DESKTOP_PX = 260;
+const NAME_COLUMN_WIDTH_MOBILE_PX = 56; // nur Platz für das Kürzel (siehe uniqueInitials)
 const FALLBACK_VISIBLE_DAY_COUNT = 30; // Platzhalter, bis der Container einmal vermessen wurde
 
 const WEEKDAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -270,6 +279,12 @@ const authStore = useAuthStore();
 
 const isAdmin = computed(() => (authStore.user?.permissionLevel ?? 0) >= 5);
 
+// Bewusst Vuetifys "xs"-Breakpoint (< 600px, echte Handy-Breite) statt des generischen "mobile"-Flags
+// (das standardmässig schon ab < 1280px greift, also auch Tablets/kleine Laptops erfassen würde).
+// Unterhalb davon zeigen wir nur noch das Kürzel statt des vollen Namens, damit mehr Platz für Tagesspalten bleibt.
+const { xs } = useDisplay();
+const nameColumnWidthPx = computed(() => (xs.value ? NAME_COLUMN_WIDTH_MOBILE_PX : NAME_COLUMN_WIDTH_DESKTOP_PX));
+
 const centerDate = ref(new Date()); // Mitte Juli 2026, passend zu den Seed-Daten des Backends
 const scrollHost = ref<HTMLDivElement | null>(null);
 
@@ -281,9 +296,13 @@ let resizeObserver: ResizeObserver | null = null;
 function updateVisibleDayCount() {
   const el = scrollHost.value;
   if (!el) return;
-  const usableWidth = el.clientWidth - NAME_COLUMN_WIDTH_PX;
+  const usableWidth = el.clientWidth - nameColumnWidthPx.value;
   visibleDayCount.value = Math.max(1, Math.floor(usableWidth / DAY_COLUMN_WIDTH_PX));
 }
+
+// Neu berechnen, sobald sich die Namensspaltenbreite ändert (xs-Breakpoint überschritten),
+// unabhängig davon, ob der Container selbst im gleichen Moment eine Grössenänderung meldet.
+watch(nameColumnWidthPx, updateVisibleDayCount);
 
 const visibleDays = computed<Date[]>(() =>
   buildDayRange(centerDate.value, addDays(centerDate.value, visibleDayCount.value - 1)),
@@ -298,6 +317,10 @@ const toolbarLabel = computed(() =>
 );
 
 const filteredEmployees = computed(() => employeeStore.employees);
+
+// Kürzel je Mitarbeiter für die Mobile-Ansicht, konsistent mit der Mitarbeiterverwaltung (initialsFor);
+// bei Kollisionen wird ab der zweiten Person eine Zahl angehängt (siehe uniqueInitials).
+const employeeLabels = computed(() => uniqueInitials(filteredEmployees.value));
 
 function requestsForEmployee(employeeId: string): Request[] {
   return requestStore.requests.filter((request) => request.employeeId === employeeId);
@@ -354,6 +377,7 @@ const rows = computed<EmployeeRow[]>(() =>
     });
     return {
       employee,
+      label: employeeLabels.value[employee.id] ?? "",
       plannedDays: planned,
       entitledDays: entitled,
       remainingSymbol: remainingSymbol(entitled, planned),
@@ -591,9 +615,9 @@ onUnmounted(() => {
   z-index: 2;
   background: rgb(var(--v-theme-surface));
   text-align: left;
-  min-width: v-bind(NAME_COLUMN_WIDTH_PX + "px");
-  max-width: v-bind(NAME_COLUMN_WIDTH_PX + "px");
-  width: v-bind(NAME_COLUMN_WIDTH_PX + "px");
+  min-width: v-bind(nameColumnWidthPx + "px");
+  max-width: v-bind(nameColumnWidthPx + "px");
+  width: v-bind(nameColumnWidthPx + "px");
   white-space: nowrap;
   padding: 4px 8px;
 }

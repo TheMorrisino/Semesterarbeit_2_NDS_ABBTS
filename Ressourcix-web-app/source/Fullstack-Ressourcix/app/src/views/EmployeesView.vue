@@ -146,6 +146,7 @@ import { useI18n } from 'vue-i18n'
 import { useEmployeeStore,  type Employee } from '@/stores/employee'
 import { useAuditLogStore } from '@/stores/auditLog'
 import { useAuthStore } from '@/stores/auth'
+import { initialsFor } from '@/utils/initials'
 
 const { t } = useI18n()
 const employeeStore = useEmployeeStore()
@@ -165,9 +166,7 @@ const headers = [
   { title: t('common.action'), key: 'action', sortable: false },
 ]
 
-function initials(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase()
-}
+const initials = initialsFor
 function avatarColor(name: string) {
   const colors = ['purple', 'red', 'blue', 'grey']
   return colors[name.length % colors.length]
