@@ -22,16 +22,16 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
+  import { useI18n } from 'vue-i18n'
+  import { useRouter } from 'vue-router'
+  import { useAuthStore } from '@/stores/auth'
 
-const { t } = useI18n();
-const router = useRouter();
-const authStore = useAuthStore();
+  const { t } = useI18n()
+  const router = useRouter()
+  const authStore = useAuthStore()
 
-async function onLogout() {
-  await authStore.logout();
-  router.push("/login");
-}
+  async function onLogout () {
+    await authStore.logout()
+    router.push('/login')
+  }
 </script>
