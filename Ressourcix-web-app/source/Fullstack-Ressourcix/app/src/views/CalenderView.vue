@@ -137,6 +137,7 @@
           <v-text-field
             v-model="entryDialog.endDate"
             density="compact"
+            :disabled="entryDialog.status !== RequestStatus.Open"
             :label="t('calendar.endDateLabel')"
             :min="entryDialog.startDate"
             type="date"
@@ -164,6 +165,7 @@
 
           <div v-if="dialogForeignEmployeeError" class="text-error text-body-2 mt-1">{{ dialogForeignEmployeeError }}</div>
           <div v-if="dialogEndDateError" class="text-error text-body-2 mt-1">{{ dialogEndDateError }}</div>
+          <div v-if="dialogStatusError" class="text-error text-body-2 mt-1">{{ dialogStatusError }}</div>
 
           <!-- informativer Hinweis, Überschneidungen mit Kollegen blockieren das Speichern nicht (BR-01.04) -->
           <div v-if="overlappingColleagues.length > 0" class="overlap-warning mt-3">
@@ -451,6 +453,13 @@
     return null
   })
 
+  const dialogStatusError = computed<string | null>(() => {
+    const state = entryDialog.value
+    if (!state) return null
+    if (state.status != RequestStatus.Open) return t('calendar.validationStatusError')
+    return null
+  })
+
   // Employees dürfen nur eigene Anträge erfassen/bearbeiten/löschen, Admins dürfen das für jeden (siehe Backend-Check).
   const dialogForeignEmployeeError = computed<string | null>(() => {
     const state = entryDialog.value
@@ -484,8 +493,6 @@
         employeeId: state.employee.id,
         from: state.startDate,
         until: state.endDate,
-        days: daysBetweenInclusive(state.startDate, state.endDate),
-        overlap: overlappingColleagues.value.length > 0,
         type: AbsenceType.Vacation,
         remark: state.remark.trim() || null,
       })

@@ -28,7 +28,7 @@ export interface Request {
   remark: string | null
 }
 
-type CreateRequestPayload = Pick<Request, 'employeeId' | 'from' | 'until' | 'days' | 'overlap' | 'type' | 'remark'>
+type CreateRequestPayload = Pick<Request, 'employeeId' | 'from' | 'until' | 'type' | 'remark'>
 
 export const useRequestStore = defineStore('requests', {
   state: () => ({

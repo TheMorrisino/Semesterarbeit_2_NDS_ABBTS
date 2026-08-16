@@ -1,7 +1,7 @@
 import type { Request, RequestStatus } from '@/stores/request'
 import { httpClient } from './httpClient'
 
-type CreateRequestPayload = Pick<Request, 'employeeId' | 'from' | 'until' | 'days' | 'overlap' | 'type' | 'remark'>
+type CreateRequestPayload = Pick<Request, 'employeeId' | 'from' | 'until' | 'type' | 'remark'>
 
 export const requestsApi = {
   list: (status?: 'open') => httpClient.get<Request[]>(status ? `/api/requests?status=${status}` : '/api/requests'),
