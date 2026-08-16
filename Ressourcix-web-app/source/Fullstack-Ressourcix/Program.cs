@@ -77,6 +77,9 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 builder.Services.AddScoped<EmployeeStore>();
 
 builder.Services.AddScoped<RequestsStore>();
@@ -92,6 +95,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.SetupSpaMiddleware(appSettings);
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 if (!app.Environment.IsDevelopment())
