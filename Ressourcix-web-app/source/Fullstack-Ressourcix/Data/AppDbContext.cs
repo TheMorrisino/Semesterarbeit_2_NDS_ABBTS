@@ -8,7 +8,7 @@ public class AppDbContext : DbContext
     : base(options) { }
 
   public DbSet<Employee> Employees => Set<Employee>();
-  public DbSet<Request> Requests => Set<Request>();
+  public DbSet<AbsenceRequest> Requests => Set<AbsenceRequest>();
   public DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
   // Gehashtes Standardpasswort "Ressourcix#2026" (siehe appsettings.Development.json Auth:DefaultPassword).
@@ -23,83 +23,17 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<Employee>(entity =>
     {
       entity.ToTable("employees");
-      entity.HasKey(e => e.id);
-      entity.HasIndex(e => e.username).IsUnique();
-
-      entity.HasData(
-        new Employee
-        {
-          id = Guid.Parse("4c3469de-428f-437e-b752-46f56714f063"),
-          name = "Morris Meier",
-          role = EmployeeRoles.Mitarbeiter,
-          workload = 100,
-          vacationDays = 25,
-          isActive = true,
-          username = "morris.meier",
-          passwordHash = SeedPasswordHash,
-          mustChangePassword = true,
-          permissionLevel = 1,
-        },
-        new Employee
-        {
-          id = Guid.Parse("86df2463-1bcd-42de-bb97-2cf112caeabf"),
-          name = "Pedro Santos",
-          role = EmployeeRoles.PlanerLeitung,
-          workload = 100,
-          vacationDays = 25,
-          isActive = true,
-          username = "pedro.santos",
-          passwordHash = SeedPasswordHash,
-          mustChangePassword = true,
-          permissionLevel = 5,
-        },
-        new Employee
-        {
-          id = Guid.Parse("77f37330-cb2b-4a5b-9f6a-6c2d19fde288"),
-          name = "Lena Brunner",
-          role = EmployeeRoles.Mitarbeiter,
-          workload = 80,
-          vacationDays = 22,
-          isActive = true,
-          username = "lena.brunner",
-          passwordHash = SeedPasswordHash,
-          mustChangePassword = true,
-          permissionLevel = 1,
-        },
-        new Employee
-        {
-          id = Guid.Parse("144eda86-a7a2-419d-a37d-e16726e3828c"),
-          name = "Tiago de Sousa Sá",
-          role = EmployeeRoles.Mitarbeiter,
-          workload = 60,
-          vacationDays = 16.5,
-          isActive = false,
-          username = "tiago.desousa",
-          passwordHash = SeedPasswordHash,
-          mustChangePassword = true,
-          permissionLevel = 1,
-        }
-      );
+      entity.HasKey(e => e.Id);
+      entity.HasIndex(e => e.Username).IsUnique();
+      entity.HasData(SeedEmployees());
     });
 
-    modelBuilder.Entity<Request>(entity =>
+    modelBuilder.Entity<AbsenceRequest>(entity =>
     {
       entity.ToTable("requests");
-      entity.HasKey(r => r.id);
-      entity.HasOne<Employee>().WithMany().HasForeignKey(r => r.employeeId);
-
-      entity.HasData(
-        new Request(
-          id: Guid.Parse("7e978e11-0a00-4e05-b61a-007763f529cd"),
-          employeeId: Guid.Parse("4c3469de-428f-437e-b752-46f56714f063"),
-          from: new DateOnly(2026, 7, 13),
-          until: new DateOnly(2026, 7, 24),
-          days: 10,
-          overlap: true,
-          status: RequestStatus.Open,
-          submittedOn: new DateTime(2026, 7, 22, 0, 0, 0, DateTimeKind.Utc)
-        )
-      );
+      entity.HasKey(r => r.Id);
+      entity.HasOne<Employee>().WithMany().HasForeignKey(r => r.EmployeeId);
+      entity.HasData(SeedRequests());
     });
 
     modelBuilder.Entity<AuditLogEntry>(entity =>
@@ -108,4 +42,74 @@ public class AppDbContext : DbContext
       entity.HasKey(e => e.Id);
     });
   }
+
+  private static Employee[] SeedEmployees() =>
+    [
+      new Employee
+      {
+        Id = Guid.Parse("4c3469de-428f-437e-b752-46f56714f063"),
+        Name = "Morris Meier",
+        Role = EmployeeRoles.Mitarbeiter,
+        Workload = 100,
+        VacationDays = 25,
+        IsActive = true,
+        Username = "morris.meier",
+        PasswordHash = SeedPasswordHash,
+        MustChangePassword = true,
+        PermissionLevel = 1,
+      },
+      new Employee
+      {
+        Id = Guid.Parse("86df2463-1bcd-42de-bb97-2cf112caeabf"),
+        Name = "Pedro Santos",
+        Role = EmployeeRoles.PlanerLeitung,
+        Workload = 100,
+        VacationDays = 25,
+        IsActive = true,
+        Username = "pedro.santos",
+        PasswordHash = SeedPasswordHash,
+        MustChangePassword = true,
+        PermissionLevel = 5,
+      },
+      new Employee
+      {
+        Id = Guid.Parse("77f37330-cb2b-4a5b-9f6a-6c2d19fde288"),
+        Name = "Lena Brunner",
+        Role = EmployeeRoles.Mitarbeiter,
+        Workload = 80,
+        VacationDays = 22,
+        IsActive = true,
+        Username = "lena.brunner",
+        PasswordHash = SeedPasswordHash,
+        MustChangePassword = true,
+        PermissionLevel = 1,
+      },
+      new Employee
+      {
+        Id = Guid.Parse("144eda86-a7a2-419d-a37d-e16726e3828c"),
+        Name = "Tiago de Sousa Sá",
+        Role = EmployeeRoles.Mitarbeiter,
+        Workload = 60,
+        VacationDays = 16.5,
+        IsActive = false,
+        Username = "tiago.desousa",
+        PasswordHash = SeedPasswordHash,
+        MustChangePassword = true,
+        PermissionLevel = 1,
+      },
+    ];
+
+  private static AbsenceRequest[] SeedRequests() =>
+    [
+      new AbsenceRequest(
+        Id: Guid.Parse("7e978e11-0a00-4e05-b61a-007763f529cd"),
+        EmployeeId: Guid.Parse("4c3469de-428f-437e-b752-46f56714f063"),
+        From: new DateOnly(2026, 7, 13),
+        Until: new DateOnly(2026, 7, 24),
+        Days: 10,
+        Overlap: true,
+        Status: RequestStatus.Open,
+        SubmittedOn: new DateTime(2026, 7, 22, 0, 0, 0, DateTimeKind.Utc)
+      ),
+    ];
 }

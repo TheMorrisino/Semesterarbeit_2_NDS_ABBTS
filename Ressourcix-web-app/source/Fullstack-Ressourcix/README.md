@@ -29,13 +29,18 @@ Kernfunktionen:
 
 Backend (ASP.NET Core Minimal API) und Frontend (Vue 3 SPA) leben in diesem Ordner; im Dev-Betrieb bindet `Mumrich.SpaDevMiddleware` den Vite-Dev-Server ein, in Produktion wird der gebaute Frontend-Output mitgeliefert.
 
+Bewusst **keine** volle Clean-Architecture-Schichtung (Use-Cases/Entities/Repositories) — für ein CRUD-Projekt dieser Grösse wäre das Overengineering. Stattdessen eine schlanke 3-Schichten-Struktur `Endpoints → Services → Data`, mit `Program.cs` nur noch als Composition Root:
+
 ```
 Fullstack-Ressourcix/
-├─ Program.cs                 # Minimal-API-Endpoints, Auth/Rate-Limiting/Exception-Handling-Setup
+├─ Program.cs                 # Composition Root: DI-Registrierung, Middleware-Pipeline, Endpoint-Mapping
 ├─ AppSettings.cs             # Konfigurationsbindung (SPA-Middleware)
 ├─ GlobalExceptionHandler.cs  # zentrales Fehlerhandling (IExceptionHandler)
-├─ Models/                    # Employee, Request, AuditLogEntry (+ zugehörige Enums)
-├─ Services/                  # EmployeeStore, RequestsStore, AuditLogStore (EF-Core-Datenzugriff)
+├─ Endpoints/                 # Minimal-API-Endpoints als IEndpointRouteBuilder-Extensions (Auth/Employee/Request/AuditLog)
+├─ Dtos/                      # Request-/Response-DTOs (Wire-Format, camelCase)
+├─ Auth/AuthHelpers.cs        # Claims-Helper (BuildPrincipal, IsAdmin, CanActOnRequest, ...)
+├─ Models/                    # Employee, AbsenceRequest, AuditLogEntry (+ zugehörige Enums), EmployeeRoles
+├─ Services/                  # EmployeeStore, RequestsStore, AuthStore, AuditLogStore, AuditSummaryBuilder (EF-Core-Datenzugriff)
 ├─ Data/AppDbContext.cs       # DbContext + Seed-Daten (4 Beispiel-Mitarbeitende)
 ├─ Migrations/                # EF-Core-Migrationen
 ├─ appsettings*.json          # Konfiguration (Connection String, Default-Passwort)
@@ -55,7 +60,7 @@ Es gibt zwei Berechtigungsstufen, serverseitig über eine ASP.NET-Core-Authoriza
 | Mitarbeiterverwaltung | Einsicht, keine Schreibaktionen (Buttons ausgeblendet) | Volle Verwaltung |
 | Audit-Log | Einsicht | Einsicht |
 
-Das Berechtigungslevel eines Mitarbeitenden wird **ausschliesslich** aus der Rolle abgeleitet (`Mitarbeiter` → 1, alles andere → 5) — sowohl im Formular als auch serverseitig in `EmployeeStore`, ein Client kann es nicht direkt setzen.
+Das Berechtigungslevel eines Mitarbeitenden wird **ausschliesslich** aus der Rolle abgeleitet — über eine explizite Zuordnung in `Models/EmployeeRoles.cs` (`Mitarbeiter` → 1, `Planer/Leitung` → 5). Eine unbekannte Rolle wird abgelehnt (`400 Bad Request`) statt still auf die höchste Berechtigungsstufe zu fallen. Weder Formular noch API erlauben es, das Level direkt zu setzen.
 
 ## 🧰 Technologie-Stack
 
@@ -83,7 +88,7 @@ cd app
 npm install
 cd ..
 
-# 2. PostgreSQL lokal starten
+# 2. PostgreSQL lokal starten (statt docker compose geht z.B. auch podman compose)
 docker compose up -d
 
 # 3. .NET-Tools installieren und Datenbank migrieren
@@ -108,7 +113,7 @@ App öffnen: **https://localhost:7057** (HTTP-Fallback: http://localhost:5167).
 
 Alternativ mit C# Dev Kit in VS Code: Ordner `source/Fullstack-Ressourcix` öffnen, Run-and-Debug-Profil `http` oder `https` wählen, `F5`.
 
-Migration zurücksetzen/neu aufsetzen (z.B. nach einem Pull mit neuen Migrationen):
+Migration zurücksetzen/neu aufsetzen (z.B. nach einem Pull mit neuen Migrationen, oder wenn `database update` mit `relation "..." already exists` fehlschlägt, weil das Datenbank-Volume noch einen älteren Stand enthält):
 
 ```bash
 docker compose down -v
@@ -131,9 +136,10 @@ Deutsch, Englisch und Französisch sind vollständig hinterlegt (`app/src/i18n/{
 
 ## 🧪 Tests
 
-Aktuell existiert **kein automatisiertes Testprojekt**, weder Backend (xUnit o.ä.) noch Frontend (Vitest/Playwright). Änderungen werden manuell im Browser verifiziert. Das ist der grösste verbleibende Qualitätslücke des Projekts.
+**Frontend**: Vitest-Unit-Tests für die reinen Utility-Funktionen in `app/src/utils/` (Datumshilfsfunktionen, Initialen/Avatarfarben, Überschneidungslogik, Status-Metadaten) — bewusst genau die Stellen mit echter, von der UI unabhängiger Geschäftslogik. Ausführen mit `npm run test` im Ordner `app/`.
+
+**Backend**: Aktuell existiert **kein automatisiertes Backend-Testprojekt** (xUnit o.ä.). Endpoints/Stores werden manuell im Browser bzw. über die API verifiziert. Das ist die grösste verbleibende Qualitätslücke des Projekts.
 
 ## 📄 Weiterführende Dokumente
 
-- [ToDoReadme.md](ToDoReadme.md) — offene fachliche Punkte je View/Rolle (Stand: laufend gepflegt während der Semesterarbeit).
 - [app/README.md](app/README.md) — Frontend-Struktur, Scripts, Vuetify-spezifische Hinweise.

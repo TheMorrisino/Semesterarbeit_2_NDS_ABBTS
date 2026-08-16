@@ -22,30 +22,30 @@ public static class AuditSummaryBuilder
   )
   {
     var changes = new List<string>();
-    if (before.name != after.name)
-      changes.Add($"Name: {before.name} → {after.name}");
-    if (before.role != after.role)
-      changes.Add($"Rolle: {before.role} → {after.role}");
-    if (before.workload != after.workload)
-      changes.Add($"Pensum: {before.workload} → {after.workload}");
-    if (before.vacationDays != after.vacationDays)
-      changes.Add($"Ferientage: {before.vacationDays} → {after.vacationDays}");
-    if (before.permissionLevel != newPermissionLevel)
-      changes.Add($"Berechtigungslevel: {before.permissionLevel} → {newPermissionLevel}");
+    if (before.Name != after.name)
+      changes.Add($"Name: {before.Name} → {after.name}");
+    if (before.Role != after.role)
+      changes.Add($"Rolle: {before.Role} → {after.role}");
+    if (before.Workload != after.workload)
+      changes.Add($"Pensum: {before.Workload} → {after.workload}");
+    if (before.VacationDays != after.vacationDays)
+      changes.Add($"Ferientage: {before.VacationDays} → {after.vacationDays}");
+    if (before.PermissionLevel != newPermissionLevel)
+      changes.Add($"Berechtigungslevel: {before.PermissionLevel} → {newPermissionLevel}");
     return Join(changes);
   }
 
   public static string BuildRequestUpdateSummary(
-    Request before,
+    AbsenceRequest before,
     DateOnly until,
     RequestStatus status
   )
   {
     var changes = new List<string>();
-    if (before.until != until)
-      changes.Add($"Ende: {FormatDate(before.until)} → {FormatDate(until)}");
-    if (before.status != status)
-      changes.Add($"Status: {StatusLabels[before.status]} → {StatusLabels[status]}");
+    if (before.Until != until)
+      changes.Add($"Ende: {FormatDate(before.Until)} → {FormatDate(until)}");
+    if (before.Status != status)
+      changes.Add($"Status: {StatusLabels[before.Status]} → {StatusLabels[status]}");
     return Join(changes);
   }
 

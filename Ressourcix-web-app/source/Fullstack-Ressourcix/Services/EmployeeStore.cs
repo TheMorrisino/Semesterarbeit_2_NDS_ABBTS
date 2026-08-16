@@ -18,26 +18,23 @@ public class EmployeeStore
   public Task<List<Employee>> AllAsync() => _db.Employees.AsNoTracking().ToListAsync();
 
   public Task<Employee?> FindByUsernameAsync(string username) =>
-    _db.Employees.FirstOrDefaultAsync(e => e.username == username);
+    _db.Employees.FirstOrDefaultAsync(e => e.Username == username);
 
   public Task<bool> UsernameExistsAsync(string username) =>
-    _db.Employees.AnyAsync(e => e.username == username);
+    _db.Employees.AnyAsync(e => e.Username == username);
 
   public async Task<Employee> CreateAsync(Employee employee, string actor)
   {
-    employee.id = Guid.NewGuid();
+    employee.Id = Guid.NewGuid();
     _db.Employees.Add(employee);
     await _db.SaveChangesAsync();
-    _logger.LogInformation("Mitarbeiter erstellt: {EmployeeId}", employee.id);
+    _logger.LogInformation("Mitarbeiter erstellt: {EmployeeId}", employee.Id);
 
-    await _auditLog.CreateAsync(
-      new AuditLogEntry
-      {
-        Action = AuditLogAction.EmployeeCreated,
-        Summary = $"Mitarbeiter erfasst: {employee.name}",
-        Reference = employee.id,
-        Actor = actor,
-      }
+    await _auditLog.RecordAsync(
+      AuditLogAction.EmployeeCreated,
+      employee.Id,
+      actor,
+      $"Mitarbeiter erfasst: {employee.Name}"
     );
     return employee;
   }
@@ -48,8 +45,8 @@ public class EmployeeStore
     if (employee is null)
       return false;
 
-    var wasActive = employee.isActive;
-    employee.isActive = !wasActive;
+    var wasActive = employee.IsActive;
+    employee.IsActive = !wasActive;
     await _db.SaveChangesAsync();
     _logger.LogInformation(
       "Mitarbeiter-Status umgeschaltet: {EmployeeId} {WasActive} -> {IsActive}",
@@ -58,15 +55,11 @@ public class EmployeeStore
       !wasActive
     );
 
-    await _auditLog.CreateAsync(
-      new AuditLogEntry
-      {
-        Action = AuditLogAction.EmployeeStatusChanged,
-        Summary =
-          $"Status geändert für {employee.name}: {ActiveLabel(wasActive)} → {ActiveLabel(!wasActive)}",
-        Reference = id,
-        Actor = actor,
-      }
+    await _auditLog.RecordAsync(
+      AuditLogAction.EmployeeStatusChanged,
+      id,
+      actor,
+      $"Status geändert für {employee.Name}: {ActiveLabel(wasActive)} → {ActiveLabel(!wasActive)}"
     );
     return true;
   }
@@ -84,22 +77,19 @@ public class EmployeeStore
       newPermissionLevel
     );
 
-    employee.name = updated.name;
-    employee.role = updated.role;
-    employee.workload = updated.workload;
-    employee.vacationDays = updated.vacationDays;
-    employee.permissionLevel = newPermissionLevel;
+    employee.Name = updated.name;
+    employee.Role = updated.role;
+    employee.Workload = updated.workload;
+    employee.VacationDays = updated.vacationDays;
+    employee.PermissionLevel = newPermissionLevel;
     await _db.SaveChangesAsync();
     _logger.LogInformation("Mitarbeiter aktualisiert: {EmployeeId}", id);
 
-    await _auditLog.CreateAsync(
-      new AuditLogEntry
-      {
-        Action = AuditLogAction.EmployeeUpdated,
-        Summary = $"Mitarbeiter bearbeitet: {updated.name} — {changeText}",
-        Reference = id,
-        Actor = actor,
-      }
+    await _auditLog.RecordAsync(
+      AuditLogAction.EmployeeUpdated,
+      id,
+      actor,
+      $"Mitarbeiter bearbeitet: {updated.name} — {changeText}"
     );
     return true;
   }
@@ -114,14 +104,11 @@ public class EmployeeStore
     await _db.SaveChangesAsync();
     _logger.LogInformation("Mitarbeiter gelöscht: {EmployeeId}", id);
 
-    await _auditLog.CreateAsync(
-      new AuditLogEntry
-      {
-        Action = AuditLogAction.EmployeeDeleted,
-        Summary = $"Mitarbeiter gelöscht: {employee.name}",
-        Reference = id,
-        Actor = actor,
-      }
+    await _auditLog.RecordAsync(
+      AuditLogAction.EmployeeDeleted,
+      id,
+      actor,
+      $"Mitarbeiter gelöscht: {employee.Name}"
     );
     return true;
   }

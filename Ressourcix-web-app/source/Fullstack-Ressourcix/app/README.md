@@ -16,13 +16,14 @@ Vue-3-SPA des Ressourcix-Backends (siehe [../README.md](../README.md) für den G
 
 - `src/main.ts` — Einstiegspunkt, registriert Pinia/Router/Vuetify/i18n
 - `src/App.vue` — Wurzelkomponente (Navigation, Login-Weiche)
-- `src/views/` — Seiten (Dashboard, Kalender, Abwesenheiten, Genehmigungen, Mitarbeiter, Audit-Log, Login, Passwort ändern)
+- `src/views/` — Seiten (Dashboard, Kalender, Abwesenheiten, Genehmigungen, Mitarbeiter, Team, Audit-Log, Login, Passwort ändern)
 - `src/components/` — wiederverwendbare Komponenten (z.B. `OverlapChart.vue`, `AppUserInfo.vue`)
+- `src/composables/` — extrahierte Vue-Composables mit testbarer View-Logik (`useEntryDialog` für Dialog-Zustand/Validierung, `useVisibleDayCount` für die Grid-Virtualisierung des Kalenders)
 - `src/stores/` — Pinia-Stores (`auth`, `employee`, `request`, `auditLog`)
 - `src/api/` — typisierte Fetch-Wrapper pro Ressource, alle über `src/api/httpClient.ts`
 - `src/router/` — Routing inkl. Auth-/Rollen-Guards
 - `src/i18n/` — Übersetzungsdateien `de.json`/`en.json`/`fr.json` (identische Key-Struktur)
-- `src/utils/` — reine Hilfsfunktionen (z.B. `initials.ts`, `overlapHeatmap.ts`)
+- `src/utils/` — reine, unit-getestete Hilfsfunktionen: `date.ts` (Datumsarithmetik), `overlap.ts` (Überschneidungslogik), `overlapHeatmap.ts` (Heatmap-Farben), `statusMeta.ts` (Status → Label/Farbe/Icon), `initials.ts` (Kürzel/Avatarfarben) — jeweils mit `*.test.ts` daneben
 - `src/plugins/` — Plugin-Setup (Vuetify, i18n)
 - `src/styles/` — globale Styles/Theme
 - `public/` — statische Dateien
@@ -55,9 +56,8 @@ npm run build
 - `npm run preview` — gebauten Build lokal ausliefern
 - `npm run type-check` — `vue-tsc --build --force`
 - `npm run lint` / `npm run lint:fix` — ESLint
+- `npm run test` — Vitest-Unit-Tests für `src/utils/` (einmaliger Lauf, kein Watch-Modus)
 - `npm run mcp` / `npm run mcp:revert` — Ruler-MCP-Konfiguration anwenden/zurücksetzen
-
-Kein Testscript vorhanden — es gibt aktuell kein Frontend-Testprojekt (siehe [../ToDoReadme.md](../ToDoReadme.md)).
 
 ## 🧩 Empfohlene VS-Code-Erweiterungen
 

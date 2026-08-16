@@ -23,17 +23,17 @@ public sealed record RequestResponse(
   string? remark
 )
 {
-  public static RequestResponse From(Request r) =>
+  public static RequestResponse From(AbsenceRequest r) =>
     new(
-      r.id,
-      r.employeeId,
-      r.from,
-      r.until,
-      r.days,
-      r.overlap,
-      r.status,
-      r.submittedOn,
-      r.type,
-      r.remark
+      r.Id,
+      r.EmployeeId,
+      r.From,
+      r.Until,
+      r.Days,
+      r.Overlap,
+      r.Status,
+      r.SubmittedOn,
+      r.Type,
+      r.Remark
     );
 }

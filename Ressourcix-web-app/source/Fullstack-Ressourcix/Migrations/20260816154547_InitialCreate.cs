@@ -34,20 +34,20 @@ namespace FullstackRessourcix.Migrations
         name: "employees",
         columns: table => new
         {
-          id = table.Column<Guid>(type: "uuid", nullable: false),
-          name = table.Column<string>(type: "text", nullable: false),
-          role = table.Column<string>(type: "text", nullable: false),
-          workload = table.Column<int>(type: "integer", nullable: false),
-          vacationDays = table.Column<double>(type: "double precision", nullable: false),
-          isActive = table.Column<bool>(type: "boolean", nullable: false),
-          username = table.Column<string>(type: "text", nullable: false),
-          passwordHash = table.Column<string>(type: "text", nullable: false),
-          mustChangePassword = table.Column<bool>(type: "boolean", nullable: false),
-          permissionLevel = table.Column<int>(type: "integer", nullable: false),
+          Id = table.Column<Guid>(type: "uuid", nullable: false),
+          Name = table.Column<string>(type: "text", nullable: false),
+          Role = table.Column<string>(type: "text", nullable: false),
+          Workload = table.Column<int>(type: "integer", nullable: false),
+          VacationDays = table.Column<double>(type: "double precision", nullable: false),
+          IsActive = table.Column<bool>(type: "boolean", nullable: false),
+          Username = table.Column<string>(type: "text", nullable: false),
+          PasswordHash = table.Column<string>(type: "text", nullable: false),
+          MustChangePassword = table.Column<bool>(type: "boolean", nullable: false),
+          PermissionLevel = table.Column<int>(type: "integer", nullable: false),
         },
         constraints: table =>
         {
-          table.PrimaryKey("PK_employees", x => x.id);
+          table.PrimaryKey("PK_employees", x => x.Id);
         }
       );
 
@@ -55,25 +55,25 @@ namespace FullstackRessourcix.Migrations
         name: "requests",
         columns: table => new
         {
-          id = table.Column<Guid>(type: "uuid", nullable: false),
-          employeeId = table.Column<Guid>(type: "uuid", nullable: false),
-          from = table.Column<DateOnly>(type: "date", nullable: false),
-          until = table.Column<DateOnly>(type: "date", nullable: false),
-          days = table.Column<int>(type: "integer", nullable: false),
-          overlap = table.Column<bool>(type: "boolean", nullable: false),
-          status = table.Column<int>(type: "integer", nullable: false),
-          submittedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-          type = table.Column<int>(type: "integer", nullable: false),
-          remark = table.Column<string>(type: "text", nullable: true),
+          Id = table.Column<Guid>(type: "uuid", nullable: false),
+          EmployeeId = table.Column<Guid>(type: "uuid", nullable: false),
+          From = table.Column<DateOnly>(type: "date", nullable: false),
+          Until = table.Column<DateOnly>(type: "date", nullable: false),
+          Days = table.Column<int>(type: "integer", nullable: false),
+          Overlap = table.Column<bool>(type: "boolean", nullable: false),
+          Status = table.Column<int>(type: "integer", nullable: false),
+          SubmittedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+          Type = table.Column<int>(type: "integer", nullable: false),
+          Remark = table.Column<string>(type: "text", nullable: true),
         },
         constraints: table =>
         {
-          table.PrimaryKey("PK_requests", x => x.id);
+          table.PrimaryKey("PK_requests", x => x.Id);
           table.ForeignKey(
-            name: "FK_requests_employees_employeeId",
-            column: x => x.employeeId,
+            name: "FK_requests_employees_EmployeeId",
+            column: x => x.EmployeeId,
             principalTable: "employees",
-            principalColumn: "id",
+            principalColumn: "Id",
             onDelete: ReferentialAction.Cascade
           );
         }
@@ -83,16 +83,16 @@ namespace FullstackRessourcix.Migrations
         table: "employees",
         columns: new[]
         {
-          "id",
-          "isActive",
-          "mustChangePassword",
-          "name",
-          "passwordHash",
-          "permissionLevel",
-          "role",
-          "username",
-          "vacationDays",
-          "workload",
+          "Id",
+          "IsActive",
+          "MustChangePassword",
+          "Name",
+          "PasswordHash",
+          "PermissionLevel",
+          "Role",
+          "Username",
+          "VacationDays",
+          "Workload",
         },
         values: new object[,]
         {
@@ -151,16 +151,16 @@ namespace FullstackRessourcix.Migrations
         table: "requests",
         columns: new[]
         {
-          "id",
-          "days",
-          "employeeId",
-          "from",
-          "overlap",
-          "remark",
-          "status",
-          "submittedOn",
-          "type",
-          "until",
+          "Id",
+          "Days",
+          "EmployeeId",
+          "From",
+          "Overlap",
+          "Remark",
+          "Status",
+          "SubmittedOn",
+          "Type",
+          "Until",
         },
         values: new object[]
         {
@@ -178,16 +178,16 @@ namespace FullstackRessourcix.Migrations
       );
 
       migrationBuilder.CreateIndex(
-        name: "IX_employees_username",
+        name: "IX_employees_Username",
         table: "employees",
-        column: "username",
+        column: "Username",
         unique: true
       );
 
       migrationBuilder.CreateIndex(
-        name: "IX_requests_employeeId",
+        name: "IX_requests_EmployeeId",
         table: "requests",
-        column: "employeeId"
+        column: "EmployeeId"
       );
     }
 

@@ -18,11 +18,11 @@ public class AuthStore
 
   public async Task<Employee?> ValidateCredentialsAsync(string username, string password)
   {
-    var employee = await _db.Employees.FirstOrDefaultAsync(e => e.username == username);
+    var employee = await _db.Employees.FirstOrDefaultAsync(e => e.Username == username);
     if (
       employee is null
-      || !employee.isActive
-      || _hasher.VerifyHashedPassword(employee, employee.passwordHash, password)
+      || !employee.IsActive
+      || _hasher.VerifyHashedPassword(employee, employee.PasswordHash, password)
         == PasswordVerificationResult.Failed
     )
     {
@@ -32,7 +32,7 @@ public class AuthStore
   }
 
   public Task<Employee?> FindByIdAsync(Guid id) =>
-    _db.Employees.FirstOrDefaultAsync(e => e.id == id);
+    _db.Employees.FirstOrDefaultAsync(e => e.Id == id);
 
   // Rückgabe: (NotFound, Error). Error == null und NotFound == false bedeutet Erfolg.
   public async Task<(bool NotFound, string? Error)> ChangePasswordAsync(
@@ -46,7 +46,7 @@ public class AuthStore
       return (true, null);
 
     if (
-      _hasher.VerifyHashedPassword(employee, employee.passwordHash, currentPassword)
+      _hasher.VerifyHashedPassword(employee, employee.PasswordHash, currentPassword)
       == PasswordVerificationResult.Failed
     )
     {
@@ -67,8 +67,8 @@ public class AuthStore
       return (false, "Neues Passwort muss sich vom aktuellen unterscheiden.");
     }
 
-    employee.passwordHash = _hasher.HashPassword(employee, newPassword);
-    employee.mustChangePassword = false;
+    employee.PasswordHash = _hasher.HashPassword(employee, newPassword);
+    employee.MustChangePassword = false;
     await _db.SaveChangesAsync();
     return (false, null);
   }
