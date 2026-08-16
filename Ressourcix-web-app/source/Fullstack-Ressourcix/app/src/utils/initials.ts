@@ -22,3 +22,11 @@ export function uniqueInitials (employees: { id: string, name: string }[]): Reco
   }
   return result
 }
+
+// Deterministische Avatarfarbe je Name, konsistent über Mitarbeiterverwaltung, Genehmigungen
+// und Teamübersicht hinweg (bislang 2 leicht unterschiedliche Paletten je View).
+const AVATAR_COLORS = ['purple', 'red', 'blue', 'teal', 'indigo']
+
+export function avatarColor (name: string): string {
+  return AVATAR_COLORS[name.length % AVATAR_COLORS.length]
+}

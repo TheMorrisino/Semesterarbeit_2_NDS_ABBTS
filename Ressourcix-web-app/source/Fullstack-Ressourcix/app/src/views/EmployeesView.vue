@@ -164,7 +164,7 @@
   import { useI18n } from 'vue-i18n'
   import { useAuthStore } from '@/stores/auth'
   import { type Employee, useEmployeeStore } from '@/stores/employee'
-  import { initialsFor } from '@/utils/initials'
+  import { avatarColor, initialsFor } from '@/utils/initials'
 
   const { t } = useI18n()
   const employeeStore = useEmployeeStore()
@@ -184,10 +184,6 @@
   ]
 
   const initials = initialsFor
-  function avatarColor (name: string) {
-    const colors = ['purple', 'red', 'blue', 'grey']
-    return colors[name.length % colors.length]
-  }
 
   async function toggleActive (item: Employee) {
     await employeeStore.toggleActive(item.id)
