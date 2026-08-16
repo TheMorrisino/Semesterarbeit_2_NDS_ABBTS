@@ -247,12 +247,12 @@ app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, ClaimsPri
     return await store.UpdateAsync(id, update.until, update.status, IsAdmin(user), ActorName(user)) ? Results.Ok() : Results.NotFound();
 }).RequireAuthorization("ActiveSession");
 
-app.MapPut("/api/requests/{id}/approve", async (Guid id, RequestsStore store) =>
-    await store.SetStatusAsync(id, RequestStatus.Approved) ? Results.Ok() : Results.NotFound())
+app.MapPut("/api/requests/{id}/approve", async (Guid id, ClaimsPrincipal user, RequestsStore store) =>
+    await store.SetStatusAsync(id, RequestStatus.Approved, ActorName(user)) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization("Admin"); // Nur Admins dürfen Anträge genehmigen, nicht normale Mitarbeiter
 
-app.MapPut("/api/requests/{id}/reject", async (Guid id, RequestsStore store) =>
-    await store.SetStatusAsync(id, RequestStatus.Rejected) ? Results.Ok() : Results.NotFound())
+app.MapPut("/api/requests/{id}/reject", async (Guid id, ClaimsPrincipal user, RequestsStore store) =>
+    await store.SetStatusAsync(id, RequestStatus.Rejected, ActorName(user)) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization("Admin"); // Nur Admins dürfen Anträge ablehnen, nicht normale Mitarbeiter
 
 app.MapDelete("/api/requests/{id}", async (Guid id, ClaimsPrincipal user, RequestsStore store) =>
