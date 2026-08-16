@@ -22,6 +22,17 @@ export interface AuditLogEntry {
   timestamp: string // ISO
 }
 
+// Anzeige-Metadaten (Icon/Farbe/Hintergrund) je Aktionstyp, verwendet von DashboardView.vue und AuditLogView.vue.
+export const auditLogActionMeta: Record<AuditLogAction, { icon: string, color: string, bg: string }> = {
+  RequestCreated: { icon: 'mdi-plus', color: 'warning', bg: 'orange-lighten-4' },
+  RequestUpdated: { icon: 'mdi-pencil', color: 'info', bg: 'blue-lighten-4' },
+  RequestDeleted: { icon: 'mdi-delete', color: 'error', bg: 'red-lighten-4' },
+  EmployeeCreated: { icon: 'mdi-account-plus', color: 'info', bg: 'blue-lighten-4' },
+  EmployeeUpdated: { icon: 'mdi-account-edit', color: 'info', bg: 'blue-lighten-4' },
+  EmployeeStatusChanged: { icon: 'mdi-account-switch', color: 'grey', bg: 'grey-lighten-3' },
+  EmployeeDeleted: { icon: 'mdi-account-remove', color: 'error', bg: 'red-lighten-4' },
+}
+
 export const useAuditLogStore = defineStore('auditLog', {
   state: () => ({
     entries: [] as AuditLogEntry[],

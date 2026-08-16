@@ -139,8 +139,8 @@
           <v-list v-if="recentActivity.length > 0" density="compact">
             <v-list-item v-for="entry in recentActivity" :key="entry.id">
               <template #prepend>
-                <v-avatar :color="activityInfo(entry.action).bg" rounded="lg" size="30">
-                  <v-icon :color="activityInfo(entry.action).color" :icon="activityInfo(entry.action).icon" size="16" />
+                <v-avatar :color="auditLogActionMeta[entry.action].bg" rounded="lg" size="30">
+                  <v-icon :color="auditLogActionMeta[entry.action].color" :icon="auditLogActionMeta[entry.action].icon" size="16" />
                 </v-avatar>
               </template>
 
@@ -160,7 +160,7 @@
   import { computed, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import OverlapChart, { type OverlapChartPoint } from '@/components/OverlapChart.vue'
-  import { type AuditLogAction, useAuditLogStore } from '@/stores/auditLog'
+  import { auditLogActionMeta, useAuditLogStore } from '@/stores/auditLog'
   import { useAuthStore } from '@/stores/auth'
   import { useEmployeeStore } from '@/stores/employee'
   import { RequestStatus, useRequestStore } from '@/stores/request'
@@ -180,20 +180,6 @@
   ])
   const OVERLAP_CHART_DAYS = 14
   const authStore = useAuthStore()
-
-  const ACTIVITY_INFO: Record<AuditLogAction, { icon: string, color: string, bg: string }> = {
-    RequestCreated: { icon: 'mdi-plus', color: 'warning', bg: 'orange-lighten-4' },
-    RequestUpdated: { icon: 'mdi-pencil', color: 'info', bg: 'blue-lighten-4' },
-    RequestDeleted: { icon: 'mdi-delete', color: 'error', bg: 'red-lighten-4' },
-    EmployeeCreated: { icon: 'mdi-account-plus', color: 'info', bg: 'blue-lighten-4' },
-    EmployeeUpdated: { icon: 'mdi-account-edit', color: 'info', bg: 'blue-lighten-4' },
-    EmployeeStatusChanged: { icon: 'mdi-account-switch', color: 'grey', bg: 'grey-lighten-3' },
-    EmployeeDeleted: { icon: 'mdi-account-remove', color: 'error', bg: 'red-lighten-4' },
-  }
-
-  function activityInfo (action: AuditLogAction) {
-    return ACTIVITY_INFO[action]
-  }
 
   // ===== Datumshilfsfunktionen =====
 
