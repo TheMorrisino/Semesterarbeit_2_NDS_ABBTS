@@ -44,6 +44,12 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("ActiveSession", policy =>
         policy.RequireAuthenticatedUser().RequireAssertion(context =>
             context.User.FindFirst("mustChangePassword")?.Value != "True"));
+
+    options.AddPolicy("Admin", policy =>
+        policy.RequireAuthenticatedUser().RequireAssertion(context =>
+            context.User.FindFirst("mustChangePassword")?.Value != "True" &&
+            int.TryParse(context.User.FindFirst("permissionLevel")?.Value, out var level) &&
+            level >= 5));
 });
 
 builder.Services.AddScoped<EmployeeStore>();
@@ -158,19 +164,19 @@ app.MapPost("/api/employees", async (CreateEmployeeRequest request, EmployeeStor
 
     var created = await store.CreateAsync(employee);
     return Results.Created($"/api/employees/{created.id}", EmployeeResponse.From(created));
-}).RequireAuthorization("ActiveSession");
+}).RequireAuthorization("Admin");
 
 app.MapPut("/api/employees/{id}/toggle-active", async (Guid id, EmployeeStore store) =>
     await store.ToggleActiveAsync(id) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization("ActiveSession");
+    .RequireAuthorization("Admin");
 
 app.MapPut("/api/employees/{id}", async (Guid id, UpdateEmployeeRequest request, EmployeeStore store) =>
     await store.UpdateAsync(id, request) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization("ActiveSession");
+    .RequireAuthorization("Admin");
 
 app.MapDelete("/api/employees/{id}", async (Guid id, EmployeeStore store) =>
     await store.DeleteAsync(id) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization("ActiveSession");
+    .RequireAuthorization("Admin");
 
 app.MapGet("/api/requests", async (string? status, RequestsStore store) =>
 {
@@ -196,11 +202,11 @@ app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, RequestsS
 
 app.MapPut("/api/requests/{id}/approve", async (Guid id, RequestsStore store) =>
     await store.SetStatusAsync(id, RequestStatus.Approved) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization("ActiveSession");
+    .RequireAuthorization("Admin"); // Nur Admins dürfen Anträge genehmigen, nicht normale Mitarbeiter
 
 app.MapPut("/api/requests/{id}/reject", async (Guid id, RequestsStore store) =>
     await store.SetStatusAsync(id, RequestStatus.Rejected) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization("ActiveSession");
+    .RequireAuthorization("Admin"); // Nur Admins dürfen Anträge ablehnen, nicht normale Mitarbeiter
 
 app.MapDelete("/api/requests/{id}", async (Guid id, RequestsStore store) =>
     await store.RemoveAsync(id) ? Results.Ok() : Results.NotFound())
