@@ -184,11 +184,15 @@ app.MapGet("/api/requests", async (string? status, RequestsStore store) =>
     return Results.Ok(requests);
 }).RequireAuthorization("ActiveSession");
 
-app.MapPost("/api/requests", async (Request request, RequestsStore store) =>
+app.MapPost("/api/requests", async (Request request, ClaimsPrincipal user, RequestsStore store) =>
 {
     if (request.employeeId == Guid.Empty)
     {
         return Results.BadRequest(new { message = "employeeId ist erforderlich." });
+    }
+    if (!IsAdmin(user) && request.employeeId != CurrentEmployeeId(user))
+    {
+        return Results.Forbid();
     }
 
     var created = await store.CreateAsync(request);
@@ -196,9 +200,17 @@ app.MapPost("/api/requests", async (Request request, RequestsStore store) =>
 }).RequireAuthorization("ActiveSession");
 
 // Enddatum + Status ändern (z.B. aus einem Bearbeiten-Dialog), unabhängig von approve/reject
-app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, RequestsStore store) =>
-    await store.UpdateAsync(id, update.until, update.status) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization("ActiveSession");
+app.MapPut("/api/requests/{id}", async (Guid id, RequestUpdate update, ClaimsPrincipal user, RequestsStore store) =>
+{
+    var existing = await store.GetAsync(id);
+    if (existing is null) return Results.NotFound();
+    if (!IsAdmin(user) && existing.employeeId != CurrentEmployeeId(user))
+    {
+        return Results.Forbid();
+    }
+
+    return await store.UpdateAsync(id, update.until, update.status, IsAdmin(user)) ? Results.Ok() : Results.NotFound();
+}).RequireAuthorization("ActiveSession");
 
 app.MapPut("/api/requests/{id}/approve", async (Guid id, RequestsStore store) =>
     await store.SetStatusAsync(id, RequestStatus.Approved) ? Results.Ok() : Results.NotFound())
@@ -208,9 +220,17 @@ app.MapPut("/api/requests/{id}/reject", async (Guid id, RequestsStore store) =>
     await store.SetStatusAsync(id, RequestStatus.Rejected) ? Results.Ok() : Results.NotFound())
     .RequireAuthorization("Admin"); // Nur Admins dürfen Anträge ablehnen, nicht normale Mitarbeiter
 
-app.MapDelete("/api/requests/{id}", async (Guid id, RequestsStore store) =>
-    await store.RemoveAsync(id) ? Results.Ok() : Results.NotFound())
-    .RequireAuthorization("ActiveSession");
+app.MapDelete("/api/requests/{id}", async (Guid id, ClaimsPrincipal user, RequestsStore store) =>
+{
+    var existing = await store.GetAsync(id);
+    if (existing is null) return Results.NotFound();
+    if (!IsAdmin(user) && existing.employeeId != CurrentEmployeeId(user))
+    {
+        return Results.Forbid();
+    }
+
+    return await store.RemoveAsync(id) ? Results.Ok() : Results.NotFound();
+}).RequireAuthorization("ActiveSession");
 
 app.MapGet("/api/auditlog", async (AuditLogStore store) =>
     Results.Ok(await store.AllAsync()))
@@ -248,6 +268,12 @@ static ClaimsPrincipal BuildPrincipal(Employee employee)
     };
     return new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
 }
+
+static bool IsAdmin(ClaimsPrincipal user) =>
+    int.TryParse(user.FindFirst("permissionLevel")?.Value, out var level) && level >= 5;
+
+static Guid CurrentEmployeeId(ClaimsPrincipal user) =>
+    Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
 internal sealed record ImageResult(string url, string name);
 

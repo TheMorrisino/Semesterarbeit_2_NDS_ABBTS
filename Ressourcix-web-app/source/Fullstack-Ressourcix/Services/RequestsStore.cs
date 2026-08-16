@@ -16,6 +16,9 @@ public class RequestsStore
     public Task<List<Request>> GetOpenAsync() =>
         _db.Requests.AsNoTracking().Where(r => r.status == RequestStatus.Open).ToListAsync();
 
+    public Task<Request?> GetAsync(Guid id) =>
+        _db.Requests.AsNoTracking().FirstOrDefaultAsync(r => r.id == id);
+
     public async Task<Request> CreateAsync(Request request)
     {
         // id, status und submittedOn kommen nie vom Client - der könnte sonst z.B. ein falsches
@@ -31,14 +34,13 @@ public class RequestsStore
         return created;
     }
 
-    public async Task<bool> UpdateAsync(Guid id, DateOnly until, RequestStatus status)
+    public async Task<bool> UpdateAsync(Guid id, DateOnly until, RequestStatus status, bool allowStatusChange)
     {
         var existing = await _db.Requests.FindAsync(id);
         if (existing is null) return false;
 
-        // Request ist ein record mit init-only-Properties: die getrackte Instanz kann nicht direkt
-        // mutiert werden, daher CurrentValues.SetValues auf Basis einer neuen "with"-Kopie.
-        _db.Entry(existing).CurrentValues.SetValues(existing with { until = until, status = status });
+        var effectiveStatus = allowStatusChange ? status : existing.status;
+        _db.Entry(existing).CurrentValues.SetValues(existing with { until = until, status = effectiveStatus });
         await _db.SaveChangesAsync();
         return true;
     }
