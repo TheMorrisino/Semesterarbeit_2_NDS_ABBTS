@@ -307,10 +307,6 @@ static bool IsStrongPassword(string password) =>
     password.Any(char.IsDigit) &&
     password.Any(ch => !char.IsLetterOrDigit(ch));
 
-internal sealed record ImageResult(string url, string name);
-
-internal sealed record ImageGalleryResult(IReadOnlyList<ImageResult> images);
-
 internal sealed record RequestUpdate(DateOnly until, RequestStatus status);
 
 internal sealed record LoginRequest(string username, string password);

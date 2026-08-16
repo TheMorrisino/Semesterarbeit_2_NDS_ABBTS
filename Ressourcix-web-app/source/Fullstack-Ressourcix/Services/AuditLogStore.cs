@@ -20,14 +20,4 @@ public class AuditLogStore
         await _db.SaveChangesAsync();
         return entry;
     }
-
-    public async Task<bool> RemoveAsync(Guid id)
-    {
-        var entry = await _db.AuditLogEntries.FindAsync(id);
-        if (entry is null) return false;
-
-        _db.AuditLogEntries.Remove(entry);
-        await _db.SaveChangesAsync();
-        return true;
-    }
 }

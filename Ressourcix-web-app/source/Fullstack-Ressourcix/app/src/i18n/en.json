@@ -17,16 +17,6 @@
       "logout": "Logout"
     }
   },
-  "gallery": {
-    "upload": "Upload",
-    "reload": "Reload",
-    "delete": "Delete",
-    "emptyHeadline": "No Images",
-    "emptyTitle": "No images yet",
-    "emptyText": "Upload images to fill your gallery.",
-    "uploadDisabledHint": "Please select at least one image first."
-  },
-  
   "login": {
   "subtitle": "Absence and vacation management for SMEs. Sign in to continue.",
   "username": "Username",
@@ -47,7 +37,6 @@
     "required": "Required field",
     "minLength": "At least 8 characters",
     "mismatch": "Passwords do not match",
-    "wrongCurrentPassword": "Current password is incorrect",
     "genericError": "Could not change password"
   },
 

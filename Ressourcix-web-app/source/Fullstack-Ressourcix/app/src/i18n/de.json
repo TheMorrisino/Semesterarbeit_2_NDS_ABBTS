@@ -45,7 +45,6 @@
     "required": "Pflichtfeld",
     "minLength": "Mindestens 8 Zeichen, Gross- und Kleinbuchstaben, eine Zahl und ein Sonderzeichen",
     "mismatch": "Passwörter stimmen nicht überein",
-    "wrongCurrentPassword": "Aktuelles Passwort ist falsch",
     "genericError": "Passwort konnte nicht geändert werden"
   },
 
