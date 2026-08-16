@@ -219,7 +219,7 @@ app.MapPost("/api/auditlog", async (CreateAuditLogRequest request, ClaimsPrincip
         Action = request.Action,
         Summary = request.Summary,
         Reference = request.Reference,
-        Actor = user.FindFirst(ClaimTypes.Name)!.Value,
+        Actor = user.FindFirst("displayName")!.Value,
         Timestamp = DateTime.UtcNow,
     };
     var created = await store.CreateAsync(entry);

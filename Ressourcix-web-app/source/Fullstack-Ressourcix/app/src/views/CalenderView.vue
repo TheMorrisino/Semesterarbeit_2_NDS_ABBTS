@@ -262,12 +262,12 @@ const employeeStore = useEmployeeStore();
 const requestStore = useRequestStore();
 const auditLog = useAuditLogStore();
 
-const centerDate = ref(new Date(2026, 6, 15)); // Mitte Juli 2026, passend zu den Seed-Daten des Backends
+const centerDate = ref(new Date()); // Mitte Juli 2026, passend zu den Seed-Daten des Backends
 const scrollHost = ref<HTMLDivElement | null>(null);
 const visibleDays = ref<Date[]>(
   buildDayRange(
-    addDays(centerDate.value, -INITIAL_WINDOW_RADIUS_DAYS),
-    addDays(centerDate.value, INITIAL_WINDOW_RADIUS_DAYS),
+    centerDate.value,
+    addDays(centerDate.value, INITIAL_WINDOW_RADIUS_DAYS/2),
   ),
 );
 
@@ -349,10 +349,9 @@ const rows = computed<EmployeeRow[]>(() =>
 function jumpTo(newCenter: Date) {
   centerDate.value = newCenter;
   visibleDays.value = buildDayRange(
-    addDays(newCenter, -INITIAL_WINDOW_RADIUS_DAYS),
-    addDays(newCenter, INITIAL_WINDOW_RADIUS_DAYS),
+    newCenter,
+    addDays(newCenter, INITIAL_WINDOW_RADIUS_DAYS/2),
   );
-  nextTick(() => centerScroll());
 }
 
 function jumpYears(delta: number) {
