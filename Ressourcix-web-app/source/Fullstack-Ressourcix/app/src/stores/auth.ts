@@ -21,6 +21,7 @@ export const useAuthStore = defineStore('auth', {
   }),
   getters: {
     isLoggedIn: state => state.user !== null,
+    isAdmin: state => (state.user?.permissionLevel ?? 0) >= 5,
   },
   actions: {
     async login (username: string, password: string) {

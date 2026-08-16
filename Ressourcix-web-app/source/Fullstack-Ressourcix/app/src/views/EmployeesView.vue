@@ -14,7 +14,7 @@
             style="min-width: 130px"
           />
 
-          <v-btn v-if="isAdmin" color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
+          <v-btn v-if="authStore.isAdmin" color="primary" @click="openCreateDialog">{{ t('employee.newcapture') }}</v-btn>
         </div>
       </v-card-title>
 
@@ -47,7 +47,7 @@
           <v-btn icon="mdi-information-outline" size="small" variant="text" @click="openDetailDialog(item)" />
 
           <v-btn
-            v-if="isAdmin"
+            v-if="authStore.isAdmin"
             icon="mdi-pencil"
             size="small"
             variant="text"
@@ -55,7 +55,7 @@
           />
 
           <v-btn
-            v-if="isAdmin"
+            v-if="authStore.isAdmin"
             :icon="item.isActive ? 'mdi-pause' : 'mdi-play'"
             size="small"
             variant="text"
@@ -169,7 +169,6 @@
   const { t } = useI18n()
   const employeeStore = useEmployeeStore()
   const authStore = useAuthStore()
-  const isAdmin = computed(() => (authStore.user?.permissionLevel ?? 0) >= 5)
   const search = ref('')
 
   const headers = [
