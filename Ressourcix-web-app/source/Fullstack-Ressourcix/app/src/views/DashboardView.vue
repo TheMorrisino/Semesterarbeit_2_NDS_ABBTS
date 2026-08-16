@@ -120,7 +120,7 @@
               <v-list-item-subtitle class="item-sub">{{ formatDate(request.from) }} – {{ formatDate(request.until) }}</v-list-item-subtitle>
 
               <template #append>
-                <v-chip :color="STATUS_COLOR[request.status]" size="small" variant="tonal">{{ STATUS_LABEL[request.status] }}</v-chip>
+                <v-chip :color="statusMeta(request.status, t).color" size="small" variant="tonal">{{ statusMeta(request.status, t).label }}</v-chip>
               </template>
             </v-list-item>
           </v-list>
@@ -167,6 +167,7 @@
   import { daysBetweenInclusive, formatDate, startOfWeek, toISODate } from '@/utils/date'
   import { isEmployeeAbsentOn } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
+  import { statusMeta } from '@/utils/statusMeta'
 
   const { t } = useI18n()
   const employeeStore = useEmployeeStore()
@@ -179,22 +180,6 @@
   ])
   const OVERLAP_CHART_DAYS = 14
   const authStore = useAuthStore()
-
-  const STATUS_LABEL = computed<Record<RequestStatus, string>>(() => ({
-    [RequestStatus.Open]: t('status.open'),
-    [RequestStatus.Approved]: t('status.approved'),
-    [RequestStatus.Rejected]: t('status.rejected'),
-    [RequestStatus.Taken]: t('status.taken'),
-    [RequestStatus.Cancelled]: t('status.cancelled'),
-  }))
-
-  const STATUS_COLOR: Record<RequestStatus, string> = {
-    [RequestStatus.Open]: 'orange',
-    [RequestStatus.Approved]: 'green',
-    [RequestStatus.Rejected]: 'red',
-    [RequestStatus.Taken]: 'blue',
-    [RequestStatus.Cancelled]: 'grey',
-  }
 
   const ACTIVITY_INFO: Record<AuditLogAction, { icon: string, color: string, bg: string }> = {
     RequestCreated: { icon: 'mdi-plus', color: 'warning', bg: 'orange-lighten-4' },
