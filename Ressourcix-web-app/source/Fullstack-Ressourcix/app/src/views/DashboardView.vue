@@ -8,8 +8,7 @@
       <v-btn color="primary" prepend-icon="mdi-plus" to="/calender">{{ t("dashboard.newRequest") }}</v-btn>
     </div>
 
-    <!-- Ferien-Statuszeile: bezieht sich auf einen Platzhalter-Mitarbeitenden (erster in der Liste),
-         da es noch keine echte Verknüpfung zwischen Login und Mitarbeiter-Datensatz gibt. -->
+    <!-- Ferien-Statuszeile: bezieht sich auf der eingelogte Mitarbeiter (erster in der Liste) -->
     <v-row class="mb-1" dense>
       <v-col cols="6" sm="3">
         <v-card>

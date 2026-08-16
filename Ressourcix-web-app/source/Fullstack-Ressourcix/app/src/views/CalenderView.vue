@@ -352,7 +352,6 @@ function jumpTo(newCenter: Date) {
     newCenter,
     addDays(newCenter, INITIAL_WINDOW_RADIUS_DAYS/2),
   );
-  nextTick(() => centerScroll());
 }
 
 function jumpYears(delta: number) {

@@ -26,7 +26,7 @@
           </v-list-item-title>
 
           <v-list-item-subtitle>
-            {{ t('auditlog.by') }} {{ entry.actor }} · {{ formatDate(entry.timestamp) }}
+            {{ t('auditlog.by') }} {{ entry.actor}} · {{ formatDate(entry.timestamp) }}
           </v-list-item-subtitle>
         </v-list-item>
       </v-list>
