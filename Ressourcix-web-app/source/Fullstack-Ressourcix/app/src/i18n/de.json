@@ -202,7 +202,8 @@
     "overlapSentence": "ist im gewählten Zeitraum ebenfalls abwesend. | sind im gewählten Zeitraum ebenfalls abwesend.",
     "validationEndBeforeStart": "Enddatum darf nicht vor dem Startdatum liegen",
     "validationSelfOverlap": "Überschneidet sich mit einem bestehenden eigenen Antrag",
-    "foreignEmployeeError": "Du kannst nur eigene Anträge erfassen, bearbeiten oder löschen."
+    "foreignEmployeeError": "Du kannst nur eigene Anträge erfassen, bearbeiten oder löschen.",
+    "validationStatusError": "Bearbeitete Anträge können nicht geändert werden."
   },
 
   "overlapChart": {

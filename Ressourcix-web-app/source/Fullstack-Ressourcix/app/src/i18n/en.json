@@ -202,7 +202,8 @@
     "overlapSentence": "is also absent during the selected period. | are also absent during the selected period.",
     "validationEndBeforeStart": "End date cannot be before the start date",
     "validationSelfOverlap": "Overlaps with an existing request of your own",
-    "foreignEmployeeError": "You can only create, edit or delete your own requests."
+    "foreignEmployeeError": "You can only create, edit or delete your own requests.",
+    "validationStatusError": "Applications in edit mode cannot be changed."
   },
 
   "overlapChart": {

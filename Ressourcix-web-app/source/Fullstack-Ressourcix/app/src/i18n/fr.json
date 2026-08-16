@@ -202,7 +202,8 @@
     "overlapSentence": "est également absent(e) pendant la période sélectionnée. | sont également absent(e)s pendant la période sélectionnée.",
     "validationEndBeforeStart": "La date de fin ne peut pas être antérieure à la date de début",
     "validationSelfOverlap": "Chevauche une demande existante",
-    "foreignEmployeeError": "Tu ne peux créer, modifier ou supprimer que tes propres demandes."
+    "foreignEmployeeError": "Tu ne peux créer, modifier ou supprimer que tes propres demandes.",
+    "validationStatusError": "Les demandes en cours de modification ne peuvent pas être modifiées."
   },
 
   "overlapChart": {
