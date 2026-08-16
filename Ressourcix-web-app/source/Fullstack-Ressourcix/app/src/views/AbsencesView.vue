@@ -109,7 +109,7 @@
   ]
 
   function employeeName (employeeId: string): string {
-    return employeeStore.employees.find(e => e.id === employeeId)?.name ?? t('approval.unknown')
+    return employeeStore.employeeName(employeeId) ?? t('common.unknown')
   }
 
   const detailsDialog = ref(false)
