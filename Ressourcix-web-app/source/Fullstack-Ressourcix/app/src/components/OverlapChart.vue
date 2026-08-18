@@ -19,7 +19,7 @@
               class="chart-bar"
               :class="{ 'chart-bar--empty': point.value === 0 }"
               :style="{ height: barHeightPercent(point.value) + '%', backgroundColor: overlapColor(point.value) }"
-              :title="`${point.label}: ${point.value} gleichzeitig abwesend`"
+              :title="t('overlapChart.tooltip', { label: point.label, value: point.value })"
             >
               <span v-if="point.value > 0" class="chart-value">{{ point.value }}</span>
             </div>
@@ -37,24 +37,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { overlapColor } from "@/utils/overlapHeatmap";
+  import { computed } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { overlapColor } from '@/utils/overlapHeatmap'
 
-export interface OverlapChartPoint {
-  iso: string;
-  label: string;
-  value: number;
-  isWeekend?: boolean;
-}
+  export interface OverlapChartPoint {
+    iso: string
+    label: string
+    value: number
+    isWeekend?: boolean
+  }
 
-const props = defineProps<{ points: OverlapChartPoint[] }>();
+  const { t } = useI18n()
+  const props = defineProps<{ points: OverlapChartPoint[] }>()
 
-// mind. 1, damit ein leeres Diagramm nicht durch 0 teilt
-const maxValue = computed(() => Math.max(1, ...props.points.map((point) => point.value)));
+  // mind. 1, damit ein leeres Diagramm nicht durch 0 teilt
+  const maxValue = computed(() => Math.max(1, ...props.points.map(point => point.value)))
 
-function barHeightPercent(value: number): number {
-  return (value / maxValue.value) * 100;
-}
+  function barHeightPercent (value: number): number {
+    return (value / maxValue.value) * 100
+  }
 </script>
 
 <style scoped>

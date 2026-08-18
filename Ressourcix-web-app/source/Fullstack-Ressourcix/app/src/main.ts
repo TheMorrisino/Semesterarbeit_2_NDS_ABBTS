@@ -9,10 +9,10 @@ import { createApp } from 'vue'
 
 // Plugins
 import { registerPlugins } from '@/plugins'
-
+import router from '@/router'
+import { useAuthStore } from '@/stores/auth'
 // Components
 import App from './App.vue'
-import { useAuthStore } from '@/stores/auth'
 
 // Styles
 import 'unfonts.css'
@@ -23,13 +23,19 @@ const app = createApp(App)
 
 registerPlugins(app)
 
-async function bootstrap() {
+async function bootstrap () {
   const authStore = useAuthStore()
   try {
     await authStore.checkSession()
-  } catch {
+  } catch (error) {
     // Backend nicht erreichbar o.ä. - App trotzdem mounten (zeigt z.B. die Login-Seite)
+    console.warn('[bootstrap] checkSession fehlgeschlagen', error)
   }
+
+  // Router erst jetzt installieren: die erste Navigation (und damit der Auth-Guard in
+  // router/index.ts) läuft dadurch garantiert mit einem bereits geladenen authStore.
+  app.use(router)
+  await router.isReady()
   app.mount('#app')
 }
 

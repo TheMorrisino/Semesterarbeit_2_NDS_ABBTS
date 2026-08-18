@@ -22,6 +22,60 @@ namespace FullstackRessourcix.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FullstackRessourcix.AbsenceRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Days")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("From")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("Overlap")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Remark")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SubmittedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Until")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("requests", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("7e978e11-0a00-4e05-b61a-007763f529cd"),
+                            Days = 10,
+                            EmployeeId = new Guid("4c3469de-428f-437e-b752-46f56714f063"),
+                            From = new DateOnly(2026, 7, 13),
+                            Overlap = true,
+                            Status = 0,
+                            SubmittedOn = new DateTime(2026, 7, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Type = 0,
+                            Until = new DateOnly(2026, 7, 24)
+                        });
+                });
+
             modelBuilder.Entity("FullstackRessourcix.AuditLogEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -52,44 +106,44 @@ namespace FullstackRessourcix.Migrations
 
             modelBuilder.Entity("FullstackRessourcix.Employee", b =>
                 {
-                    b.Property<Guid>("id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("isActive")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("mustChangePassword")
+                    b.Property<bool>("MustChangePassword")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("name")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("passwordHash")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("permissionLevel")
+                    b.Property<int>("PermissionLevel")
                         .HasColumnType("integer");
 
-                    b.Property<string>("role")
+                    b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("username")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<double>("vacationDays")
+                    b.Property<double>("VacationDays")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("workload")
+                    b.Property<int>("Workload")
                         .HasColumnType("integer");
 
-                    b.HasKey("id");
+                    b.HasKey("Id");
 
-                    b.HasIndex("username")
+                    b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("employees", (string)null);
@@ -97,117 +151,63 @@ namespace FullstackRessourcix.Migrations
                     b.HasData(
                         new
                         {
-                            id = new Guid("4c3469de-428f-437e-b752-46f56714f063"),
-                            isActive = true,
-                            mustChangePassword = true,
-                            name = "Morris Meier",
-                            passwordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
-                            permissionLevel = 1,
-                            role = "Mitarbeitende",
-                            username = "morris.meier",
-                            vacationDays = 25.0,
-                            workload = 100
+                            Id = new Guid("4c3469de-428f-437e-b752-46f56714f063"),
+                            IsActive = true,
+                            MustChangePassword = true,
+                            Name = "Morris Meier",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
+                            PermissionLevel = 1,
+                            Role = "Mitarbeiter",
+                            Username = "morris.meier",
+                            VacationDays = 25.0,
+                            Workload = 100
                         },
                         new
                         {
-                            id = new Guid("86df2463-1bcd-42de-bb97-2cf112caeabf"),
-                            isActive = true,
-                            mustChangePassword = true,
-                            name = "Pedro Santos",
-                            passwordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
-                            permissionLevel = 5,
-                            role = "Planner/Leitung",
-                            username = "pedro.santos",
-                            vacationDays = 25.0,
-                            workload = 100
+                            Id = new Guid("86df2463-1bcd-42de-bb97-2cf112caeabf"),
+                            IsActive = true,
+                            MustChangePassword = true,
+                            Name = "Pedro Santos",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
+                            PermissionLevel = 5,
+                            Role = "Planer/Leitung",
+                            Username = "pedro.santos",
+                            VacationDays = 25.0,
+                            Workload = 100
                         },
                         new
                         {
-                            id = new Guid("77f37330-cb2b-4a5b-9f6a-6c2d19fde288"),
-                            isActive = true,
-                            mustChangePassword = true,
-                            name = "Lena Brunner",
-                            passwordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
-                            permissionLevel = 1,
-                            role = "Mitarbeitende",
-                            username = "lena.brunner",
-                            vacationDays = 22.0,
-                            workload = 80
+                            Id = new Guid("77f37330-cb2b-4a5b-9f6a-6c2d19fde288"),
+                            IsActive = true,
+                            MustChangePassword = true,
+                            Name = "Lena Brunner",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
+                            PermissionLevel = 1,
+                            Role = "Mitarbeiter",
+                            Username = "lena.brunner",
+                            VacationDays = 22.0,
+                            Workload = 80
                         },
                         new
                         {
-                            id = new Guid("144eda86-a7a2-419d-a37d-e16726e3828c"),
-                            isActive = false,
-                            mustChangePassword = true,
-                            name = "Tiago de Sousa Sá",
-                            passwordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
-                            permissionLevel = 1,
-                            role = "Mitarbeitende",
-                            username = "tiago.desousa",
-                            vacationDays = 16.5,
-                            workload = 60
+                            Id = new Guid("144eda86-a7a2-419d-a37d-e16726e3828c"),
+                            IsActive = false,
+                            MustChangePassword = true,
+                            Name = "Tiago de Sousa Sá",
+                            PasswordHash = "AQAAAAIAAYagAAAAEB9r8iV+OfZIu2V5H1x/Hh3SM3oPW8VHpRdMSxKV+bTtHl2pQleQPQzWZRZstzlw2w==",
+                            PermissionLevel = 1,
+                            Role = "Mitarbeiter",
+                            Username = "tiago.desousa",
+                            VacationDays = 16.5,
+                            Workload = 60
                         });
                 });
 
-            modelBuilder.Entity("FullstackRessourcix.Request", b =>
-                {
-                    b.Property<Guid>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("days")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("employeeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateOnly>("from")
-                        .HasColumnType("date");
-
-                    b.Property<bool>("overlap")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("remark")
-                        .HasColumnType("text");
-
-                    b.Property<int>("status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("submittedOn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("type")
-                        .HasColumnType("integer");
-
-                    b.Property<DateOnly>("until")
-                        .HasColumnType("date");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("employeeId");
-
-                    b.ToTable("requests", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            id = new Guid("7e978e11-0a00-4e05-b61a-007763f529cd"),
-                            days = 10,
-                            employeeId = new Guid("4c3469de-428f-437e-b752-46f56714f063"),
-                            from = new DateOnly(2026, 7, 13),
-                            overlap = true,
-                            status = 0,
-                            submittedOn = new DateTime(2026, 7, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            type = 0,
-                            until = new DateOnly(2026, 7, 24)
-                        });
-                });
-
-            modelBuilder.Entity("FullstackRessourcix.Request", b =>
+            modelBuilder.Entity("FullstackRessourcix.AbsenceRequest", b =>
                 {
                     b.HasOne("FullstackRessourcix.Employee", null)
                         .WithMany()
-                        .HasForeignKey("employeeId")
+                        .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
