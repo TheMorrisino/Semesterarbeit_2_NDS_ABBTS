@@ -9,6 +9,6 @@ Die eigentliche Anwendung (ASP.NET-Core-Backend + Vue-3-Frontend) liegt unter [`
 ## Struktur dieses Ordners
 
 - `source/Fullstack-Ressourcix/` — die Anwendung selbst (Backend + `app/`-Frontend)
-- `Build/`, `build.ps1`, `build.sh` — Build-Tooling
-- `Deploy/`, `deploy.ps1`, `deploy.sh` — Deploy-Tooling
 - `.config/dotnet-tools.json` — lokale .NET-Tools (u.a. `dotnet-ef`, `csharpier`)
+
+Der Produktions-Build läuft über einen einzigen Befehl (`dotnet publish -c Release` in `source/Fullstack-Ressourcix/`) — siehe [source/Fullstack-Ressourcix/README.md#-produktions-build](source/Fullstack-Ressourcix/README.md#-produktions-build).
