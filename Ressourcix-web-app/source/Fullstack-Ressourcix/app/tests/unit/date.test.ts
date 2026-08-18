@@ -9,7 +9,7 @@ import {
   isWeekend,
   startOfWeek,
   toISODate,
-} from './date'
+} from '../../src/utils/date'
 
 describe('toISODate', () => {
   it('formats a date as YYYY-MM-DD with zero-padding', () => {
