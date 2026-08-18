@@ -416,3 +416,6 @@ FodyWeavers.xsd
 
 # Teaching
 .artifacts/
+
+# Ressourcix: generierter Vite-Production-Build (npm run build / dotnet publish erzeugt ihn neu)
+**/app/dist/
