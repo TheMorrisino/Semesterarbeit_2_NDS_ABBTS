@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isEmployeeAbsentOn, rangesOverlap } from './overlap'
+import { isEmployeeAbsentOn, rangesOverlap } from '../../src/utils/overlap'
 
 describe('rangesOverlap', () => {
   it('returns true when ranges overlap', () => {

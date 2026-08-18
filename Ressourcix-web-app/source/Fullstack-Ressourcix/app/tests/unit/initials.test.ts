@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { avatarColor, initialsFor, uniqueInitials } from './initials'
+import { avatarColor, initialsFor, uniqueInitials } from '../../src/utils/initials'
 
 describe('initialsFor', () => {
   it('takes one character per name part', () => {
