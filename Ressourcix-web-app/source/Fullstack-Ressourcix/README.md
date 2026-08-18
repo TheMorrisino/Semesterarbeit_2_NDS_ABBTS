@@ -8,6 +8,7 @@
 - 🧰 [Technologie-Stack](#-technologie-stack)
 - ✅ [Voraussetzungen](#-voraussetzungen)
 - ▶️ [Setup und Start](#️-setup-und-start)
+- 📦 [Produktions-Build](#-produktions-build)
 - 🛡️ [Sicherheit](#️-sicherheit)
 - 🌍 [Mehrsprachigkeit](#-mehrsprachigkeit)
 - 🧪 [Tests](#-tests)
@@ -120,6 +121,44 @@ docker compose down -v
 docker compose up -d
 dotnet tool run dotnet-ef database update
 ```
+
+## 📦 Produktions-Build
+
+Ein einziger Befehl installiert Abhängigkeiten und kompiliert Front- und Backend für den Produktivbetrieb (Release-Konfiguration, kein Debug, Frontend minimiert):
+
+```bash
+dotnet publish -c Release
+```
+
+Das MSBuild-`<SpaRoot>`-Element in `Fullstack-Ressourcix.csproj` sorgt dafür, dass dieser eine Befehl automatisch:
+
+1. `npm install` im Ordner `app/` ausführt (Frontend-Abhängigkeiten),
+2. `npm run build` ausführt (Type-Check + minimierter Vite-Production-Build, Output in `app/dist/`),
+3. das Backend in der **Release**-Konfiguration kompiliert (Optimierungen an, `DEBUG`-Symbol aus),
+4. den fertigen Frontend-Build sowie alle Backend-Artefakte gemeinsam nach `bin/Release/net10.0/publish/` kopiert — von dort aus ist die App direkt lauffähig (`dotnet Fullstack-Ressourcix.dll`).
+
+`.NET`- und `npm`-Toolchain müssen wie in [Voraussetzungen](#-voraussetzungen) beschrieben installiert sein; eine laufende PostgreSQL-Instanz wird für den Build selbst nicht benötigt, nur zur Laufzeit.
+
+### Publish-Output starten
+
+`appsettings.Development.json` (und damit der lokale Connection String / das Default-Passwort) wird **nur** geladen, wenn `ASPNETCORE_ENVIRONMENT=Development` gesetzt ist. Startet man `dotnet Fullstack-Ressourcix.dll` direkt ohne diese Variable, läuft die App als **Production** und `appsettings.json` allein enthält keinen Connection String — die App bricht dann beim Start mit `ConnectionStrings:AppDb ist nicht konfiguriert.` ab. Das ist beabsichtigt, damit Dev-Zugangsdaten nicht automatisch als Produktivkonfiguration greifen.
+
+Für einen echten Produktionsstart die Konfiguration von aussen mitgeben, z.B. per Umgebungsvariable (`__` statt `:` für verschachtelte Keys):
+
+```bash
+cd bin/Release/net10.0/publish
+ConnectionStrings__AppDb="Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw" \
+  dotnet Fullstack-Ressourcix.dll
+```
+
+Zum schnellen Durchtesten des Publish-Outputs mit der lokalen Dev-Konfiguration reicht dagegen:
+
+```bash
+cd bin/Release/net10.0/publish
+ASPNETCORE_ENVIRONMENT=Development dotnet Fullstack-Ressourcix.dll
+```
+
+(in beiden Fällen muss PostgreSQL laufen, siehe [Setup und Start](#️-setup-und-start)).
 
 ## 🛡️ Sicherheit
 
