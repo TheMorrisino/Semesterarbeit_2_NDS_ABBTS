@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { RequestStatus } from '@/stores/request'
-import { statusMeta } from './statusMeta'
+import { statusMeta } from '../../src/utils/statusMeta'
 
 const identityT = (key: string) => key
 
