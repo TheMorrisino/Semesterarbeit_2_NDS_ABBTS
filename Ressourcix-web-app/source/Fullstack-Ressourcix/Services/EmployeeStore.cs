@@ -17,9 +17,6 @@ public class EmployeeStore
 
   public Task<List<Employee>> AllAsync() => _db.Employees.AsNoTracking().ToListAsync();
 
-  public Task<Employee?> FindByUsernameAsync(string username) =>
-    _db.Employees.FirstOrDefaultAsync(e => e.Username == username);
-
   public Task<bool> UsernameExistsAsync(string username) =>
     _db.Employees.AnyAsync(e => e.Username == username);
 

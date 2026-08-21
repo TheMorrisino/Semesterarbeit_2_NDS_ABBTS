@@ -59,6 +59,7 @@
   import { onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
+  import { useEmployeeName } from '@/composables/useEmployeeName'
   import { useEmployeeStore } from '@/stores/employee'
   import { type Request, useRequestStore } from '@/stores/request'
   import { avatarColor, initialsFor } from '@/utils/initials'
@@ -77,9 +78,7 @@
     { title: t('approval.decision'), key: 'decision', sortable: false },
   ]
 
-  function employeeName (employeeId: string): string {
-    return employeeStore.employeeName(employeeId) ?? t('common.unknown')
-  }
+  const { employeeName } = useEmployeeName()
 
   function formatDate (iso: string) {
     return new Date(iso).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' })

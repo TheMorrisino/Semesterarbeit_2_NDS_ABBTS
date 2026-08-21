@@ -160,6 +160,7 @@
   import { computed, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import OverlapChart, { type OverlapChartPoint } from '@/components/OverlapChart.vue'
+  import { useEmployeeName } from '@/composables/useEmployeeName'
   import { auditLogActionMeta, useAuditLogStore } from '@/stores/auditLog'
   import { useAuthStore } from '@/stores/auth'
   import { useEmployeeStore } from '@/stores/employee'
@@ -168,16 +169,14 @@
   import { isEmployeeAbsentOn } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
   import { statusMeta } from '@/utils/statusMeta'
+  import { weekdayLabels } from '@/utils/weekday'
 
   const { t } = useI18n()
   const employeeStore = useEmployeeStore()
   const requestStore = useRequestStore()
   const auditLog = useAuditLogStore()
 
-  const WEEKDAY_LABELS = computed(() => [
-    t('weekday.sun'), t('weekday.mon'), t('weekday.tue'), t('weekday.wed'),
-    t('weekday.thu'), t('weekday.fri'), t('weekday.sat'),
-  ])
+  const WEEKDAY_LABELS = computed(() => weekdayLabels(t))
   const OVERLAP_CHART_DAYS = 14
   const authStore = useAuthStore()
 
@@ -280,9 +279,7 @@
 
   const recentActivity = computed(() => auditLog.entries.slice(0, 5))
 
-  function employeeName (employeeId: string): string {
-    return employeeStore.employeeName(employeeId) ?? t('common.unknown')
-  }
+  const { employeeName } = useEmployeeName()
 
   const todayLabel = computed(() =>
     new Intl.DateTimeFormat('de-CH', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date()),

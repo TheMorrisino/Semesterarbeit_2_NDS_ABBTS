@@ -114,13 +114,17 @@ App öffnen: **https://localhost:7057** (HTTP-Fallback: http://localhost:5167).
 
 Alternativ mit C# Dev Kit in VS Code: Ordner `source/Fullstack-Ressourcix` öffnen, Run-and-Debug-Profil `http` oder `https` wählen, `F5`.
 
-Migration zurücksetzen/neu aufsetzen (z.B. nach einem Pull mit neuen Migrationen, oder wenn `database update` mit `relation "..." already exists` fehlschlägt, weil das Datenbank-Volume noch einen älteren Stand enthält):
-
-```bash
-docker compose down -v
-docker compose up -d
-dotnet tool run dotnet-ef database update
-```
+> ⚠️ **Datenbank-Volume vs. Migrationsstand**: `docker compose up -d` behält das Postgres-Volume über Neustarts hinweg bei (Named Volume, siehe `docker-compose.yml`). Nach einem Pull mit neuen/geänderten Migrationen kann das lokale Volume dadurch einen älteren Schema-Stand enthalten als der Code erwartet. Anzeichen dafür:
+> - `dotnet-ef database update` schlägt mit `relation "..." already exists` fehl (die alten Tabellen existieren schon, `__EFMigrationsHistory` kennt aber nicht die aktuelle Migrations-ID).
+> - Login/andere Requests schlagen zur Laufzeit mit `column e."Id" does not exist` (bzw. `Hint: ... e.id`) fehl — die im Volume liegenden Spalten (z.B. camelCase) passen nicht mehr zum aktuellen Modell (PascalCase).
+>
+> Fix: Volume komplett verwerfen und die aktuelle Migration sauber neu anwenden (seedet die Testdaten neu):
+>
+> ```bash
+> docker compose down -v
+> docker compose up -d
+> dotnet tool run dotnet-ef database update
+> ```
 
 ## 📦 Produktions-Build
 
