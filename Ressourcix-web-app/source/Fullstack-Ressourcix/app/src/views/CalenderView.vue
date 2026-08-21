@@ -208,6 +208,7 @@
   import { isEmployeeAbsentOn } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
   import { statusMeta } from '@/utils/statusMeta'
+  import { weekdayLabels } from '@/utils/weekday'
 
   const { t } = useI18n()
 
@@ -240,10 +241,7 @@
   const NAME_COLUMN_WIDTH_MOBILE_PX = 56 // nur Platz für das Kürzel (siehe uniqueInitials)
   const FALLBACK_VISIBLE_DAY_COUNT = 30 // Platzhalter, bis der Container einmal vermessen wurde
 
-  const WEEKDAY_LABELS = computed(() => [
-    t('weekday.sun'), t('weekday.mon'), t('weekday.tue'), t('weekday.wed'),
-    t('weekday.thu'), t('weekday.fri'), t('weekday.sat'),
-  ])
+  const WEEKDAY_LABELS = computed(() => weekdayLabels(t))
 
   // ===== Datumshilfsfunktionen =====
 

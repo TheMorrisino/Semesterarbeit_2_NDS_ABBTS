@@ -83,6 +83,7 @@
   import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
 
+  import { useEmployeeName } from '@/composables/useEmployeeName'
   import { useAuthStore } from '@/stores/auth'
   import { useEmployeeStore } from '@/stores/employee'
   import { type Request, useRequestStore } from '@/stores/request'
@@ -108,9 +109,7 @@
     { title: t('absences.note'), key: 'action', sortable: false },
   ]
 
-  function employeeName (employeeId: string): string {
-    return employeeStore.employeeName(employeeId) ?? t('common.unknown')
-  }
+  const { employeeName } = useEmployeeName()
 
   const detailsDialog = ref(false)
   const selectedItem = ref<Request | null>(null)

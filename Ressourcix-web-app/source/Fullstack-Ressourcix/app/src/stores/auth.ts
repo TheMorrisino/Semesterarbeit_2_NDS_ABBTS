@@ -17,7 +17,6 @@ function toAuthUser (dto: AuthUserDto): AuthUser {
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as AuthUser | null,
-    sessionChecked: false,
   }),
   getters: {
     isLoggedIn: state => state.user !== null,
@@ -42,8 +41,6 @@ export const useAuthStore = defineStore('auth', {
           throw error
         }
         this.user = null
-      } finally {
-        this.sessionChecked = true
       }
     },
     async changePassword (currentPassword: string, newPassword: string) {
