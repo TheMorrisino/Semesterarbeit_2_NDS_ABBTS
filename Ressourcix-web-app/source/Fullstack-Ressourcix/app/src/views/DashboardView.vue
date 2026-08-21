@@ -403,8 +403,9 @@
 .view-all-link:hover {
   text-decoration: underline;
 }
+
 .approvals-list {
-  max-height: 106px;
+  max-height: 105px;
   overflow-y: auto;
 }
 </style>
