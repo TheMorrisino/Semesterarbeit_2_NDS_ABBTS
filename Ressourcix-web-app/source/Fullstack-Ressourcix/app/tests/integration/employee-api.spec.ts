@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { employeesApi } from '../../src/api/employees'
 
@@ -25,7 +25,7 @@ describe('Employee API', () => {
     }
 
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify(createdEmployee), {
+      Response.json(createdEmployee, {
         status: 201,
         headers: {
           'Content-Type': 'application/json',
