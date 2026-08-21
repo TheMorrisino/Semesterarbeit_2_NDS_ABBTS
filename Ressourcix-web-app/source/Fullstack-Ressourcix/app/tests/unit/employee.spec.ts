@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { useEmployeeStore } from '../../src/stores/employee'
 import { employeesApi } from '../../src/api/employees'
+import { useEmployeeStore } from '../../src/stores/employee'
 
 vi.mock('../../src/api/employees', () => ({
   employeesApi: {
