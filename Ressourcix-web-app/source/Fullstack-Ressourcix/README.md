@@ -149,17 +149,33 @@ Das MSBuild-`<SpaRoot>`-Element in `Fullstack-Ressourcix.csproj` sorgt dafür, d
 
 Für einen echten Produktionsstart die Konfiguration von aussen mitgeben, z.B. per Umgebungsvariable (`__` statt `:` für verschachtelte Keys):
 
+ **Bash**
 ```bash
 cd bin/Release/net10.0/publish
 ConnectionStrings__AppDb="Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw" \
   dotnet Fullstack-Ressourcix.dll
 ```
 
+**Powershell** 
+```powershell
+cd bin/Release/net10.0/publish
+$env:ConnectionStrings__AppDb = "Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw"
+dotnet Fullstack-Ressourcix.dll
+```
+ 
 Zum schnellen Durchtesten des Publish-Outputs mit der lokalen Dev-Konfiguration reicht dagegen:
 
+ **Bash**
 ```bash
 cd bin/Release/net10.0/publish
 ASPNETCORE_ENVIRONMENT=Development dotnet Fullstack-Ressourcix.dll
+```
+
+**Powershell** 
+```powershell
+cd bin/Release/net10.0/publish
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+dotnet Fullstack-Ressourcix.dll
 ```
 
 (in beiden Fällen muss PostgreSQL laufen, siehe [Setup und Start](#️-setup-und-start)).
