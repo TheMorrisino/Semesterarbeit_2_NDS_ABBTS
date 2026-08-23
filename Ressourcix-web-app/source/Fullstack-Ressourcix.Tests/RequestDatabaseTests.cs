@@ -2,50 +2,67 @@ using FullstackRessourcix;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Fullstack_Ressourcix.Tests;
 
 public class RequestDatabaseTests
 {
     private const string ConnectionString =
-        "Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw";
+        "Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw;Timeout=3;Command Timeout=3";
 
     private static readonly Guid EmployeeId =
         Guid.Parse("4c3469de-428f-437e-b752-46f56714f063");
 
+    private readonly ITestOutputHelper output;
+
+    private static bool? databaseAvailable;
+
+    public RequestDatabaseTests(ITestOutputHelper output)
+    {
+        this.output = output;
+    }
+
+    [Fact]
+    public void Datenbank_VerbindungIstVerfuegbar()
+    {
+        var connected = CheckDatabaseConnection();
+
+        Assert.True(
+            connected,
+            "Keine Verbindung zur Ressourcix-Datenbank möglich. Bitte prüfen, ob PostgreSQL läuft."
+        );
+    }
+
     [Fact]
     public async Task Ferienantrag_WirdGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
         {
-            await using var db = CreateDbContext();
+            await SaveRequest(request);
 
-            db.Requests.Add(request);
-
-            await db.SaveChangesAsync();
-
-            var savedRequest = await db.Requests
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == request.Id);
+            var savedRequest = await GetRequest(request.Id);
 
             Assert.NotNull(savedRequest);
 
-            Console.WriteLine("==========================================");
-            Console.WriteLine("FERIENANTRAG AUS DER DATENBANK");
-            Console.WriteLine("==========================================");
-            Console.WriteLine($"ID:          {savedRequest.Id}");
-            Console.WriteLine($"EmployeeId:  {savedRequest.EmployeeId}");
-            Console.WriteLine($"From:        {savedRequest.From}");
-            Console.WriteLine($"Until:       {savedRequest.Until}");
-            Console.WriteLine($"Days:        {savedRequest.Days}");
-            Console.WriteLine($"Overlap:     {savedRequest.Overlap}");
-            Console.WriteLine($"Status:      {savedRequest.Status}");
-            Console.WriteLine($"SubmittedOn: {savedRequest.SubmittedOn}");
-            Console.WriteLine($"Type:        {savedRequest.Type}");
-            Console.WriteLine($"Remark:      {savedRequest.Remark}");
-            Console.WriteLine("==========================================");
+            output.WriteLine("==========================================");
+            output.WriteLine("FERIENANTRAG AUS DER DATENBANK");
+            output.WriteLine("==========================================");
+            output.WriteLine($"ID:          {savedRequest.Id}");
+            output.WriteLine($"EmployeeId:  {savedRequest.EmployeeId}");
+            output.WriteLine($"From:        {savedRequest.From}");
+            output.WriteLine($"Until:       {savedRequest.Until}");
+            output.WriteLine($"Days:        {savedRequest.Days}");
+            output.WriteLine($"Overlap:     {savedRequest.Overlap}");
+            output.WriteLine($"Status:      {savedRequest.Status}");
+            output.WriteLine($"SubmittedOn: {savedRequest.SubmittedOn}");
+            output.WriteLine($"Type:        {savedRequest.Type}");
+            output.WriteLine($"Remark:      {savedRequest.Remark}");
+            output.WriteLine("==========================================");
         }
         finally
         {
@@ -56,6 +73,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_EmployeeId_WirdKorrektGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -80,6 +99,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_From_WirdKorrektGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -104,6 +125,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_Until_WirdKorrektGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -128,6 +151,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_Days_WirdKorrektGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -152,6 +177,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_Overlap_WirdKorrektGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -175,6 +202,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_Status_WirdKorrektGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -199,6 +228,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_Type_WirdKorrektGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -223,6 +254,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_Remark_WirdKorrektGespeichert()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -247,6 +280,8 @@ public class RequestDatabaseTests
     [Fact]
     public async Task Ferienantrag_WirdGeloescht()
     {
+        EnsureDatabaseAvailable();
+
         var request = CreateTestRequest();
 
         try
@@ -298,6 +333,39 @@ public class RequestDatabaseTests
         return new AppDbContext(options);
     }
 
+    private static bool CheckDatabaseConnection()
+    {
+        if (databaseAvailable.HasValue)
+        {
+            return databaseAvailable.Value;
+        }
+
+        try
+        {
+            using var db = CreateDbContext();
+
+            databaseAvailable = db.Database.CanConnect();
+
+            return databaseAvailable.Value;
+        }
+        catch
+        {
+            databaseAvailable = false;
+
+            return false;
+        }
+    }
+
+    private static void EnsureDatabaseAvailable()
+    {
+        if (!CheckDatabaseConnection())
+        {
+            throw SkipException.ForSkip(
+                "Datenbank nicht verfügbar. Der Test wird übersprungen."
+            );
+        }
+    }
+
     private static async Task SaveRequest(AbsenceRequest request)
     {
         await using var db = CreateDbContext();
@@ -318,6 +386,11 @@ public class RequestDatabaseTests
 
     private static async Task DeleteRequest(Guid requestId)
     {
+        if (!CheckDatabaseConnection())
+        {
+            return;
+        }
+
         await using var db = CreateDbContext();
 
         var request = await db.Requests
