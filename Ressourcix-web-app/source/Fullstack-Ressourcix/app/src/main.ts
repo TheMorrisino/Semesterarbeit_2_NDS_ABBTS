@@ -7,11 +7,11 @@
 // Composables
 import { createApp } from 'vue'
 
-// Plugins
-import { registerPlugins } from '@/plugins'
-
 // Assets
 import ressourcixLogo from '@/assets/Ressourcix_Icon_OhneB2.png'
+
+// Plugins
+import { registerPlugins } from '@/plugins'
 
 // Stores
 import { useAuthStore } from '@/stores/auth'
