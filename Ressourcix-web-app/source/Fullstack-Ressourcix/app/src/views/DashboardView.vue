@@ -78,7 +78,7 @@
             <v-chip v-if="openApprovals.length > 0" color="warning" size="small" variant="tonal">{{ openApprovals.length }}</v-chip>
           </v-card-title>
 
-          <v-list class="approvals-list" density="compact" v-if="openApprovals.length > 0">
+          <v-list v-if="openApprovals.length > 0" class="approvals-list" density="compact">
             <v-list-item v-for="request in openApprovals" :key="request.id">
               <v-list-item-title class="item-title">{{ employeeName(request.employeeId) }}</v-list-item-title>
 

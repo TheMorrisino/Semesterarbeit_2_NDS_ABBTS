@@ -9,12 +9,11 @@ import { createApp } from 'vue'
 
 // Plugins
 import { registerPlugins } from '@/plugins'
-import router from '@/router'
 
 // Assets
 import ressourcixLogo from '@/assets/Ressourcix_Icon_OhneB2.png'
 
-//Stores
+// Stores
 import { useAuthStore } from '@/stores/auth'
 
 // Components
