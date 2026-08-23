@@ -78,7 +78,7 @@
             <v-chip v-if="openApprovals.length > 0" color="warning" size="small" variant="tonal">{{ openApprovals.length }}</v-chip>
           </v-card-title>
 
-          <v-list v-if="openApprovals.length > 0" density="compact">
+          <v-list v-if="openApprovals.length > 0" class="approvals-list" density="compact">
             <v-list-item v-for="request in openApprovals" :key="request.id">
               <v-list-item-title class="item-title">{{ employeeName(request.employeeId) }}</v-list-item-title>
 
@@ -266,7 +266,7 @@
 
   // ===== Listen =====
 
-  const openApprovals = computed(() => requestStore.requests.filter(r => r.status === RequestStatus.Open).slice(0, 5))
+  const openApprovals = computed(() => requestStore.requests.filter(r => r.status === RequestStatus.Open))
 
   const recentRequests = computed(() => {
     // toSorted() bräuchte lib ES2023 (Projekt-Ziel ist ES2022, siehe tsconfig) - Kopie + sort() genügt hier.
@@ -402,5 +402,10 @@
 
 .view-all-link:hover {
   text-decoration: underline;
+}
+
+.approvals-list {
+  max-height: 105px;
+  overflow-y: auto;
 }
 </style>
