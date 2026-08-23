@@ -1,30 +1,283 @@
 using FullstackRessourcix;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Fullstack_Ressourcix.Tests;
 
 public class RequestDatabaseTests
 {
+    private const string ConnectionString =
+        "Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw";
+
+    private static readonly Guid EmployeeId =
+        Guid.Parse("4c3469de-428f-437e-b752-46f56714f063");
+
     [Fact]
-    public async Task Ferienantrag_WirdGespeichert_Ueberprueft_UndGeloescht()
+    public async Task Ferienantrag_WirdGespeichert()
     {
-        // Arrange
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(
-                "Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw"
-            )
-            .Options;
+        var request = CreateTestRequest();
 
-        var requestId = Guid.NewGuid();
+        try
+        {
+            await using var db = CreateDbContext();
 
-        var employeeId = Guid.Parse(
-            "4c3469de-428f-437e-b752-46f56714f063"
-        );
+            db.Requests.Add(request);
 
-        var request = new AbsenceRequest(
-            Id: requestId,
-            EmployeeId: employeeId,
+            await db.SaveChangesAsync();
+
+            var savedRequest = await db.Requests
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Console.WriteLine("==========================================");
+            Console.WriteLine("FERIENANTRAG AUS DER DATENBANK");
+            Console.WriteLine("==========================================");
+            Console.WriteLine($"ID:          {savedRequest.Id}");
+            Console.WriteLine($"EmployeeId:  {savedRequest.EmployeeId}");
+            Console.WriteLine($"From:        {savedRequest.From}");
+            Console.WriteLine($"Until:       {savedRequest.Until}");
+            Console.WriteLine($"Days:        {savedRequest.Days}");
+            Console.WriteLine($"Overlap:     {savedRequest.Overlap}");
+            Console.WriteLine($"Status:      {savedRequest.Status}");
+            Console.WriteLine($"SubmittedOn: {savedRequest.SubmittedOn}");
+            Console.WriteLine($"Type:        {savedRequest.Type}");
+            Console.WriteLine($"Remark:      {savedRequest.Remark}");
+            Console.WriteLine("==========================================");
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_EmployeeId_WirdKorrektGespeichert()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var savedRequest = await GetRequest(request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Assert.Equal(
+                EmployeeId,
+                savedRequest.EmployeeId
+            );
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_From_WirdKorrektGespeichert()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var savedRequest = await GetRequest(request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Assert.Equal(
+                new DateOnly(2026, 9, 7),
+                savedRequest.From
+            );
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_Until_WirdKorrektGespeichert()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var savedRequest = await GetRequest(request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Assert.Equal(
+                new DateOnly(2026, 9, 11),
+                savedRequest.Until
+            );
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_Days_WirdKorrektGespeichert()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var savedRequest = await GetRequest(request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Assert.Equal(
+                5,
+                savedRequest.Days
+            );
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_Overlap_WirdKorrektGespeichert()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var savedRequest = await GetRequest(request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Assert.False(
+                savedRequest.Overlap
+            );
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_Status_WirdKorrektGespeichert()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var savedRequest = await GetRequest(request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Assert.Equal(
+                RequestStatus.Open,
+                savedRequest.Status
+            );
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_Type_WirdKorrektGespeichert()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var savedRequest = await GetRequest(request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Assert.Equal(
+                AbsenceType.Vacation,
+                savedRequest.Type
+            );
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_Remark_WirdKorrektGespeichert()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var savedRequest = await GetRequest(request.Id);
+
+            Assert.NotNull(savedRequest);
+
+            Assert.Equal(
+                "Test Ferienantrag",
+                savedRequest.Remark
+            );
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    [Fact]
+    public async Task Ferienantrag_WirdGeloescht()
+    {
+        var request = CreateTestRequest();
+
+        try
+        {
+            await SaveRequest(request);
+
+            var requestToDelete = await GetRequest(request.Id);
+
+            Assert.NotNull(requestToDelete);
+
+            await using var db = CreateDbContext();
+
+            db.Requests.Remove(requestToDelete);
+
+            await db.SaveChangesAsync();
+
+            var deletedRequest = await GetRequest(request.Id);
+
+            Assert.Null(deletedRequest);
+        }
+        finally
+        {
+            await DeleteRequest(request.Id);
+        }
+    }
+
+    private static AbsenceRequest CreateTestRequest()
+    {
+        return new AbsenceRequest(
+            Id: Guid.NewGuid(),
+            EmployeeId: EmployeeId,
             From: new DateOnly(2026, 9, 7),
             Until: new DateOnly(2026, 9, 11),
             Days: 5,
@@ -34,120 +287,47 @@ public class RequestDatabaseTests
             Type: AbsenceType.Vacation,
             Remark: "Test Ferienantrag"
         );
+    }
 
-        await using var db = new AppDbContext(options);
+    private static AppDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(ConnectionString)
+            .Options;
 
-        try
+        return new AppDbContext(options);
+    }
+
+    private static async Task SaveRequest(AbsenceRequest request)
+    {
+        await using var db = CreateDbContext();
+
+        db.Requests.Add(request);
+
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task<AbsenceRequest?> GetRequest(Guid requestId)
+    {
+        await using var db = CreateDbContext();
+
+        return await db.Requests
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+    }
+
+    private static async Task DeleteRequest(Guid requestId)
+    {
+        await using var db = CreateDbContext();
+
+        var request = await db.Requests
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+
+        if (request != null)
         {
-            // ==========================================
-            // 1. Ferienantrag speichern
-            // ==========================================
-
-            db.Requests.Add(request);
+            db.Requests.Remove(request);
 
             await db.SaveChangesAsync();
-
-            // ==========================================
-            // 2. Antrag aus Datenbank laden
-            // ==========================================
-
-            var savedRequest = await db.Requests
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == requestId);
-
-            // ==========================================
-            // 3. Prüfen, ob Antrag gespeichert wurde
-            // ==========================================
-
-            Assert.NotNull(savedRequest);
-
-            // ==========================================
-            // 4. Gespeicherte Werte überprüfen
-            // ==========================================
-
-            Assert.Equal(
-                requestId,
-                savedRequest!.Id
-            );
-
-            Assert.Equal(
-                employeeId,
-                savedRequest.EmployeeId
-            );
-
-            Assert.Equal(
-                new DateOnly(2026, 9, 7),
-                savedRequest.From
-            );
-
-            Assert.Equal(
-                new DateOnly(2026, 9, 11),
-                savedRequest.Until
-            );
-
-            Assert.Equal(
-                5,
-                savedRequest.Days
-            );
-
-            Assert.False(
-                savedRequest.Overlap
-            );
-
-            Assert.Equal(
-                RequestStatus.Open,
-                savedRequest.Status
-            );
-
-            Assert.Equal(
-                AbsenceType.Vacation,
-                savedRequest.Type
-            );
-
-            Assert.Equal(
-                "Test Ferienantrag",
-                savedRequest.Remark
-            );
-
-            // ==========================================
-            // 5. Ferienantrag löschen
-            // ==========================================
-
-            var requestToDelete = await db.Requests
-                .FirstOrDefaultAsync(r => r.Id == requestId);
-
-            Assert.NotNull(requestToDelete);
-
-            db.Requests.Remove(requestToDelete!);
-
-            await db.SaveChangesAsync();
-
-            // ==========================================
-            // 6. Prüfen, ob Antrag gelöscht wurde
-            // ==========================================
-
-            var deletedRequest = await db.Requests
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == requestId);
-
-            Assert.Null(deletedRequest);
-        }
-        finally
-        {
-            // ==========================================
-            // Cleanup
-            // Wird auch bei einem Fehler ausgeführt
-            // ==========================================
-
-            var cleanupRequest = await db.Requests
-                .FirstOrDefaultAsync(r => r.Id == requestId);
-
-            if (cleanupRequest != null)
-            {
-                db.Requests.Remove(cleanupRequest);
-
-                await db.SaveChangesAsync();
-            }
         }
     }
 }
