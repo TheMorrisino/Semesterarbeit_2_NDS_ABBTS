@@ -10,10 +10,12 @@ import { createApp } from 'vue'
 // Plugins
 import { registerPlugins } from '@/plugins'
 import router from '@/router'
-import { useAuthStore } from '@/stores/auth'
 
 // Assets
 import ressourcixLogo from '@/assets/Ressourcix_Icon_OhneB2.png'
+
+//Stores
+import { useAuthStore } from '@/stores/auth'
 
 // Components
 import App from './App.vue'
@@ -27,7 +29,7 @@ const favicon = document.createElement('link')
 favicon.rel = 'icon'
 favicon.type = 'image/png'
 favicon.href = ressourcixLogo
-document.head.appendChild(favicon)
+document.head.append(favicon)
 
 const app = createApp(App)
 
