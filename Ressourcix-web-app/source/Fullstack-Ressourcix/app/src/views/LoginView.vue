@@ -21,6 +21,7 @@
 
       <v-text-field
         v-model="username"
+        data-testid="login-username"
         class="mb-4"
         density="comfortable"
         hide-details
@@ -35,6 +36,7 @@
 
       <v-text-field
         v-model="password"
+        data-testid="login-password"
         class="mb-6"
         density="comfortable"
         hide-details
@@ -55,6 +57,7 @@
         :loading="loading"
         rounded="lg"
         size="large"
+        data-testid="login-submit"
         @click="onLogin"
       >
         {{ t('login.submit') }}
