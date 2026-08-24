@@ -144,6 +144,18 @@ namespace FullstackRessourcix.Migrations
             25.0,
             100,
           },
+          {
+            new Guid("13dbff56-5437-4b8d-94f0-cd7384730134"),
+            true,
+            false,
+            "Admin Test",
+            "AQAAAAIAAYagAAAAEOz6Rz8DlXt/pW8KjR44w3LhUBdip5dHpKCNsOS/lJeNKk5hMdRlPz/V+v7MhFSy5Q==",
+            5,
+            "Planer/Leitung",
+            "admin",
+            25.0,
+            100,
+          },
         }
       );
 
