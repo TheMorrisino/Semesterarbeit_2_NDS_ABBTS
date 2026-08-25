@@ -6,7 +6,13 @@
         <div class="dash-subtext">{{ todayLabel }}</div>
       </div>
 
-      <v-btn color="primary" prepend-icon="mdi-plus" to="/calender">{{ t("dashboard.newRequest") }}</v-btn>
+      <v-btn
+      color="primary"
+      data-testid="new-request"
+      prepend-icon="mdi-plus" to="/calender"
+      >
+      {{ t("dashboard.newRequest") }}
+      </v-btn>
     </div>
 
     <!-- Ferien-Statuszeile: bezieht sich auf der eingelogte Mitarbeiter (erster in der Liste) -->

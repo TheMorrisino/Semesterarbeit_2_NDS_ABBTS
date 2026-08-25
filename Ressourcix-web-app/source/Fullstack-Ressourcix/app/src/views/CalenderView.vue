@@ -141,11 +141,13 @@
             :label="t('calendar.endDateLabel')"
             :min="entryDialog.startDate"
             type="date"
+            data-testid="request-end-date"
           />
 
           <v-text-field
             v-if="entryDialog.mode === 'create'"
             v-model="entryDialog.remark"
+            data-testid="calendar-remark"
             density="compact"
             :label="t('calendar.remarkLabel')"
           />
@@ -186,7 +188,15 @@
 
           <v-spacer />
           <v-btn variant="text" @click="entryDialogOpen = false">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="primary" :disabled="!!dialogEndDateError || !!dialogForeignEmployeeError" variant="tonal" @click="saveEntry">{{ t('common.save') }}</v-btn>
+          <v-btn
+            color="primary"
+            data-testid="calendar-save-entry"
+            :disabled="!!dialogEndDateError || !!dialogForeignEmployeeError" v
+            ariant="tonal"
+            @click="saveEntry"
+            >
+            {{ t('common.save') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -195,9 +195,23 @@ Deutsch, Englisch und Französisch sind vollständig hinterlegt (`app/src/i18n/{
 
 ## 🧪 Tests
 
-**Frontend**: Vitest-Unit-Tests für die reinen Utility-Funktionen in `app/src/utils/` (Datumshilfsfunktionen, Initialen/Avatarfarben, Überschneidungslogik, Status-Metadaten) — bewusst genau die Stellen mit echter, von der UI unabhängiger Geschäftslogik. Ausführen mit `npm run test` im Ordner `app/`.
+**Frontend**: Vitest-Tests in `app/tests/`, ausführen mit `npm run test` im Ordner `app/`.
+- `tests/unit/` — reine Utility-Funktionen aus `src/utils/` (Datumshilfsfunktionen, Initialen/Avatarfarben, Überschneidungslogik, Status-Metadaten) sowie der `useEmployeeStore`-Pinia-Store (`employee.spec.ts`, API-Modul gemockt).
+- `tests/integration/` — `employeesApi` gegen ein gemocktes `fetch` (`employee-api.spec.ts`).
 
 **Backend**: Aktuell existiert **kein automatisiertes Backend-Testprojekt** (xUnit o.ä.). Endpoints/Stores werden manuell im Browser bzw. über die API verifiziert. Das ist die grösste verbleibende Qualitätslücke des Projekts.
+
+**E2E**: End-to-End-Tests mit [Playwright](https://playwright.dev) im Schwesterordner `../Fullstack-Ressourcix-E2E` (eigenes npm-Projekt, nicht Teil dieses Ordners). Sie starten keinen eigenen Server, sondern erwarten die laufende App unter `http://localhost:5167` (`baseURL` in `playwright.config.ts`) — Backend also vorher wie in [Setup und Start](#️-setup-und-start) beschrieben starten (HTTP-Profil reicht).
+
+```bash
+cd ../Fullstack-Ressourcix-E2E
+npm install
+npx playwright install   # einmalig: Browser-Binaries herunterladen
+npx playwright test              # headless, alle Tests
+npx playwright test --headed     # mit sichtbarem Browser
+npx playwright test --ui         # interaktiver UI-Modus
+npx playwright show-report       # letzten HTML-Report öffnen
+```
 
 ## 📄 Weiterführende Dokumente
 
