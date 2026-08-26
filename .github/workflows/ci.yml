@@ -18,19 +18,19 @@ jobs:
     name: Backend (.NET) – Build & Test
     runs-on: ubuntu-latest
     services:
-    postgres:
-      image: postgres:latest
-      env:
-        POSTGRES_DB: ressourcix
-        POSTGRES_USER: ressourcix
-        POSTGRES_PASSWORD: ressourcix_dev_pw
-      options: >-
-        --health-cmd pg_isready
-        --health-interval 10s
-        --health-timeout 5s
-        --health-retries 5
-      ports:
-        - 5432:5432
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ressourcix
+          POSTGRES_USER: ressourcix
+          POSTGRES_PASSWORD: ressourcix_dev_pw
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
 
