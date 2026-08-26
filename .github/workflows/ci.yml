@@ -32,17 +32,17 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: .NET SDK einrichten
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       # Node wird hier nur zur Sicherheit mitinstalliert, falls `dotnet build`
       # über die <SpaRoot>-Integration im Hauptprojekt einen npm-Schritt anstösst.
       - name: Node.js einrichten
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -61,7 +61,7 @@ jobs:
 
       - name: Testergebnisse hochladen
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-test-results
           path: ${{ env.TESTS_DIR }}/TestResults/**/*.trx
@@ -70,10 +70,10 @@ jobs:
     name: Frontend (Vue) – Lint, Test & Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Node.js einrichten
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -100,15 +100,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: .NET SDK einrichten
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Node.js einrichten
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -121,7 +121,7 @@ jobs:
         run: dotnet publish -c Release -o "${{ github.workspace }}/publish-output"
 
       - name: Build-Artefakt hochladen
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ressourcix-release-build
           path: publish-output
