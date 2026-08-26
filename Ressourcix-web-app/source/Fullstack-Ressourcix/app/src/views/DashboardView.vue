@@ -7,11 +7,12 @@
       </div>
 
       <v-btn
-      color="primary"
-      data-testid="new-request"
-      prepend-icon="mdi-plus" to="/calender"
+        color="primary"
+        data-testid="new-request"
+        prepend-icon="mdi-plus"
+        to="/calender"
       >
-      {{ t("dashboard.newRequest") }}
+        {{ t("dashboard.newRequest") }}
       </v-btn>
     </div>
 

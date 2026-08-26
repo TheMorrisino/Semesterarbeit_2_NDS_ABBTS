@@ -136,12 +136,12 @@
 
           <v-text-field
             v-model="entryDialog.endDate"
+            data-testid="request-end-date"
             density="compact"
             :disabled="entryDialog.status !== RequestStatus.Open"
             :label="t('calendar.endDateLabel')"
             :min="entryDialog.startDate"
             type="date"
-            data-testid="request-end-date"
           />
 
           <v-text-field
@@ -188,13 +188,14 @@
 
           <v-spacer />
           <v-btn variant="text" @click="entryDialogOpen = false">{{ t('common.cancel') }}</v-btn>
+
           <v-btn
+            variant="tonal"
             color="primary"
             data-testid="calendar-save-entry"
-            :disabled="!!dialogEndDateError || !!dialogForeignEmployeeError" v
-            ariant="tonal"
+            :disabled="!!dialogEndDateError || !!dialogForeignEmployeeError"
             @click="saveEntry"
-            >
+          >
             {{ t('common.save') }}
           </v-btn>
         </v-card-actions>
