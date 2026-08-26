@@ -190,10 +190,10 @@
           <v-btn variant="text" @click="entryDialogOpen = false">{{ t('common.cancel') }}</v-btn>
 
           <v-btn
-            variant="tonal"
             color="primary"
             data-testid="calendar-save-entry"
             :disabled="!!dialogEndDateError || !!dialogForeignEmployeeError"
+            variant="tonal"
             @click="saveEntry"
           >
             {{ t('common.save') }}

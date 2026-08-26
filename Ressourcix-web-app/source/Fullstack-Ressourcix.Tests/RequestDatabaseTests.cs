@@ -346,6 +346,11 @@ public class RequestDatabaseTests
 
             databaseAvailable = db.Database.CanConnect();
 
+            if (databaseAvailable.Value)
+            {
+                db.Database.Migrate();
+            }
+
             return databaseAvailable.Value;
         }
         catch
