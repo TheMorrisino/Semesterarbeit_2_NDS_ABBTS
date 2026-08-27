@@ -1,5 +1,12 @@
+using System.Security.Claims;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using FullstackRessourcix;
-
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Mumrich.SpaDevMiddleware.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,138 +14,149 @@ var appSettings = builder.Configuration.Get<AppSettings>();
 
 ArgumentNullException.ThrowIfNull(appSettings);
 
+// Ergänzt die Konsolen-Ausgabe (Standard-Provider, bleibt aktiv) um eine Datei: dieselben
+// ILogger<T>-Aufrufe, die im Backend schon überall verwendet werden, landen zusätzlich in
+// Logs/ressourcix-{Datum}.log. Respektiert dieselbe Logging:LogLevel-Konfiguration wie jeder
+// andere Provider.
+var logFilePath = Path.Combine(
+  builder.Environment.ContentRootPath,
+  "Logs",
+  $"ressourcix-{DateTime.Now:yyyy-MM-dd}.log"
+);
+builder.Logging.AddProvider(new FileLoggerProvider(logFilePath));
+
+var connectionString =
+  builder.Configuration.GetConnectionString("AppDb")
+  ?? throw new InvalidOperationException("ConnectionStrings:AppDb ist nicht konfiguriert.");
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+
+builder
+  .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+  .AddCookie(options =>
+  {
+    options.Cookie.Name = "ressourcix.auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.SlidingExpiration = true;
+    options.Events.OnRedirectToLogin = context =>
+    {
+      context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+      return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+      context.Response.StatusCode = StatusCodes.Status403Forbidden;
+      return Task.CompletedTask;
+    };
+    // Login prüft IsActive nur einmal - ohne diese erneute Prüfung pro Request bliebe eine
+    // bereits ausgestellte Session bis zu 8h gültig, selbst wenn das Konto zwischenzeitlich
+    // deaktiviert wurde (siehe AuthStore.IsActiveAsync).
+    options.Events.OnValidatePrincipal = async context =>
+    {
+      var employeeIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+      var authStore = context.HttpContext.RequestServices.GetRequiredService<AuthStore>();
+      if (!Guid.TryParse(employeeIdClaim, out var employeeId) || !await authStore.IsActiveAsync(employeeId))
+      {
+        context.RejectPrincipal();
+        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+      }
+    };
+  });
+builder.Services.AddAuthorization(options =>
+{
+  options.AddPolicy(
+    "ActiveSession",
+    policy =>
+      policy
+        .RequireAuthenticatedUser()
+        .RequireAssertion(context => context.User.FindFirst("mustChangePassword")?.Value != "True")
+  );
+
+  options.AddPolicy(
+    "Admin",
+    policy =>
+      policy
+        .RequireAuthenticatedUser()
+        .RequireAssertion(context =>
+          context.User.FindFirst("mustChangePassword")?.Value != "True"
+          && int.TryParse(context.User.FindFirst("permissionLevel")?.Value, out var level)
+          && level >= 5
+        )
+  );
+});
+
+// Bremst Brute-Force-Passwortraten gegen bekannte Benutzernamen aus: max. 5 Login-Versuche
+// pro Minute und IP, danach 429 statt einer weiteren Prüfung.
+builder.Services.AddRateLimiter(options =>
+{
+  options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+  options.OnRejected = (context, cancellationToken) =>
+  {
+    context.HttpContext.Response.ContentType = "application/json";
+    return new ValueTask(
+      context.HttpContext.Response.WriteAsJsonAsync(
+        new { message = "Zu viele Login-Versuche. Bitte versuche es in einer Minute erneut." },
+        cancellationToken
+      )
+    );
+  };
+  options.AddPolicy(
+    "login",
+    httpContext =>
+      RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+          PermitLimit = 5,
+          Window = TimeSpan.FromMinutes(1),
+          QueueLimit = 0,
+        }
+      )
+  );
+});
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddSingleton<PasswordHasher<Employee>>();
+
+builder.Services.AddScoped<AuthStore>();
+
+builder.Services.AddScoped<EmployeeStore>();
+
+builder.Services.AddScoped<RequestsStore>();
+
+builder.Services.AddScoped<AuditLogStore>();
+
+// Enums als lesbare Strings statt nackter Zahlen serialisieren (z.B. "Open" statt 0)
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+  options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 builder.SetupSpaMiddleware(appSettings);
 
 var app = builder.Build();
 
-var webRootPath =
-  app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
-var imageDirectory = Path.Combine(webRootPath, "images");
-Directory.CreateDirectory(imageDirectory);
+app.UseExceptionHandler();
 
-var allowedImageExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
 {
-  ".jpg",
-  ".jpeg",
-  ".png",
-};
+  app.UseHsts();
+}
 
-var contentTypesByExtension = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-{
-  [".jpg"] = "image/jpeg",
-  [".jpeg"] = "image/jpeg",
-  [".png"] = "image/png",
-};
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRateLimiter();
 
-app.UseStaticFiles();
-
-app.MapGet(
-  "/image-gallery",
-  () =>
-  {
-    var images = Directory
-      .GetFiles(imageDirectory)
-      .Select(Path.GetFileName)
-      .Where(fileName => !string.IsNullOrWhiteSpace(fileName))
-      .Cast<string>()
-      .Where(fileName => allowedImageExtensions.Contains(Path.GetExtension(fileName)))
-      .OrderBy(fileName => fileName, StringComparer.OrdinalIgnoreCase)
-      .Select(fileName => new ImageResult(
-        $"/image/get/{Uri.EscapeDataString(fileName)}",
-        Path.GetFileNameWithoutExtension(fileName)
-      ))
-      .ToList();
-
-    return Results.Ok(new ImageGalleryResult(images));
-  }
-);
-
-app.MapGet(
-  "/image/get/{imageName}",
-  (string imageName) =>
-  {
-    var safeImageName = Path.GetFileName(imageName);
-    var filePath = Path.Combine(imageDirectory, safeImageName);
-
-    if (string.IsNullOrWhiteSpace(safeImageName) || !File.Exists(filePath))
-    {
-      return Results.NotFound();
-    }
-
-    var extension = Path.GetExtension(safeImageName);
-    var contentType = contentTypesByExtension.GetValueOrDefault(
-      extension,
-      "application/octet-stream"
-    );
-
-    return Results.File(filePath, contentType);
-  }
-);
-
-app.MapPost(
-  "/image/upload",
-  async (HttpRequest request) =>
-  {
-    if (!request.HasFormContentType)
-    {
-      return Results.BadRequest("Multipart form data expected.");
-    }
-
-    var form = await request.ReadFormAsync();
-
-    foreach (var file in form.Files)
-    {
-      if (file.Length <= 0)
-      {
-        continue;
-      }
-
-      var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-
-      if (!allowedImageExtensions.Contains(extension))
-      {
-        return Results.BadRequest($"Unsupported file extension '{extension}'.");
-      }
-
-      var fileName = $"{Guid.NewGuid():N}{extension}";
-      var filePath = Path.Combine(imageDirectory, fileName);
-
-      await using var stream = File.Create(filePath);
-      await file.CopyToAsync(stream);
-    }
-
-    return Results.Ok();
-  }
-);
-
-app.MapDelete(
-  "/image/delete/{imageName}",
-  (string imageName) =>
-  {
-    var safeImageName = Path.GetFileName(imageName);
-    var filePath = Path.Combine(imageDirectory, safeImageName);
-
-    if (string.IsNullOrWhiteSpace(safeImageName) || !File.Exists(filePath))
-    {
-      return Results.NotFound();
-    }
-
-    try
-    {
-      File.Delete(filePath);
-      return Results.Ok();
-    }
-    catch
-    {
-      return Results.StatusCode(StatusCodes.Status500InternalServerError);
-    }
-  }
-);
+app.MapAuthEndpoints();
+app.MapEmployeeEndpoints();
+app.MapRequestEndpoints();
+app.MapAuditLogEndpoints();
 
 app.MapSinglePageApps(appSettings);
 
 app.Run();
-
-internal sealed record ImageResult(string url, string name);
-
-internal sealed record ImageGalleryResult(IReadOnlyList<ImageResult> images);

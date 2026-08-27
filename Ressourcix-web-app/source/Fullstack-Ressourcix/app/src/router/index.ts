@@ -1,28 +1,83 @@
-import { createRouter, createWebHashHistory } from "vue-router";
-import HomeView from "@/views/HomeView.vue";
+import { createRouter, createWebHashHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: "/",
-      name: "home",
-      component: HomeView,
+      path: '/login',
+      name: 'login',
+      components: { loginView: () => import('../views/LoginView.vue') },
+      meta: { titleKey: 'app.nav.login', public: true },
     },
     {
-      path: "/about",
-      name: "about",
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import("../views/AboutView.vue"),
+      path: '/change-password',
+      name: 'change-password',
+      components: { mainView: () => import('../views/ChangePasswordView.vue') },
+      meta: { titleKey: 'app.nav.changePassword' },
     },
     {
-      path: "/gallery",
-      name: "gallery",
-      component: () => import("../views/ImageGallery.vue"),
+      path: '/',
+      name: 'dashboard',
+      components: { mainView: () => import('../views/DashboardView.vue') },
+      meta: { titleKey: 'app.nav.dashboard' },
+    },
+    {
+      path: '/calender',
+      name: 'calender',
+      components: { mainView: () => import('../views/CalenderView.vue') },
+      meta: { titleKey: 'app.nav.calender' },
+    },
+    {
+      path: '/absences',
+      name: 'absences',
+      components: { mainView: () => import('../views/AbsencesView.vue') },
+      meta: { titleKey: 'app.nav.absences' },
+    },
+    {
+      path: '/approval',
+      name: 'approval',
+      components: { mainView: () => import('../views/ApprovalView.vue') },
+      meta: { titleKey: 'app.nav.approval', requiresAdmin: true },
+    },
+    {
+      path: '/teamview',
+      name: 'teamview',
+      components: { mainView: () => import('../views/TeamView.vue') },
+      meta: { titleKey: 'app.nav.teamview' },
+    },
+    {
+      path: '/employees',
+      name: 'employees',
+      components: { mainView: () => import('../views/EmployeesView.vue') },
+      meta: { titleKey: 'app.nav.employees' },
+    },
+    {
+      path: '/auditlog',
+      name: 'auditlog',
+      components: { mainView: () => import('../views/AuditLogView.vue') },
+      meta: { titleKey: 'app.nav.auditlog' },
     },
   ],
-});
+})
 
-export default router;
+router.beforeEach(to => {
+  const authStore = useAuthStore()
+  if (!to.meta.public && !authStore.isLoggedIn) {
+    return { path: '/login' }
+  }
+  // Eingeloggte Nutzer sollen nicht mehr auf die Loginseite gelangen (z.B. per Browser-Zurück
+  // oder direkt aufgerufenem Link), sondern landen dort, wo sie ohnehin hin müssten.
+  if (to.name === 'login' && authStore.isLoggedIn) {
+    return authStore.user?.mustChangePassword ? { path: '/change-password' } : { path: '/' }
+  }
+  if (authStore.isLoggedIn && authStore.user?.mustChangePassword && to.name !== 'change-password') {
+    return { path: '/change-password' }
+  }
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    return { path: '/' }
+  }
+  return true
+})
+
+export default router

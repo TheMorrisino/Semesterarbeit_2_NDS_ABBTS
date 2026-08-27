@@ -1,0 +1,127 @@
+<template>
+  <div class="login-page d-flex ga-3 align-center justify-center">
+    <v-card class="login-card pa-8" elevation="8" rounded="xl">
+      <!-- Logo + Titel -->
+      <div class="d-flex align-center ga-3 mb-2">
+        <v-avatar color="teal-700" rounded="lg" size="40">
+          <v-img :src="ressourcixLogo" />
+        </v-avatar>
+
+        <span class="text-h5 font-weight-bold">Ressourcix</span>
+      </div>
+
+      <p class="text-body-2 text-medium-emphasis mb-6">
+        {{ t('login.subtitle') }}
+      </p>
+
+      <!-- Benutzername -->
+      <label class="text-subtitle-2 font-weight-medium mb-1 d-block">
+        {{ t('login.username') }}
+      </label>
+
+      <v-text-field
+        v-model="username"
+        class="mb-4"
+        data-testid="login-username"
+        density="comfortable"
+        hide-details
+        rounded="lg"
+        variant="outlined"
+      />
+
+      <!-- Passwort -->
+      <label class="text-subtitle-2 font-weight-medium mb-1 d-block">
+        {{ t('login.password') }}
+      </label>
+
+      <v-text-field
+        v-model="password"
+        class="mb-6"
+        data-testid="login-password"
+        density="comfortable"
+        hide-details
+        rounded="lg"
+        type="password"
+        variant="outlined"
+      />
+
+      <v-alert v-if="errorMessage" class="mb-4" density="compact" type="error">
+        {{ errorMessage }}
+      </v-alert>
+
+      <!-- Login-Button -->
+      <v-btn
+        block
+        color="teal-700"
+        data-testid="login-submit"
+        :disabled="!canSubmit"
+        :loading="loading"
+        rounded="lg"
+        size="large"
+        @click="onLogin"
+      >
+        {{ t('login.submit') }}
+      </v-btn>
+
+      <!-- Footer -->
+      <div class="d-flex align-center justify-center ga-1 mt-4 text-caption text-medium-emphasis">
+        <v-icon icon="mdi-lock-outline" size="14" />
+        {{ t('login.secureConnection') }}
+      </div>
+    </v-card>
+  </div>
+</template>
+
+<script setup lang="ts">
+  import { computed, ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { useRouter } from 'vue-router'
+  import { ApiError } from '@/api/httpClient'
+  import ressourcixLogo from '@/assets/Ressourcix_Icon_OhneB2.png'
+  import { useAuthStore } from '@/stores/auth'
+
+  const { t } = useI18n()
+  const router = useRouter()
+  const authStore = useAuthStore()
+
+  const username = ref('')
+  const password = ref('')
+  const loading = ref(false)
+  const errorMessage = ref('')
+
+  const canSubmit = computed(() => username.value.trim() !== '' && password.value !== '' && !loading.value)
+
+  async function onLogin () {
+    if (!canSubmit.value) return
+    loading.value = true
+    errorMessage.value = ''
+    try {
+      await authStore.login(username.value.trim(), password.value)
+      router.push('/')
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        errorMessage.value = t('login.invalidCredentials')
+      } else if (error instanceof ApiError && error.status === 429) {
+        errorMessage.value = error.message
+      } else {
+        console.error('[login] unerwarteter Fehler', error)
+        errorMessage.value = t('login.genericError')
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+</script>
+
+<style>
+
+   .login-page {
+     min-height: 100dvh;
+     align-items: center;
+     justify-content: center;
+   }
+   .login-card {
+     align-items: center;
+     justify-content: center;
+   }
+</style>

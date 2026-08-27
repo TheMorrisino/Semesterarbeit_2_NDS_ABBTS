@@ -1,125 +1,79 @@
-# Fullstack Picture Gallery Demo
+# Ressourcix
 
-## 📚 Chapters
+## 📚 Inhalt
 
-- 🧭 [Overview](#-overview)
-- 🧱 [Architecture and Structure](#-architecture-and-structure)
-  - 🗂️ [Project Structure](#project-structure)
-- 🧰 [Technology Stack](#-technology-stack)
-  - 🖥️ [Backend and Runtime](#backend-and-runtime)
-  - 🎨 [Frontend and UI](#-frontend-and-ui)
-  - 🧭 [Navigation and Localization](#-navigation-and-localization)
-- ✅ [Prerequisites](#-prerequisites)
-- ▶️ [How to Run](#how-to-run)
-  - 🧪 [With CLI](#-with-cli)
-  - 🐞 [With C# Dev Kit (Debugging)](#-with-c-dev-kit-debugging)
-- 🧩 [Workspace Extension Recommendations](#-workspace-extension-recommendations)
-  - 🎨 [Styling and UI](#-styling-and-ui)
-  - ✅ [Linting and Formatting](#-linting-and-formatting)
-  - 🌍 [Localization](#-localization)
-  - 🔧 [.NET and General Dev Tools](#-net-and-general-dev-tools)
+- 🧭 [Überblick](#-überblick)
+- 🧱 [Architektur und Projektstruktur](#-architektur-und-projektstruktur)
+- 🔐 [Rollen und Berechtigungen](#-rollen-und-berechtigungen)
+- 🧰 [Technologie-Stack](#-technologie-stack)
+- ✅ [Voraussetzungen](#-voraussetzungen)
+- ▶️ [Setup und Start](#️-setup-und-start)
+- 📦 [Produktions-Build](#-produktions-build)
+- 🛡️ [Sicherheit](#️-sicherheit)
+- 🌍 [Mehrsprachigkeit](#-mehrsprachigkeit)
+- 🧪 [Tests](#-tests)
+- 📄 [Weiterführende Dokumente](#-weiterführende-dokumente)
 
-## 🧭 Overview
+## 🧭 Überblick
 
-This demo is a fullstack picture gallery application with:
+Ressourcix ist eine Abwesenheits- und Ferienverwaltung für KMU (Semesterarbeit 2, NDS ABBTS). Mitarbeitende erfassen Ferienanträge im Kalender, Admins/Planer:innen verwalten Mitarbeitende, genehmigen oder lehnen Anträge ab, und jede relevante Änderung wird revisionssicher im Audit-Log protokolliert.
 
-- ⚙️ An ASP.NET Core backend that serves static files and exposes image APIs.
-- 🖼️ A Vue frontend with Vuetify UI components.
-- 🌍 Localization support with vue-i18n (DE, EN, FR).
-- 🔁 SPA development middleware integration for improved local developer experience with hot-reloading, proxying, and deployment.
+Kernfunktionen:
 
-## 🧱 Architecture and Structure
+- **Kalender**: Mitarbeiter als Zeilen, Tage als Spalten; Ferienanträge per Klick erfassen/bearbeiten, Überschneidungs-Heatmap, responsives Layout (zeigt auf Handy-Breite nur noch Kürzel statt Vollname, damit mehr Tagesspalten sichtbar bleiben).
+- **Dashboard**: eigener Ferienstatus (Anspruch/Bezogen/Geplant/Verbleibend), Teamübersicht der aktuellen Woche, Überschneidungsdiagramm, letzte Anträge/Aktivitäten.
+- **Mitarbeiterverwaltung** (nur Admin): Mitarbeitende anlegen/bearbeiten/deaktivieren/löschen. Das Berechtigungslevel wird ausschliesslich aus der gewählten Rolle abgeleitet, nicht direkt editierbar.
+- **Genehmigungen** (nur Admin): offene Anträge einsehen, genehmigen/ablehnen.
+- **Audit-Log**: jede Mutation (Anträge, Mitarbeitende) wird serverseitig als Nebeneffekt der jeweiligen Aktion protokolliert — nicht über einen frei aufrufbaren Endpoint, damit Einträge nicht gefälscht oder unterdrückt werden können.
 
-### Project Structure
+## 🧱 Architektur und Projektstruktur
 
-- 📄 `Program.cs`: ASP.NET Core application setup and image API endpoints.
-- 📁 `app/`: Vue frontend application.
-- 🌐 `app/src/i18n/`: Translation files (`de.json`, `en.json`, `fr.json`).
-- ⚙️ `appsettings.json`: SPA middleware and development server settings.
+Backend (ASP.NET Core Minimal API) und Frontend (Vue 3 SPA) leben in diesem Ordner; im Dev-Betrieb bindet `Mumrich.SpaDevMiddleware` den Vite-Dev-Server ein, in Produktion wird der gebaute Frontend-Output mitgeliefert.
 
-## 🧰 Technology Stack
+Bewusst **keine** volle Clean-Architecture-Schichtung (Use-Cases/Entities/Repositories) — für ein CRUD-Projekt dieser Grösse wäre das Overengineering. Stattdessen eine schlanke 3-Schichten-Struktur `Endpoints → Services → Data`, mit `Program.cs` nur noch als Composition Root:
 
-### Backend and Runtime
+```
+Fullstack-Ressourcix/
+├─ Program.cs                 # Composition Root: DI-Registrierung, Middleware-Pipeline, Endpoint-Mapping
+├─ AppSettings.cs             # Konfigurationsbindung (SPA-Middleware)
+├─ GlobalExceptionHandler.cs  # zentrales Fehlerhandling (IExceptionHandler)
+├─ Endpoints/                 # Minimal-API-Endpoints als IEndpointRouteBuilder-Extensions (Auth/Employee/Request/AuditLog)
+├─ Dtos/                      # Request-/Response-DTOs (Wire-Format, camelCase)
+├─ Auth/AuthHelpers.cs        # Claims-Helper (BuildPrincipal, IsAdmin, CanActOnRequest, ...)
+├─ Models/                    # Employee, AbsenceRequest, AuditLogEntry (+ zugehörige Enums), EmployeeRoles
+├─ Services/                  # EmployeeStore, RequestsStore, AuthStore, AuditLogStore, AuditSummaryBuilder (EF-Core-Datenzugriff)
+├─ Data/AppDbContext.cs       # DbContext + Seed-Daten (4 Beispiel-Mitarbeitende)
+├─ Migrations/                # EF-Core-Migrationen
+├─ appsettings*.json          # Konfiguration (Connection String, Default-Passwort)
+├─ docker-compose.yml         # lokales PostgreSQL für die Entwicklung
+└─ app/                       # Vue-3-Frontend, siehe app/README.md
+```
 
-#### ASP.NET Core
+## 🔐 Rollen und Berechtigungen
 
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-512BD4?logo=dotnet&logoColor=white)
+Es gibt zwei Berechtigungsstufen, serverseitig über eine ASP.NET-Core-Authorization-Policy erzwungen (nicht nur im Frontend versteckt):
 
-Backend web framework used for minimal APIs, static files, and HTTP pipeline configuration.
+| | Mitarbeiter (Level 1) | Admin / Planer (Level 5) |
+|---|---|---|
+| Kalender | Nur **eigene** Anträge erfassen/bearbeiten/löschen; Status **nicht** ändern (Feld im Dialog gesperrt) | Anträge für jeden Mitarbeiter, inkl. Statusänderung |
+| Genehmigungen | Keine Einsicht (View + Nav-Link ausgeblendet, Route-Guard) | Volle Einsicht, genehmigen/ablehnen |
+| Abwesenheiten | Nur eigene Einträge | Nur eigene Einträge |
+| Mitarbeiterverwaltung | Einsicht, keine Schreibaktionen (Buttons ausgeblendet) | Volle Verwaltung |
+| Audit-Log | Einsicht | Einsicht |
 
-- Project/GitHub: [https://github.com/dotnet/aspnetcore](https://github.com/dotnet/aspnetcore)
-- Documentation: [https://learn.microsoft.com/aspnet/core](https://learn.microsoft.com/aspnet/core)
+Das Berechtigungslevel eines Mitarbeitenden wird **ausschliesslich** aus der Rolle abgeleitet — über eine explizite Zuordnung in `Models/EmployeeRoles.cs` (`Mitarbeiter` → 1, `Planer/Leitung` → 5). Eine unbekannte Rolle wird abgelehnt (`400 Bad Request`) statt still auf die höchste Berechtigungsstufe zu fallen. Weder Formular noch API erlauben es, das Level direkt zu setzen.
 
-#### Node.js and NPM
+## 🧰 Technologie-Stack
 
-![Node.js](https://img.shields.io/badge/Node.js-5FA04E?logo=node.js&logoColor=white)
-![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white)
+**Backend**: ASP.NET Core (net10.0) Minimal API, Entity Framework Core mit Npgsql (PostgreSQL), Cookie-Authentication (`HttpOnly`, `Secure`, `SameSite=Strict`), `Microsoft.AspNetCore.RateLimiting` fürs Login, `Mumrich.SpaDevMiddleware` zur Frontend-Anbindung im Dev-Betrieb.
 
-Used to install frontend dependencies and run/build the Vue application.
+**Frontend** (`app/`): Vue 3 + Vite, Vuetify, Pinia, Vue Router, vue-i18n (DE/EN/FR), UnoCSS. Details siehe [app/README.md](app/README.md).
 
-- Node.js: [https://nodejs.org](https://nodejs.org)
-- NPM: [https://www.npmjs.com](https://www.npmjs.com)
+## ✅ Voraussetzungen
 
-#### Smap Middleware (SPA Middleware)
-
-![NuGet](https://img.shields.io/badge/NuGet-004880?logo=nuget&logoColor=white)
-
-This project uses `Mumrich.SpaDevMiddleware` to connect backend and frontend development workflows.
-
-- NuGet package: [https://www.nuget.org/packages/Mumrich.SpaDevMiddleware](https://www.nuget.org/packages/Mumrich.SpaDevMiddleware)
-
-### 🎨 Frontend and UI
-
-#### Vue.js
-
-![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?logo=vuedotjs&logoColor=white)
-
-Frontend framework for building the application UI.
-
-- Project: [https://vuejs.org](https://vuejs.org)
-- GitHub: [https://github.com/vuejs/core](https://github.com/vuejs/core)
-
-#### Vuetify
-
-![Vuetify](https://img.shields.io/badge/Vuetify-1867C0?logo=vuetify&logoColor=white)
-
-Material Design UI component framework for Vue.
-
-- Project: [https://vuetifyjs.com](https://vuetifyjs.com)
-- GitHub: [https://github.com/vuetifyjs/vuetify](https://github.com/vuetifyjs/vuetify)
-
-### 🧭 Navigation and Localization
-
-#### Vue-i18n
-
-![Vue i18n](https://img.shields.io/badge/Vue--i18n-41B883?logo=vuedotjs&logoColor=white)
-
-Internationalization library used for multi-language translations.
-
-- Project: [https://vue-i18n.intlify.dev](https://vue-i18n.intlify.dev)
-- GitHub: [https://github.com/intlify/vue-i18n](https://github.com/intlify/vue-i18n)
-
-#### Vue Router
-
-![Vue Router](https://img.shields.io/badge/Vue%20Router-4FC08D?logo=vuedotjs&logoColor=white)
-
-Client-side routing for page navigation (Home, Gallery, About).
-
-- Project: [https://router.vuejs.org](https://router.vuejs.org)
-- GitHub: [https://github.com/vuejs/router](https://github.com/vuejs/router)
-
-## ✅ Prerequisites
-
-Install the following tools before running the project:
-
-- ![.NET](https://img.shields.io/badge/.NET%20SDK-512BD4?logo=dotnet&logoColor=white) .NET SDK compatible with `net10.0`
-  - Download: [https://dotnet.microsoft.com/download](https://dotnet.microsoft.com/download)
-- ![Node.js](https://img.shields.io/badge/Node.js-5FA04E?logo=node.js&logoColor=white) Node.js (recommended: current LTS)
-  - Download: [https://nodejs.org](https://nodejs.org)
-- ![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white) npm (bundled with Node.js)
-  - Docs: [https://docs.npmjs.com/downloading-and-installing-node-js-and-npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-
-Useful verification commands:
+- ![.NET](https://img.shields.io/badge/.NET%20SDK-512BD4?logo=dotnet&logoColor=white) .NET SDK kompatibel mit `net10.0`
+- ![Node.js](https://img.shields.io/badge/Node.js-5FA04E?logo=node.js&logoColor=white) Node.js (aktuelles LTS) + npm
+- ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) Docker (für lokales PostgreSQL via Docker Compose)
 
 ```bash
 dotnet --version
@@ -127,163 +81,139 @@ node --version
 npm --version
 ```
 
-## How to Run
-
-### 🧪 With CLI
-
-1. Open a terminal in the frontend folder and install dependencies:
+## ▶️ Setup und Start
 
 ```bash
+# 1. Frontend-Abhängigkeiten installieren
 cd app
 npm install
+cd ..
+
+# 2. PostgreSQL lokal starten (statt docker compose geht z.B. auch podman compose)
+docker compose up -d
+
+# 3. .NET-Tools installieren und Datenbank migrieren
+dotnet tool restore
+dotnet tool run dotnet-ef database update
+
+# 4. Lokales HTTPS-Zertifikat vertrauen (einmalig pro Rechner)
+dotnet dev-certs https --trust
+
+# 5. Backend starten (bindet den Vite-Dev-Server automatisch mit ein)
+dotnet run --launch-profile https
 ```
 
-1. Start the backend from the project root:
+App öffnen: **https://localhost:7057** (HTTP-Fallback: http://localhost:5167).
+
+**Default-Logins** (Passwort muss beim ersten Login geändert werden, Regel: ≥8 Zeichen, Gross-/Kleinbuchstaben, Zahl, Sonderzeichen):
+
+| Benutzername | Rolle | Passwort |
+|---|---|---|
+| `pedro.santos` | Admin/Planer | `Ressourcix#2026` |
+| `morris.meier`, `lena.brunner`, `tiago.desousa` | Mitarbeiter | `Ressourcix#2026` |
+
+Alternativ mit C# Dev Kit in VS Code: Ordner `source/Fullstack-Ressourcix` öffnen, Run-and-Debug-Profil `http` oder `https` wählen, `F5`.
+
+> ⚠️ **Datenbank-Volume vs. Migrationsstand**: `docker compose up -d` behält das Postgres-Volume über Neustarts hinweg bei (Named Volume, siehe `docker-compose.yml`). Nach einem Pull mit neuen/geänderten Migrationen kann das lokale Volume dadurch einen älteren Schema-Stand enthalten als der Code erwartet. Anzeichen dafür:
+> - `dotnet-ef database update` schlägt mit `relation "..." already exists` fehl (die alten Tabellen existieren schon, `__EFMigrationsHistory` kennt aber nicht die aktuelle Migrations-ID).
+> - Login/andere Requests schlagen zur Laufzeit mit `column e."Id" does not exist` (bzw. `Hint: ... e.id`) fehl — die im Volume liegenden Spalten (z.B. camelCase) passen nicht mehr zum aktuellen Modell (PascalCase).
+>
+> Fix: Volume komplett verwerfen und die aktuelle Migration sauber neu anwenden (seedet die Testdaten neu):
+>
+> ```bash
+> docker compose down -v
+> docker compose up -d
+> dotnet tool run dotnet-ef database update
+> ```
+
+## 📦 Produktions-Build
+
+Ein einziger Befehl installiert Abhängigkeiten und kompiliert Front- und Backend für den Produktivbetrieb (Release-Konfiguration, kein Debug, Frontend minimiert):
 
 ```bash
-cd ..
-dotnet run
+dotnet publish -c Release
 ```
 
-1. Open the app in your browser (based on `launchSettings.json`):
+Das MSBuild-`<SpaRoot>`-Element in `Fullstack-Ressourcix.csproj` sorgt dafür, dass dieser eine Befehl automatisch:
 
-- [http://localhost:5167](http://localhost:5167)
+1. `npm install` im Ordner `app/` ausführt (Frontend-Abhängigkeiten),
+2. `npm run build` ausführt (Type-Check + minimierter Vite-Production-Build, Output in `app/dist/`),
+3. das Backend in der **Release**-Konfiguration kompiliert (Optimierungen an, `DEBUG`-Symbol aus),
+4. den fertigen Frontend-Build sowie alle Backend-Artefakte gemeinsam nach `bin/Release/net10.0/publish/` kopiert — von dort aus ist die App direkt lauffähig (`dotnet Fullstack-Ressourcix.dll`).
 
-Official docs:
+`.NET`- und `npm`-Toolchain müssen wie in [Voraussetzungen](#-voraussetzungen) beschrieben installiert sein; eine laufende PostgreSQL-Instanz wird für den Build selbst nicht benötigt, nur zur Laufzeit.
 
-- `dotnet run`: [https://learn.microsoft.com/dotnet/core/tools/dotnet-run](https://learn.microsoft.com/dotnet/core/tools/dotnet-run)
+### Publish-Output starten
 
-### 🐞 With C# Dev Kit (Debugging)
+`appsettings.Development.json` (und damit der lokale Connection String / das Default-Passwort) wird **nur** geladen, wenn `ASPNETCORE_ENVIRONMENT=Development` gesetzt ist. Startet man `dotnet Fullstack-Ressourcix.dll` direkt ohne diese Variable, läuft die App als **Production** und `appsettings.json` allein enthält keinen Connection String — die App bricht dann beim Start mit `ConnectionStrings:AppDb ist nicht konfiguriert.` ab. Das ist beabsichtigt, damit Dev-Zugangsdaten nicht automatisch als Produktivkonfiguration greifen.
 
-1. Open this folder in VS Code:
+Für einen echten Produktionsstart die Konfiguration von aussen mitgeben, z.B. per Umgebungsvariable (`__` statt `:` für verschachtelte Keys):
 
-- `source/FullstackRessourcix`
+ **Bash**
+```bash
+cd bin/Release/net10.0/publish
+ConnectionStrings__AppDb="Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw" \
+  dotnet Fullstack-Ressourcix.dll
+```
 
-1. Ensure the extension is installed:
+**Powershell** 
+```powershell
+cd bin/Release/net10.0/publish
+$env:ConnectionStrings__AppDb = "Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw"
+dotnet Fullstack-Ressourcix.dll
+```
+ 
+Zum schnellen Durchtesten des Publish-Outputs mit der lokalen Dev-Konfiguration reicht dagegen:
 
-- C# Dev Kit: [https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
+ **Bash**
+```bash
+cd bin/Release/net10.0/publish
+ASPNETCORE_ENVIRONMENT=Development dotnet Fullstack-Ressourcix.dll
+```
 
-1. Open the Run and Debug view and choose a .NET launch profile (`http` or `https`).
-1. Press `F5` to start debugging.
-1. Set breakpoints in `Program.cs` or related backend files and trigger requests from the browser.
+**Powershell** 
+```powershell
+cd bin/Release/net10.0/publish
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+dotnet Fullstack-Ressourcix.dll
+```
 
-Official docs:
+(in beiden Fällen muss PostgreSQL laufen, siehe [Setup und Start](#️-setup-und-start)).
 
-- C# in VS Code: [https://code.visualstudio.com/docs/csharp/get-started](https://code.visualstudio.com/docs/csharp/get-started)
-- C# debugging in VS Code: [https://code.visualstudio.com/docs/csharp/debugging](https://code.visualstudio.com/docs/csharp/debugging)
+## 🛡️ Sicherheit
 
-## 🧩 Workspace Extension Recommendations
+- **Autorisierung** wird über zwei Policies (`ActiveSession`, `Admin`) serverseitig auf jedem Endpoint erzwungen, nicht nur im Frontend versteckt. Mitarbeitende dürfen Anträge nur für sich selbst anlegen/bearbeiten/löschen; einen Status ändern können ausschliesslich Admins, unabhängig davon, wem der Antrag gehört.
+- **Rate Limiting**: max. 5 Login-Versuche pro Minute und IP (`429 Too Many Requests` danach).
+- **Passwortrichtlinie**: mindestens 8 Zeichen, Gross-/Kleinbuchstaben, Zahl und Sonderzeichen — clientseitig und serverseitig identisch geprüft.
+- **Audit-Log**: Einträge entstehen ausschliesslich serverseitig als Teil der jeweiligen Mutation (kein `POST`-Endpoint dafür), damit sie nicht gefälscht oder ausgelassen werden können.
+- **Globales Exception-Handling**: unbehandelte Fehler werden strukturiert geloggt und liefern dem Client eine einheitliche, in Produktion nichtssagende Fehlermeldung (keine Stacktraces/interne Details nach aussen).
+- **Bekannter offener Punkt** (bewusst nicht in dieser Semesterarbeit behoben): `appsettings.Development.json` enthält das lokale DB-Passwort und das Seed-Default-Passwort im Klartext im Repo — für eine echte Produktivumgebung müsste das in User-Secrets/Umgebungsvariablen ausgelagert werden.
+- **Bekannter offener Punkt** (bewusst nicht in dieser Semesterarbeit behoben): Die Überschneidungsprüfung in `RequestsStore` (Create/Update) liest den aktuellen Datenbestand und schreibt danach, ohne Transaktion oder DB-Constraint dazwischen (TOCTOU). Erstellen zwei Personen im selben Sekundenbruchteil sich überschneidende Anträge, kann die Überschneidung theoretisch unentdeckt bleiben. Für eine echte Produktivumgebung wäre das über eine serialisierbare Transaktion (mit Retry) oder eine DB-seitige Exclusion-Constraint zu lösen; angesichts der Nutzungsintensität dieser Anwendung ist das Risiko hier vernachlässigbar.
 
-The workspace recommends the following VS Code extensions:
+## 🌍 Mehrsprachigkeit
 
-### 🎨 Styling and UI
+Deutsch, Englisch und Französisch sind vollständig hinterlegt (`app/src/i18n/{de,en,fr}.json`, jeweils identische Key-Struktur). Die Sprache wird beim Start anhand des Browsers (`navigator.language`) gewählt, Fallback ist Englisch; es gibt aktuell keinen manuellen Sprachumschalter im UI.
 
-#### UnoCSS
+## 🧪 Tests
 
-![UnoCSS](https://img.shields.io/badge/UnoCSS-333333?logo=css&logoColor=white)
+**Frontend**: Vitest-Tests in `app/tests/`, ausführen mit `npm run test` im Ordner `app/`.
+- `tests/unit/` — reine Utility-Funktionen aus `src/utils/` (Datumshilfsfunktionen, Initialen/Avatarfarben, Überschneidungslogik, Status-Metadaten) sowie der `useEmployeeStore`-Pinia-Store (`employee.spec.ts`, API-Modul gemockt).
+- `tests/integration/` — `employeesApi` gegen ein gemocktes `fetch` (`employee-api.spec.ts`).
 
-UnoCSS IntelliSense and tooling support.
+**Backend**: Aktuell existiert **kein automatisiertes Backend-Testprojekt** (xUnit o.ä.). Endpoints/Stores werden manuell im Browser bzw. über die API verifiziert. Das ist die grösste verbleibende Qualitätslücke des Projekts.
 
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=antfu.unocss](https://marketplace.visualstudio.com/items?itemName=antfu.unocss)
+**E2E**: End-to-End-Tests mit [Playwright](https://playwright.dev) im Schwesterordner `../Fullstack-Ressourcix-E2E` (eigenes npm-Projekt, nicht Teil dieses Ordners). Sie starten keinen eigenen Server, sondern erwarten die laufende App unter `http://localhost:5167` (`baseURL` in `playwright.config.ts`) — Backend also vorher wie in [Setup und Start](#️-setup-und-start) beschrieben starten (HTTP-Profil reicht).
 
-#### Vue - Official
+```bash
+cd ../Fullstack-Ressourcix-E2E
+npm install
+npx playwright install   # einmalig: Browser-Binaries herunterladen
+npx playwright test              # headless, alle Tests
+npx playwright test --headed     # mit sichtbarem Browser
+npx playwright test --ui         # interaktiver UI-Modus
+npx playwright show-report       # letzten HTML-Report öffnen
+```
 
-![Vue - Official](https://img.shields.io/badge/Vue%20Official-4FC08D?logo=vuedotjs&logoColor=white)
+## 📄 Weiterführende Dokumente
 
-Vue language server support and type-checking for Single File Components.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=Vue.volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
-
-#### Vuetify VS Code Extension
-
-![Vuetify](https://img.shields.io/badge/Vuetify-1867C0?logo=vuetify&logoColor=white)
-
-Vuetify snippets and tooling support.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=vuetifyjs.vuetify-vscode](https://marketplace.visualstudio.com/items?itemName=vuetifyjs.vuetify-vscode)
-
-### ✅ Linting and Formatting
-
-#### CSharpier - Code Formatter
-
-![CSharpier](https://img.shields.io/badge/CSharpier-239120?logo=csharp&logoColor=white)
-
-CSharpier formatting integration for C#.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=csharpier.csharpier-vscode](https://marketplace.visualstudio.com/items?itemName=csharpier.csharpier-vscode)
-
-#### ESLint
-
-![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=white)
-
-ESLint diagnostics and fixes for JavaScript/TypeScript/Vue.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-
-#### Prettier - Code Formatter
-
-![Prettier](https://img.shields.io/badge/Prettier-F7B93E?logo=prettier&logoColor=1A2B34)
-
-Prettier code formatter integration.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-
-#### Roslynator
-
-![Roslynator](https://img.shields.io/badge/Roslynator-512BD4?logo=dotnet&logoColor=white)
-
-Roslyn analyzers and refactorings for C#.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=josefpihrt-vscode.roslynator](https://marketplace.visualstudio.com/items?itemName=josefpihrt-vscode.roslynator)
-
-### 🌍 Localization
-
-#### i18n Ally
-
-![i18n Ally](https://img.shields.io/badge/i18n%20Ally-2F80ED?logo=visualstudiocode&logoColor=white)
-
-Translation key management and localization editing.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=lokalise.i18n-ally](https://marketplace.visualstudio.com/items?itemName=lokalise.i18n-ally)
-
-### 🔧 .NET and General Dev Tools
-
-#### Git Graph
-
-![Git Graph](https://img.shields.io/badge/Git%20Graph-F05032?logo=git&logoColor=white)
-
-Visual Git commit graph and history explorer.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph](https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph)
-
-#### C# Dev Kit
-
-![C# Dev Kit](https://img.shields.io/badge/C%23%20Dev%20Kit-239120?logo=csharp&logoColor=white)
-
-.NET and C# development tooling for VS Code.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
-
-#### Version Lens
-
-![Version Lens](https://img.shields.io/badge/Version%20Lens-0A84FF?logo=visualstudiocode&logoColor=white)
-
-Inline package version and update insights.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=pflannery.vscode-versionlens](https://marketplace.visualstudio.com/items?itemName=pflannery.vscode-versionlens)
-
-#### XML
-
-![XML](https://img.shields.io/badge/XML-E44D26?logo=xml&logoColor=white)
-
-XML language support, validation, and formatting.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml)
-
-#### YAML
-
-![YAML](https://img.shields.io/badge/YAML-CB171E?logo=yaml&logoColor=white)
-
-YAML language support, validation, and schema integration.
-
-- Marketplace: [https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
+- [app/README.md](app/README.md) — Frontend-Struktur, Scripts, Vuetify-spezifische Hinweise.
