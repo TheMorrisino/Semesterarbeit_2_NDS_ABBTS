@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isEmployeeAbsentOn, rangesOverlap } from '../../src/utils/overlap'
+import { isEmployeeAbsentOn, isRequestActiveOn, rangesOverlap } from '../../src/utils/overlap'
 
 describe('rangesOverlap', () => {
   it('returns true when ranges overlap', () => {
@@ -44,5 +44,17 @@ describe('isEmployeeAbsentOn', () => {
 
   it('returns false when the employee has no requests at all', () => {
     expect(isEmployeeAbsentOn(requests, 'emp-3', '2026-07-15')).toBe(false)
+  })
+})
+
+describe('isRequestActiveOn', () => {
+  it('returns true when the day is the request\'s last day, regardless of time of day', () => {
+    const request = { from: '2026-07-13', until: '2026-07-20' }
+    expect(isRequestActiveOn(request, '2026-07-20')).toBe(true)
+  })
+
+  it('returns false the day after the request ends', () => {
+    const request = { from: '2026-07-13', until: '2026-07-20' }
+    expect(isRequestActiveOn(request, '2026-07-21')).toBe(false)
   })
 })

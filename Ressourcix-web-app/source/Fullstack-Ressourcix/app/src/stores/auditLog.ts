@@ -22,7 +22,6 @@ export interface AuditLogEntry {
   timestamp: string // ISO
 }
 
-// Anzeige-Metadaten (Icon/Farbe/Hintergrund) je Aktionstyp, verwendet von DashboardView.vue und AuditLogView.vue.
 export const auditLogActionMeta: Record<AuditLogAction, { icon: string, color: string, bg: string }> = {
   RequestCreated: { icon: 'mdi-plus', color: 'warning', bg: 'orange-lighten-4' },
   RequestUpdated: { icon: 'mdi-pencil', color: 'info', bg: 'blue-lighten-4' },

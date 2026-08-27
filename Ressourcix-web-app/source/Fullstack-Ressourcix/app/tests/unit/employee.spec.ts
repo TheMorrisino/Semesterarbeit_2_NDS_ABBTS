@@ -50,4 +50,66 @@ describe('Employee Store', () => {
     expect(store.employees).toHaveLength(1)
     expect(store.employees[0]).toEqual(createdEmployee)
   })
+
+  it('findet einen Mitarbeiter anhand der ID, nicht anhand des Namens', () => {
+    const store = useEmployeeStore()
+    store.employees = [
+      {
+        id: '11111111-1111-1111-1111-111111111111',
+        name: 'Max Muster',
+        username: 'max.muster',
+        role: 'Mitarbeiter',
+        workload: 100,
+        vacationDays: 25,
+        isActive: true,
+        permissionLevel: 1,
+      },
+      {
+        id: '22222222-2222-2222-2222-222222222222',
+        name: 'Max Muster',
+        username: 'max.muster2',
+        role: 'Mitarbeiter',
+        workload: 100,
+        vacationDays: 20,
+        isActive: true,
+        permissionLevel: 1,
+      },
+    ]
+
+    const found = store.employeeById('22222222-2222-2222-2222-222222222222')
+
+    expect(found?.id).toBe('22222222-2222-2222-2222-222222222222')
+    expect(found?.vacationDays).toBe(20)
+  })
+
+  it('behält beim Bearbeiten Felder wie mustChangePassword, die im Update-Payload fehlen', async () => {
+    const store = useEmployeeStore()
+    store.employees = [
+      {
+        id: '11111111-1111-1111-1111-111111111111',
+        name: 'Max Muster',
+        username: 'max.muster',
+        role: 'Mitarbeiter',
+        workload: 100,
+        vacationDays: 25,
+        isActive: true,
+        permissionLevel: 1,
+        mustChangePassword: true,
+      },
+    ]
+
+    vi.mocked(employeesApi.update).mockResolvedValue(undefined)
+
+    await store.update('11111111-1111-1111-1111-111111111111', {
+      name: 'Max Muster',
+      username: 'max.muster',
+      role: 'Mitarbeiter',
+      workload: 100,
+      vacationDays: 25,
+      isActive: true,
+      permissionLevel: 1,
+    })
+
+    expect(store.employees[0].mustChangePassword).toBe(true)
+  })
 })

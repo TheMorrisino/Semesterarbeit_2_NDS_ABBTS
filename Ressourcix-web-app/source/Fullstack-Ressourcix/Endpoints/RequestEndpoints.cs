@@ -34,6 +34,12 @@ public static class RequestEndpoints
           }
 
           var created = await store.CreateAsync(dto, AuthHelpers.ActorName(user));
+          if (created is null)
+          {
+            return Results.BadRequest(
+              new { message = "Dieser Zeitraum überschneidet sich mit einem bestehenden eigenen Antrag." }
+            );
+          }
           return Results.Created($"/api/requests/{created.Id}", RequestResponse.From(created));
         }
       )
@@ -52,15 +58,33 @@ public static class RequestEndpoints
             return Results.Forbid();
           }
 
-          return await store.UpdateAsync(
+          var result = await store.UpdateAsync(
             id,
             update.until,
             update.status,
             AuthHelpers.IsAdmin(user),
             AuthHelpers.ActorName(user)
-          )
-            ? Results.Ok()
-            : Results.NotFound();
+          );
+
+          if (result != RequestUpdateResult.Success)
+          {
+            return result switch
+            {
+              RequestUpdateResult.InvalidDateRange => Results.BadRequest(
+                new { message = "until darf nicht vor from liegen." }
+              ),
+              RequestUpdateResult.SelfOverlap => Results.BadRequest(
+                new { message = "Dieser Zeitraum überschneidet sich mit einem bestehenden eigenen Antrag." }
+              ),
+              _ => Results.NotFound(),
+            };
+          }
+
+          // Der tatsächlich gespeicherte Stand wird zurückgegeben (nicht einfach 200 ohne Body),
+          // da UpdateAsync z.B. den Status serverseitig auf Open zurücksetzen kann, auch wenn ein
+          // anderer Status angefragt wurde - der Aufrufer muss das im lokalen State übernehmen können.
+          var updated = await store.GetAsync(id);
+          return updated is null ? Results.NotFound() : Results.Ok(RequestResponse.From(updated));
         }
       )
       .RequireAuthorization("ActiveSession");

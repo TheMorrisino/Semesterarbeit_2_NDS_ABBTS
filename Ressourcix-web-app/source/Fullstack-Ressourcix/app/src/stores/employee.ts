@@ -20,6 +20,7 @@ export const useEmployeeStore = defineStore('employees', {
   }),
   getters: {
     employeeName: state => (id: string) => state.employees.find(e => e.id === id)?.name,
+    employeeById: state => (id: string) => state.employees.find(e => e.id === id),
   },
   actions: {
     async load () {
@@ -39,7 +40,9 @@ export const useEmployeeStore = defineStore('employees', {
       await employeesApi.update(id, employee)
       const index = this.employees.findIndex(e => e.id === id)
       if (index !== -1) {
-        this.employees[index] = { id, ...employee }
+        // Mergen statt ersetzen: Felder, die der Update-Payload nicht kennt (z.B.
+        // mustChangePassword, vom Server verwaltet), dürfen nicht aus dem Cache verschwinden.
+        this.employees[index] = { ...this.employees[index], ...employee, id }
       }
     },
     async toggleActive (id: string) {

@@ -1,6 +1,3 @@
-// Gemeinsame Überschneidungs-Heatmap-Logik (grün -> gelb -> rot, fliessender Verlauf),
-// verwendet von CalenderView.vue und dem Dashboard-Überschneidungsdiagramm.
-
 // Schwellwerte – später über eine Einstellungs-UI konfigurierbar
 export const OVERLAP_FREE_THRESHOLD = 1
 export const OVERLAP_CRITICAL_THRESHOLD = 5

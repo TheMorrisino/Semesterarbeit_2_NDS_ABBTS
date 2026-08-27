@@ -1,4 +1,3 @@
-// Types
 import type { App } from 'vue'
 import { createPinia } from 'pinia'
 /**
@@ -7,7 +6,6 @@ import { createPinia } from 'pinia'
  * Automatically included in `./src/main.ts`
  */
 import i18n from './i18n'
-// Plugins
 import vuetify from './vuetify'
 
 // Router wird bewusst NICHT hier registriert: er muss erst installiert werden, nachdem

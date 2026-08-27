@@ -52,6 +52,16 @@ public class AuthStore
   public Task<Employee?> FindByIdAsync(Guid id) =>
     _db.Employees.FirstOrDefaultAsync(e => e.Id == id);
 
+  // Erneute Prüfung pro Request (siehe Program.cs OnValidatePrincipal): Login prüft IsActive nur
+  // einmal beim Einloggen - ohne diese Prüfung bliebe eine bereits ausgestellte Session bis zu 8h
+  // gültig, selbst wenn das Konto zwischenzeitlich deaktiviert wurde.
+  public async Task<bool> IsActiveAsync(Guid employeeId) =>
+    await _db
+      .Employees.AsNoTracking()
+      .Where(e => e.Id == employeeId)
+      .Select(e => (bool?)e.IsActive)
+      .FirstOrDefaultAsync() == true;
+
   // Rückgabe: (NotFound, Error). Error == null und NotFound == false bedeutet Erfolg.
   public async Task<(bool NotFound, string? Error)> ChangePasswordAsync(
     Guid id,

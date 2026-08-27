@@ -1,5 +1,3 @@
-// Gemeinsame Datumshilfsfunktionen, verwendet von CalenderView.vue und DashboardView.vue.
-
 export function addDays (date: Date, days: number): Date {
   const result = new Date(date)
   result.setDate(result.getDate() + days)

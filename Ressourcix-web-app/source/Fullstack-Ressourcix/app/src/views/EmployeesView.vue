@@ -198,7 +198,6 @@
     await employeeStore.toggleActive(item.id)
   }
 
-  // --- Detailansicht (alle Attribute, einzeln kopierbar) ---
   const detailDialogOpen = ref(false)
   const detailEntry = ref<Employee | null>(null)
   const copySnackbar = ref(false)
@@ -229,7 +228,6 @@
     copySnackbar.value = true
   }
 
-  // --- Dialog-Logik (ein Dialog für Erfassen + Bearbeiten) ---
   const dialogOpen = ref(false)
   const formValid = ref(false)
   const formRef = ref()

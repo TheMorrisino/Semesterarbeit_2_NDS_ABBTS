@@ -214,16 +214,15 @@
   import { useAuthStore } from '@/stores/auth'
   import { type Employee, useEmployeeStore } from '@/stores/employee'
   import { type Request, RequestStatus, useRequestStore } from '@/stores/request'
-  import { addDays, addMonths, addYears, buildDayRange, daysBetweenInclusive, formatDate, isWeekend, toISODate } from '@/utils/date'
+  import { addDays, addMonths, addYears, buildDayRange, formatDate, isWeekend, toISODate } from '@/utils/date'
   import { uniqueInitials } from '@/utils/initials'
   import { isEmployeeAbsentOn } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
+  import { plannedDaysForEmployee } from '@/utils/plannedDays'
   import { statusMeta } from '@/utils/statusMeta'
   import { weekdayLabels } from '@/utils/weekday'
 
   const { t } = useI18n()
-
-  // ===== Domain-Typen (Employee/Request kommen aus den Stores, hier nur UI-lokaler Zustand) =====
 
   interface DayCell {
     iso: string
@@ -245,8 +244,6 @@
     Object.values(RequestStatus).map(value => ({ title: statusMeta(value, t).label, value })),
   )
 
-  // ===== Konstanten für das Tagesraster =====
-
   const DAY_COLUMN_WIDTH_PX = 40
   const NAME_COLUMN_WIDTH_DESKTOP_PX = 260
   const NAME_COLUMN_WIDTH_MOBILE_PX = 56 // nur Platz für das Kürzel (siehe uniqueInitials)
@@ -254,13 +251,9 @@
 
   const WEEKDAY_LABELS = computed(() => weekdayLabels(t))
 
-  // ===== Datumshilfsfunktionen =====
-
   function weekdayLabel (date: Date): string {
     return WEEKDAY_LABELS.value[date.getDay()]
   }
-
-  // ===== Zustand =====
 
   const route = useRoute()
   const router = useRouter()
@@ -294,8 +287,6 @@
     saveEntry,
     deleteEntry,
   } = useEntryDialog()
-
-  // ===== Abgeleitete Daten =====
 
   const toolbarLabel = computed(() =>
     new Intl.DateTimeFormat('de-CH', { month: 'long', year: 'numeric' }).format(centerDate.value),
@@ -333,10 +324,7 @@
   })
 
   function plannedDaysCount (employee: Employee): number {
-    return requestsForEmployee(employee.id).reduce(
-      (sum, request) => sum + daysBetweenInclusive(request.from, request.until),
-      0,
-    )
+    return plannedDaysForEmployee(requestStore.requests, employee.id)
   }
 
   function remainingSymbol (entitledDays: number, plannedDays: number): string {
@@ -371,8 +359,6 @@
     }),
   )
 
-  // ===== Navigation (Jahr/Monat/Woche) =====
-
   function jumpTo (newCenter: Date) {
     centerDate.value = newCenter
   }
@@ -388,8 +374,6 @@
   function jumpWeeks (delta: number) {
     jumpTo(addDays(centerDate.value, delta * 7))
   }
-
-  // ===== Antrag stellen / bearbeiten (Dialog-Zustand + Validierung siehe useEntryDialog) =====
 
   // Springt zu einem per Query-Param übergebenen Antrag (z.B. von der Genehmigungen-Seite aus)
   function jumpToRequest (requestId: string) {

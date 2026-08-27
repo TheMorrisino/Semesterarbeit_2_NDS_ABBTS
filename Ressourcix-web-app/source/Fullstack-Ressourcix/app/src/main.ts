@@ -4,21 +4,15 @@
  * Bootstraps Vuetify and other plugins then mounts the App`
  */
 
-// Composables
 import { createApp } from 'vue'
 
-// Assets
 import ressourcixLogo from '@/assets/Ressourcix_Icon_OhneB2.png'
-// Plugins
 import { registerPlugins } from '@/plugins'
 import router from '@/router'
-// Stores
 import { useAuthStore } from '@/stores/auth'
 
-// Components
 import App from './App.vue'
 
-// Styles
 import 'unfonts.css'
 import 'virtual:uno.css'
 import './styles/main.scss'
