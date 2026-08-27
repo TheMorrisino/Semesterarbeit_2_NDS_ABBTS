@@ -50,11 +50,13 @@ export const useRequestStore = defineStore('requests', {
       return created
     },
     async update (id: string, until: string, status: RequestStatus) {
-      await requestsApi.update(id, until, status)
-      const request = this.requests.find(r => r.id === id)
-      if (request) {
-        request.until = until
-        request.status = status
+      // Der Server kann Felder abweichend vom Payload setzen (z.B. Status serverseitig auf Open
+      // zurücksetzen, wenn sich das Enddatum ändert) - deshalb die Response übernehmen, nicht die
+      // gesendeten Werte annehmen.
+      const updated = await requestsApi.update(id, until, status)
+      const index = this.requests.findIndex(r => r.id === id)
+      if (index !== -1) {
+        this.requests[index] = updated
       }
     },
     async remove (id: string) {

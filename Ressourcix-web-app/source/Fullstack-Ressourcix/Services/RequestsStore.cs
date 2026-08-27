@@ -2,11 +2,25 @@ namespace FullstackRessourcix;
 
 using Microsoft.EntityFrameworkCore;
 
+public enum RequestUpdateResult
+{
+  NotFound,
+  InvalidDateRange,
+  SelfOverlap,
+  Success,
+}
+
 public class RequestsStore
 {
   private readonly AppDbContext _db;
   private readonly AuditLogStore _auditLog;
   private readonly ILogger<RequestsStore> _logger;
+
+  // Status, die eine reale oder wahrscheinliche Abwesenheit bedeuten und daher für die
+  // Überschneidungsprüfung zählen. Rejected/Cancelled-Anträge finden nie statt und werden
+  // bewusst ausgeschlossen, damit sie nicht fälschlich als Konflikt markiert werden.
+  private static readonly RequestStatus[] BlockingStatuses =
+    [RequestStatus.Open, RequestStatus.Approved, RequestStatus.Taken];
 
   public RequestsStore(AppDbContext db, AuditLogStore auditLog, ILogger<RequestsStore> logger)
   {
@@ -14,6 +28,36 @@ public class RequestsStore
     _auditLog = auditLog;
     _logger = logger;
   }
+
+  // Für das Overlap-Flag: überschneidet sich der Zeitraum mit einer aktiven Abwesenheit einer
+  // ANDEREN Person?
+  private Task<bool> HasCrossEmployeeOverlapAsync(Guid employeeId, DateOnly from, DateOnly until) =>
+    _db
+      .Requests.AsNoTracking()
+      .AnyAsync(r =>
+        r.EmployeeId != employeeId
+        && BlockingStatuses.Contains(r.Status)
+        && r.From <= until
+        && from <= r.Until
+      );
+
+  // Verhindert, dass dieselbe Person zwei sich überschneidende aktive Anträge hat.
+  // excludeRequestId schliesst beim Bearbeiten den Antrag selbst von der Prüfung aus.
+  private Task<bool> HasSelfOverlapAsync(
+    Guid employeeId,
+    DateOnly from,
+    DateOnly until,
+    Guid? excludeRequestId = null
+  ) =>
+    _db
+      .Requests.AsNoTracking()
+      .AnyAsync(r =>
+        r.EmployeeId == employeeId
+        && (excludeRequestId == null || r.Id != excludeRequestId.Value)
+        && BlockingStatuses.Contains(r.Status)
+        && r.From <= until
+        && from <= r.Until
+      );
 
   public Task<List<AbsenceRequest>> AllAsync() => _db.Requests.AsNoTracking().ToListAsync();
 
@@ -23,14 +67,17 @@ public class RequestsStore
   public Task<AbsenceRequest?> GetAsync(Guid id) =>
     _db.Requests.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
 
-  public async Task<AbsenceRequest> CreateAsync(CreateRequestDto dto, string actor)
+  // Gibt null zurück, wenn der neue Antrag einen bestehenden aktiven Antrag DERSELBEN Person
+  // überschneidet (Selbst-Überschneidung) - der Aufrufer meldet das als 400 Bad Request.
+  public async Task<AbsenceRequest?> CreateAsync(CreateRequestDto dto, string actor)
   {
+    if (await HasSelfOverlapAsync(dto.employeeId, dto.from, dto.until))
+      return null;
+
     // days und overlap kommen nie vom Client - der könnte sonst z.B. eine falsche Ferientageanzahl
     // oder ein falsches Überschneidungsflag vortäuschen; beides wird serverseitig berechnet.
     var days = dto.until.DayNumber - dto.from.DayNumber + 1;
-    var overlap = await _db
-      .Requests.AsNoTracking()
-      .AnyAsync(r => r.EmployeeId != dto.employeeId && r.From <= dto.until && dto.from <= r.Until);
+    var overlap = await HasCrossEmployeeOverlapAsync(dto.employeeId, dto.from, dto.until);
 
     var created = new AbsenceRequest(
       Id: Guid.NewGuid(),
@@ -58,7 +105,7 @@ public class RequestsStore
     return created;
   }
 
-  public async Task<bool> UpdateAsync(
+  public async Task<RequestUpdateResult> UpdateAsync(
     Guid id,
     DateOnly until,
     RequestStatus status,
@@ -68,9 +115,26 @@ public class RequestsStore
   {
     var existing = await _db.Requests.FindAsync(id);
     if (existing is null)
-      return false;
+      return RequestUpdateResult.NotFound;
 
-    var effectiveStatus = allowStatusChange ? status : existing.Status;
+    if (until < existing.From)
+      return RequestUpdateResult.InvalidDateRange;
+
+    if (await HasSelfOverlapAsync(existing.EmployeeId, existing.From, until, excludeRequestId: id))
+      return RequestUpdateResult.SelfOverlap;
+
+    // Days und Overlap wie bei CreateAsync serverseitig aus dem (ggf. geänderten) Datumsbereich neu
+    // berechnen - sonst blieben beide nach einer Enddatum-Änderung auf dem alten, jetzt falschen Stand.
+    var days = until.DayNumber - existing.From.DayNumber + 1;
+    var overlap = await HasCrossEmployeeOverlapAsync(existing.EmployeeId, existing.From, until);
+
+    // Eine Datumsänderung entwertet eine bestehende Genehmigung/Ablehnung - der Antrag muss
+    // erneut geprüft werden, unabhängig davon, wer die Änderung vornimmt oder welcher Status
+    // mitgeschickt wurde.
+    var effectiveStatus =
+      until != existing.Until ? RequestStatus.Open
+      : allowStatusChange ? status
+      : existing.Status;
     var changeText = AuditSummaryBuilder.BuildRequestUpdateSummary(
       existing,
       until,
@@ -79,7 +143,15 @@ public class RequestsStore
 
     var employeeName = await EmployeeNameAsync(existing.EmployeeId);
     _db.Entry(existing)
-      .CurrentValues.SetValues(existing with { Until = until, Status = effectiveStatus });
+      .CurrentValues.SetValues(
+        existing with
+        {
+          Until = until,
+          Days = days,
+          Overlap = overlap,
+          Status = effectiveStatus,
+        }
+      );
     await _db.SaveChangesAsync();
     _logger.LogInformation("Ferienantrag aktualisiert: {RequestId}", id);
 
@@ -89,7 +161,7 @@ public class RequestsStore
       actor,
       $"Ferienantrag geändert für {employeeName}: {changeText}"
     );
-    return true;
+    return RequestUpdateResult.Success;
   }
 
   public async Task<bool> SetStatusAsync(Guid id, RequestStatus status, string actor)

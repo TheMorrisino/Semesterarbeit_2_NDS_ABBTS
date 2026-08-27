@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using FullstackRessourcix;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -11,6 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 var appSettings = builder.Configuration.Get<AppSettings>();
 
 ArgumentNullException.ThrowIfNull(appSettings);
+
+// Ergänzt die Konsolen-Ausgabe (Standard-Provider, bleibt aktiv) um eine Datei: dieselben
+// ILogger<T>-Aufrufe, die im Backend schon überall verwendet werden, landen zusätzlich in
+// Logs/ressourcix-{Datum}.log. Respektiert dieselbe Logging:LogLevel-Konfiguration wie jeder
+// andere Provider.
+var logFilePath = Path.Combine(
+  builder.Environment.ContentRootPath,
+  "Logs",
+  $"ressourcix-{DateTime.Now:yyyy-MM-dd}.log"
+);
+builder.Logging.AddProvider(new FileLoggerProvider(logFilePath));
 
 var connectionString =
   builder.Configuration.GetConnectionString("AppDb")
@@ -36,6 +49,19 @@ builder
     {
       context.Response.StatusCode = StatusCodes.Status403Forbidden;
       return Task.CompletedTask;
+    };
+    // Login prüft IsActive nur einmal - ohne diese erneute Prüfung pro Request bliebe eine
+    // bereits ausgestellte Session bis zu 8h gültig, selbst wenn das Konto zwischenzeitlich
+    // deaktiviert wurde (siehe AuthStore.IsActiveAsync).
+    options.Events.OnValidatePrincipal = async context =>
+    {
+      var employeeIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+      var authStore = context.HttpContext.RequestServices.GetRequiredService<AuthStore>();
+      if (!Guid.TryParse(employeeIdClaim, out var employeeId) || !await authStore.IsActiveAsync(employeeId))
+      {
+        context.RejectPrincipal();
+        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+      }
     };
   });
 builder.Services.AddAuthorization(options =>

@@ -1,6 +1,4 @@
-// Gemeinsame Anzeige-Metadaten (Label/Farbe/Icon) pro RequestStatus, verwendet von
-// CalenderView.vue, DashboardView.vue und AbsencesView.vue. `t` wird injiziert, damit
-// diese Funktion eine reine Funktion ohne vue-i18n-Abhängigkeit bleibt.
+// `t` wird injiziert, damit diese Funktion eine reine Funktion ohne vue-i18n-Abhängigkeit bleibt.
 
 import { RequestStatus } from '@/stores/request'
 

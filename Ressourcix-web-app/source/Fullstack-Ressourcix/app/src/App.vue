@@ -70,6 +70,5 @@
   const { t } = useI18n()
   const route = useRoute()
 
-  // aktualisiert sich automatisch bei jedem Routenwechsel, da route.meta reaktiv ist
   const pageTitle = computed(() => (route.meta.titleKey ? t(route.meta.titleKey) : ''))
 </script>

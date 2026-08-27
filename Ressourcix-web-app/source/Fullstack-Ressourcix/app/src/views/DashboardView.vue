@@ -175,6 +175,7 @@
   import { daysBetweenInclusive, formatDate, startOfWeek, toISODate } from '@/utils/date'
   import { isEmployeeAbsentOn } from '@/utils/overlap'
   import { overlapColor } from '@/utils/overlapHeatmap'
+  import { plannedDaysForEmployee } from '@/utils/plannedDays'
   import { statusMeta } from '@/utils/statusMeta'
   import { weekdayLabels } from '@/utils/weekday'
 
@@ -187,8 +188,6 @@
   const OVERLAP_CHART_DAYS = 14
   const authStore = useAuthStore()
 
-  // ===== Datumshilfsfunktionen =====
-
   function timeAgo (iso: string): string {
     const diffMinutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000)
     if (diffMinutes < 1) return t('time.justNow')
@@ -199,17 +198,15 @@
     return diffDays === 1 ? t('time.oneDayAgo') : t('time.daysAgo', { n: diffDays })
   }
 
-  // ===== Überschneidungen: wie viele Mitarbeitende sind an einem Tag gleichzeitig abwesend =====
-
   function absentCountOnDay (iso: string): number {
     return employeeStore.employees.filter(employee =>
       isEmployeeAbsentOn(requestStore.requests, employee.id, iso),
     ).length
   }
 
-  // ===== Ferien-Statuszeile (Platzhalter-Mitarbeitender, siehe Kommentar oben im Template) =====
-
-  const currentEmployee = computed(() => employeeStore.employees.find(e => e.name === authStore.user?.name) ?? null)
+  const currentEmployee = computed(() =>
+    authStore.user ? employeeStore.employeeById(authStore.user.id) ?? null : null,
+  )
 
   const entitledDays = computed(() => (currentEmployee.value ? Math.round(currentEmployee.value.vacationDays) : 0))
 
@@ -224,14 +221,10 @@
   )
 
   const plannedDays = computed(() =>
-    ownRequests.value
-      .filter(r => r.status === RequestStatus.Open || r.status === RequestStatus.Approved)
-      .reduce((sum, r) => sum + daysBetweenInclusive(r.from, r.until), 0),
+    currentEmployee.value ? plannedDaysForEmployee(requestStore.requests, currentEmployee.value.id) : 0,
   )
 
   const remainingDays = computed(() => entitledDays.value - takenDays.value - plannedDays.value)
-
-  // ===== Team diese Woche =====
 
   const weekDays = computed(() => {
     const start = startOfWeek(new Date())
@@ -252,8 +245,6 @@
     })
   })
 
-  // ===== Überschneidungsdiagramm: nächste 14 Tage =====
-
   const overlapChartPoints = computed<OverlapChartPoint[]>(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -270,8 +261,6 @@
       }
     })
   })
-
-  // ===== Listen =====
 
   const openApprovals = computed(() => requestStore.requests.filter(r => r.status === RequestStatus.Open))
 

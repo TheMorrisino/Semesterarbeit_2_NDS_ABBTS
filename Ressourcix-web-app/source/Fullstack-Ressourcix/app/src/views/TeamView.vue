@@ -87,7 +87,10 @@
   import { useI18n } from 'vue-i18n'
   import { useEmployeeStore } from '@/stores/employee'
   import { RequestStatus, useRequestStore } from '@/stores/request'
+  import { toISODate } from '@/utils/date'
   import { avatarColor, initialsFor } from '@/utils/initials'
+  import { isRequestActiveOn } from '@/utils/overlap'
+  import { plannedDaysForEmployee } from '@/utils/plannedDays'
 
   const { t } = useI18n()
   const employeeStore = useEmployeeStore()
@@ -118,21 +121,16 @@
     return Math.round(e.vacationDays)
   }
 
-  // --- Taken: Anträge mit Status "Bezogen" (Taken) ---
   function takenDays (employeeId: string): number {
     return requestStore.requests
       .filter(r => r.employeeId === employeeId && r.status === RequestStatus.Taken)
       .reduce((sum, r) => sum + r.days, 0)
   }
 
-  // --- Planned: offene oder genehmigte Anträge (konsistent mit CalenderView.plannedDaysCount) ---
   function plannedDays (employeeId: string): number {
-    return requestStore.requests
-      .filter(r => r.employeeId === employeeId && (r.status === RequestStatus.Approved || r.status === RequestStatus.Open))
-      .reduce((sum, r) => sum + r.days, 0)
+    return plannedDaysForEmployee(requestStore.requests, employeeId)
   }
 
-  // --- Status: is there an open request for this person? ---
   function employeeStatus (employeeId: string): TeamStatus {
     const hasOpen = requestStore.requests.some(r => r.employeeId === employeeId && r.status === RequestStatus.Open)
     return hasOpen ? 'open' : 'planned'
@@ -161,10 +159,9 @@
 
   const stats = computed(() => ({
     employeeCount: employeeStore.employees.length,
-    currentAbsent: requestStore.requests.filter(r => {
-      const today = new Date()
-      return r.status === RequestStatus.Approved && new Date(r.from) <= today && new Date(r.until) >= today
-    }).length,
+    currentAbsent: requestStore.requests.filter(
+      r => r.status === RequestStatus.Approved && isRequestActiveOn(r, toISODate(new Date())),
+    ).length,
     offen: requestStore.requests.filter(r => r.status === RequestStatus.Open).length,
     overlaps: requestStore.requests.filter(r => r.overlap).length,
   }))

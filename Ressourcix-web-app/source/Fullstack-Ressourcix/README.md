@@ -188,6 +188,7 @@ dotnet Fullstack-Ressourcix.dll
 - **Audit-Log**: Einträge entstehen ausschliesslich serverseitig als Teil der jeweiligen Mutation (kein `POST`-Endpoint dafür), damit sie nicht gefälscht oder ausgelassen werden können.
 - **Globales Exception-Handling**: unbehandelte Fehler werden strukturiert geloggt und liefern dem Client eine einheitliche, in Produktion nichtssagende Fehlermeldung (keine Stacktraces/interne Details nach aussen).
 - **Bekannter offener Punkt** (bewusst nicht in dieser Semesterarbeit behoben): `appsettings.Development.json` enthält das lokale DB-Passwort und das Seed-Default-Passwort im Klartext im Repo — für eine echte Produktivumgebung müsste das in User-Secrets/Umgebungsvariablen ausgelagert werden.
+- **Bekannter offener Punkt** (bewusst nicht in dieser Semesterarbeit behoben): Die Überschneidungsprüfung in `RequestsStore` (Create/Update) liest den aktuellen Datenbestand und schreibt danach, ohne Transaktion oder DB-Constraint dazwischen (TOCTOU). Erstellen zwei Personen im selben Sekundenbruchteil sich überschneidende Anträge, kann die Überschneidung theoretisch unentdeckt bleiben. Für eine echte Produktivumgebung wäre das über eine serialisierbare Transaktion (mit Retry) oder eine DB-seitige Exclusion-Constraint zu lösen; angesichts der Nutzungsintensität dieser Anwendung ist das Risiko hier vernachlässigbar.
 
 ## 🌍 Mehrsprachigkeit
 
