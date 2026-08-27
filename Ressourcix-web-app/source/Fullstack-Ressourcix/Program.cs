@@ -14,6 +14,17 @@ var appSettings = builder.Configuration.Get<AppSettings>();
 
 ArgumentNullException.ThrowIfNull(appSettings);
 
+// Ergänzt die Konsolen-Ausgabe (Standard-Provider, bleibt aktiv) um eine Datei: dieselben
+// ILogger<T>-Aufrufe, die im Backend schon überall verwendet werden, landen zusätzlich in
+// Logs/ressourcix-{Datum}.log. Respektiert dieselbe Logging:LogLevel-Konfiguration wie jeder
+// andere Provider.
+var logFilePath = Path.Combine(
+  builder.Environment.ContentRootPath,
+  "Logs",
+  $"ressourcix-{DateTime.Now:yyyy-MM-dd}.log"
+);
+builder.Logging.AddProvider(new FileLoggerProvider(logFilePath));
+
 var connectionString =
   builder.Configuration.GetConnectionString("AppDb")
   ?? throw new InvalidOperationException("ConnectionStrings:AppDb ist nicht konfiguriert.");
