@@ -31,4 +31,8 @@ dotnet publish -c Release
 Write-Host "==> Publish-Output starten"
 Set-Location bin/Release/net10.0/publish
 $env:ConnectionStrings__AppDb = "Host=localhost;Port=5432;Database=ressourcix;Username=ressourcix;Password=ressourcix_dev_pw"
+# Kestrels Default-Port 5000 liegt unter Windows oft in einem von Hyper-V/WSL2/Docker Desktop
+# reservierten Portbereich ("SocketException 10013: Zugriff verweigert"). Deshalb explizit auf
+# den im Projekt etablierten HTTP-Port binden (siehe README, launchSettings.json).
+$env:ASPNETCORE_URLS = "http://localhost:5167"
 dotnet Fullstack-Ressourcix.dll
