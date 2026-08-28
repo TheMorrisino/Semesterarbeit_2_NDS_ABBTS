@@ -114,11 +114,17 @@ App öffnen: **https://localhost:7057** (HTTP-Fallback: http://localhost:5167).
 
 Alternativ mit C# Dev Kit in VS Code: Ordner `source/Fullstack-Ressourcix` öffnen, Run-and-Debug-Profil `http` oder `https` wählen, `F5`.
 
-Alle Schritte 1–5 stehen auch gebündelt in [`install.sh`](install.sh) — einmal ausführbar machen und starten:
+Alle Schritte 1–5 stehen auch gebündelt in [`install.sh`](install.sh) (Bash) bzw. [`install.ps1`](install.ps1) (PowerShell):
 
+**Bash**
 ```bash
 chmod +x install.sh
 ./install.sh
+```
+
+**PowerShell**
+```powershell
+.\install.ps1
 ```
 
 > ⚠️ **Datenbank-Volume vs. Migrationsstand**: `docker compose up -d` behält das Postgres-Volume über Neustarts hinweg bei (Named Volume, siehe `docker-compose.yml`). Nach einem Pull mit neuen/geänderten Migrationen kann das lokale Volume dadurch einen älteren Schema-Stand enthalten als der Code erwartet. Anzeichen dafür:
@@ -173,11 +179,17 @@ dotnet Fullstack-Ressourcix.dll
 
 (PostgreSQL muss dafür laufen, siehe [Setup und Start](#️-setup-und-start)).
 
-Datenbank starten, Produktions-Build und Start des Publish-Outputs (mit lokalem Connection String) sind gebündelt in [`start.sh`](start.sh):
+Datenbank starten, Produktions-Build und Start des Publish-Outputs (mit lokalem Connection String) sind gebündelt in [`start.sh`](start.sh) (Bash) bzw. [`start.ps1`](start.ps1) (PowerShell):
 
+**Bash**
 ```bash
 chmod +x start.sh
 ./start.sh
+```
+
+**PowerShell**
+```powershell
+.\start.ps1
 ```
 
 ## 🛡️ Sicherheit
