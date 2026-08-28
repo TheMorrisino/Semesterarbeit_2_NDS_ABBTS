@@ -114,6 +114,13 @@ App öffnen: **https://localhost:7057** (HTTP-Fallback: http://localhost:5167).
 
 Alternativ mit C# Dev Kit in VS Code: Ordner `source/Fullstack-Ressourcix` öffnen, Run-and-Debug-Profil `http` oder `https` wählen, `F5`.
 
+Alle Schritte 1–5 stehen auch gebündelt in [`install.sh`](install.sh) — einmal ausführbar machen und starten:
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
 > ⚠️ **Datenbank-Volume vs. Migrationsstand**: `docker compose up -d` behält das Postgres-Volume über Neustarts hinweg bei (Named Volume, siehe `docker-compose.yml`). Nach einem Pull mit neuen/geänderten Migrationen kann das lokale Volume dadurch einen älteren Schema-Stand enthalten als der Code erwartet. Anzeichen dafür:
 > - `dotnet-ef database update` schlägt mit `relation "..." already exists` fehl (die alten Tabellen existieren schon, `__EFMigrationsHistory` kennt aber nicht die aktuelle Migrations-ID).
 > - Login/andere Requests schlagen zur Laufzeit mit `column e."Id" does not exist` (bzw. `Hint: ... e.id`) fehl — die im Volume liegenden Spalten (z.B. camelCase) passen nicht mehr zum aktuellen Modell (PascalCase).
@@ -163,22 +170,15 @@ $env:ConnectionStrings__AppDb = "Host=localhost;Port=5432;Database=ressourcix;Us
 dotnet Fullstack-Ressourcix.dll
 ```
  
-Zum schnellen Durchtesten des Publish-Outputs mit der lokalen Dev-Konfiguration reicht dagegen:
 
- **Bash**
+(PostgreSQL muss dafür laufen, siehe [Setup und Start](#️-setup-und-start)).
+
+Datenbank starten, Produktions-Build und Start des Publish-Outputs (mit lokalem Connection String) sind gebündelt in [`start.sh`](start.sh):
+
 ```bash
-cd bin/Release/net10.0/publish
-ASPNETCORE_ENVIRONMENT=Development dotnet Fullstack-Ressourcix.dll
+chmod +x start.sh
+./start.sh
 ```
-
-**Powershell** 
-```powershell
-cd bin/Release/net10.0/publish
-$env:ASPNETCORE_ENVIRONMENT = "Development"
-dotnet Fullstack-Ressourcix.dll
-```
-
-(in beiden Fällen muss PostgreSQL laufen, siehe [Setup und Start](#️-setup-und-start)).
 
 ## 🛡️ Sicherheit
 
