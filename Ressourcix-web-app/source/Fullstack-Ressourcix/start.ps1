@@ -2,9 +2,20 @@ $ErrorActionPreference = "Stop"
 
 Set-Location $PSScriptRoot
 
+# 0. Docker oder Podman?
+$ContainerChoice = Read-Host "Container-Tool wählen: [1] Docker  [2] Podman (Enter = 1)"
+switch ($ContainerChoice) {
+  { $_ -in @("", "1") } { $ContainerTool = "docker" }
+  "2" { $ContainerTool = "podman" }
+  default {
+    Write-Host "Ungültige Eingabe '$ContainerChoice', verwende Docker"
+    $ContainerTool = "docker"
+  }
+}
+
 # 1. PostgreSQL lokal starten
-Write-Host "==> PostgreSQL starten (docker compose)"
-docker compose up -d
+Write-Host "==> PostgreSQL starten ($ContainerTool compose)"
+& $ContainerTool compose up -d
 
 # 2. Produktions-Build (installiert Frontend-Abhängigkeiten, baut Frontend + Backend
 #    in Release-Konfiguration, kopiert alles nach bin/Release/net10.0/publish)
