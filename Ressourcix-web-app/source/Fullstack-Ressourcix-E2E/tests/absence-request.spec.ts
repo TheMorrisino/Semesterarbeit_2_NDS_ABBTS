@@ -28,7 +28,16 @@ test('Ferienantrag kann erstellt werden', async ({ page }) => {
   const employeeRow = page
   .locator('tbody tr')
   .filter({ hasText: 'Admin Test' })
-  const firstDayCell = employeeRow.locator('td.clickable').first()
+
+  const firstDayCell = employeeRow
+  .locator('td.clickable')
+  .first()
+
+  const startDateString = await firstDayCell.getAttribute('data-date')
+
+  if (!startDateString) {
+    throw new Error('Startdatum konnte nicht aus der Kalenderzelle gelesen werden.')
+  }
 
   await firstDayCell.click()
 
@@ -36,10 +45,15 @@ test('Ferienantrag kann erstellt werden', async ({ page }) => {
     page.getByTestId('request-end-date')
   ).toBeVisible()
 
+  const startDate = new Date(startDateString ?? '')
+  startDate.setDate(startDate.getDate() + 7)
+
+  const endDate = startDate.toISOString().split('T')[0]
+
   await page
     .getByTestId('request-end-date')
     .locator('input')
-    .fill('2026-09-05')
+    .fill(endDate)
 
   await page
     .getByTestId('calendar-save-entry')
