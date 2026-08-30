@@ -3,9 +3,20 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
+# 0. Docker oder Podman?
+read -rp "Container-Tool wählen: [1] Docker  [2] Podman (Enter = 1): " CONTAINER_CHOICE
+case "$CONTAINER_CHOICE" in
+  ""|1) CONTAINER_TOOL=docker ;;
+  2) CONTAINER_TOOL=podman ;;
+  *)
+    echo "Ungültige Eingabe '$CONTAINER_CHOICE', verwende Docker" >&2
+    CONTAINER_TOOL=docker
+    ;;
+esac
+
 # 1. PostgreSQL lokal starten
-echo "==> PostgreSQL starten (docker compose)"
-docker compose up -d
+echo "==> PostgreSQL starten ($CONTAINER_TOOL compose)"
+$CONTAINER_TOOL compose up -d
 
 # 2. Produktions-Build (installiert Frontend-Abhängigkeiten, baut Frontend + Backend
 #    in Release-Konfiguration, kopiert alles nach bin/Release/net10.0/publish)
